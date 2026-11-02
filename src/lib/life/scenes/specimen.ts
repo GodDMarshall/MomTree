@@ -546,7 +546,7 @@ export class SpecimenScene implements StoryScene {
         { id: "pronuclei", pos: w(new THREE.Vector3(0.12, 0.13, 0.05)), a: windowed(u, 41.8, 44.4) },
         { id: "icm", pos: this.body.localToWorld(this.icmCentre.clone().add(new THREE.Vector3(0, 0.05, 0))), a: windowed(u, 59.4, 62.2) },
         { id: "hatch", pos: this.body.localToWorld(new THREE.Vector3(0, 0, 0)).add(new THREE.Vector3(0, 0.78, 0.2)), a: windowed(u, 64, 67.2) },
-        { id: "endometrium", pos: w(new THREE.Vector3(1.05, 0.95, -1.15)), a: windowed(u, 67.4, 71.8) },
+        { id: "endometrium", pos: w(new THREE.Vector3(-0.9, 0.75, -1.15)), a: windowed(u, 67.4, 71.8) },
         { id: "te", pos: w(new THREE.Vector3(0.62, -0.25, 0.1)), a: windowed(u, 59.8, 62.2) },
         { id: "cavity", pos: w(new THREE.Vector3(-0.05, -0.18, 0.1)), a: windowed(u, 60.2, 62.2) },
       ],

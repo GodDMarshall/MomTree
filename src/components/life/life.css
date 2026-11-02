@@ -248,12 +248,21 @@
   letter-spacing: 0.16em;
   font-variant-numeric: tabular-nums;
 }
+.life-caption-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
 .life-illus {
   margin-top: 14px;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  opacity: 0.65;
+  color: rgb(255 255 255 / 0.85);
+  text-shadow:
+    0 0 2px rgb(14 7 25 / 0.9),
+    0 1px 10px rgb(14 7 25 / 0.7);
 }
 
 /* ---------------------------------------------------------------- bottom HUD */
@@ -397,9 +406,13 @@
     right: var(--gutter);
     width: 62vw;
   }
-  .life-captext,
-  .life-illus {
+  .life-captext {
     display: none;
+  }
+  .life-illus {
+    margin-top: 8px;
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
   }
   .life-label {
     font-size: 9.5px;

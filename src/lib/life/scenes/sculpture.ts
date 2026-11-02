@@ -141,8 +141,14 @@ vec2 mapFigure(vec3 p){
   d = smin(d, sdEllipsoid(p - vec3(0.0, 0.9, -0.012), vec3(0.168, 0.12, 0.114)), 0.08);
   d = smin(d, sdEllipsoid(p - vec3(0.0, 1.045, 0.0), vec3(0.124, 0.15, 0.088)), 0.08);
   d = smin(d, sdEllipsoid(p - vec3(0.0, 1.235, 0.004), vec3(0.146, 0.168, 0.094)), 0.07);
-  vec3 pb = vec3(abs(p.x), p.y, p.z);
-  d = smin(d, sdEllipsoid(pb - vec3(0.058, 1.228, 0.056), vec3(0.048, 0.045, 0.038)), 0.05);
+  // A soft bodice across the chest (no separate bust or cleavage line), a fine neckline, and a
+  // pallu draped from her left shoulder across the chest, so she reads as clothed.
+  d = smin(d, sdEllipsoid(p - vec3(0.0, 1.222, 0.03), vec3(0.13, 0.06, 0.07)), 0.06);
+  vec3 nq = p - vec3(0.0, 1.372, 0.004);
+  d = smin(d, length(vec2(length(nq.xz * vec2(1.0, 1.25)) - 0.052, nq.y)) - 0.009, 0.012);
+  float pallu = sdCapsule(p, vec3(0.13, 1.392, 0.0), vec3(0.02, 1.225, 0.116), 0.021);
+  pallu = min(pallu, sdCapsule(p, vec3(0.02, 1.225, 0.116), vec3(-0.115, 1.035, 0.098), 0.021));
+  d = smin(d, pallu, 0.028);
   d = smin(d, sdCapsule(p, vec3(-0.142, 1.358, -0.016), vec3(0.142, 1.358, -0.016), 0.043), 0.065);
   d = smin(d, sdCapsule(p, vec3(0.0, 1.37, -0.005), NECK_TOP, 0.037), 0.045);
   d = smin(d, sdHead(p), 0.03);
@@ -208,7 +214,7 @@ vec3 fetusNormal(vec3 p){
 }
 float figureAO(vec3 p, vec3 n){
   float occ = 0.0, sca = 1.0;
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < AOS; i++) {
     float h = 0.008 + 0.045 * float(i);
     occ += (h - mapFigure(p + n * h).x) * sca;
     sca *= 0.72;
@@ -242,11 +248,12 @@ vec3 porcelain(vec3 p, vec3 n, vec3 rd, float mat){
   return c;
 }
 vec3 inner(vec3 p, vec3 n, vec3 rd, float mat){
-  vec3 base = mat < 4.5 ? vec3(1.0, 0.8, 0.78) : (mat < 5.5 ? vec3(0.66, 0.26, 0.34) : vec3(0.92, 0.86, 0.96));
+  // Porcelain cream for the baby (no pink or blue), a muted rose placenta, a pearly cord.
+  vec3 base = mat < 4.5 ? vec3(0.97, 0.9, 0.85) : (mat < 5.5 ? vec3(0.74, 0.46, 0.56) : vec3(0.92, 0.86, 0.96));
   vec3 L = normalize(vec3(-0.4, 0.8, 0.6));
   float wrap = clamp((dot(n, L) + 0.6) / 1.6, 0.0, 1.0);
   float fres = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 2.0);
-  return base * (0.32 + 0.78 * wrap) + vec3(1.0, 0.72, 0.78) * fres * 0.32;
+  return base * (0.32 + 0.78 * wrap) + vec3(0.92, 0.86, 1.0) * fres * 0.32;
 }
 
 vec2 cylinder(vec3 ro, vec3 rd, float r){
@@ -300,13 +307,13 @@ void main(){
       vec3 wq = (P - uWinC) / uWinR;
       float win = uGlass * smoothstep(1.32, 0.86, length(wq)) * smoothstep(-0.2, 0.3, dot(n, normalize(P - uWinC))) * step(res.y, 1.1);
       if (win > 0.003) {
-        vec3 amnion = vec3(0.3, 0.1, 0.2);
+        vec3 amnion = vec3(0.52, 0.44, 0.64); // soft lavender, never wine red
         vec3 seen = amnion + uGlowCol * 0.12;
         if (uFetusOn > 0.5) {
           float ft = 0.002;
           float fh = -1.0;
           vec2 fr = vec2(0.0);
-          for (int i = 0; i < 56; i++) {
+          for (int i = 0; i < FSTEPS; i++) {
             vec3 q = P + rd * ft;
             fr = mapFetus(q);
             if (fr.x < 0.0004) { fh = ft; break; }
@@ -406,13 +413,16 @@ export class SculptureScene implements StoryScene {
     this.id = beats.id;
     this.beats = beats;
     this.rig = new Rig(beats.camera);
+    // Raymarch budgets by GPU tier: the figure, the view through the belly window, and occlusion.
     const steps = tier === "high" ? 110 : tier === "mid" ? 84 : 64;
+    const fsteps = tier === "high" ? 56 : tier === "mid" ? 40 : 30;
+    const aos = tier === "high" ? 5 : 3;
     const vec = () => ({ value: new THREE.Vector3() });
     const m3 = () => ({ value: new THREE.Matrix3() });
     this.mat = new THREE.ShaderMaterial({
       vertexShader: QUAD_VERT,
       fragmentShader: FRAG,
-      defines: { STEPS: steps },
+      defines: { STEPS: steps, FSTEPS: fsteps, AOS: aos },
       depthTest: true,
       depthWrite: true,
       depthFunc: THREE.AlwaysDepth,

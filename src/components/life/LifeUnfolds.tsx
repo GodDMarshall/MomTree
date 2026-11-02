@@ -340,26 +340,29 @@ export function LifeUnfolds() {
             {p.cta === "final" && (
               <div className="mt-9 flex flex-wrap gap-3">
                 <Link href="/contact#appointment" className="btn btn-leaf">
-                  Begin your journey <ArrowRight />
+                  Book a consultation <ArrowRight />
                 </Link>
-                <a href={whatsappLink("Hello Momtree IVF, I would like to speak with your fertility specialist.")} target="_blank" rel="noopener noreferrer" className="btn btn-light">
-                  Talk to our fertility specialist
+                <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="btn btn-light">
+                  Message us on WhatsApp
                 </a>
               </div>
             )}
           </article>
         ))}
 
-        {/* Figure caption, day counter, scale bar */}
-        <div ref={capWrap} className="life-caption" style={{ opacity: 0 }} aria-hidden="true">
-          <span ref={capFig} className="life-fig" />
-          <span ref={capText} className="life-captext" />
-          <span ref={capDay} className="life-day" />
-          <div ref={scaleEl} className="life-scale" style={{ opacity: 0 }}>
-            <span ref={scaleBar} className="life-scale-bar" />
-            <span ref={scaleLabel} className="life-scale-label" />
+        {/* Figure caption, day counter, scale bar. The illustration notice sits outside the fading part,
+            so it stays on screen for the whole story. */}
+        <div className="life-caption" aria-hidden="true">
+          <div ref={capWrap} className="life-caption-body" style={{ opacity: 0 }}>
+            <span ref={capFig} className="life-fig" />
+            <span ref={capText} className="life-captext" />
+            <span ref={capDay} className="life-day" />
+            <div ref={scaleEl} className="life-scale" style={{ opacity: 0 }}>
+              <span ref={scaleBar} className="life-scale-bar" />
+              <span ref={scaleLabel} className="life-scale-label" />
+            </div>
           </div>
-          <span className="life-illus">Illustrative visualisation · not an individual outcome</span>
+          <span className="life-illus">{"Illustration, not to scale · not a patient's treatment or result"}</span>
         </div>
 
         {/* Bottom HUD: growth rings + chapter, skip, sound */}
@@ -583,11 +586,11 @@ function StaticStory() {
                     {p.cta && (
                       <div className="mt-8 flex flex-wrap gap-3">
                         <Link href="/contact#appointment" className={`btn ${dark ? "btn-light" : "btn-solid"}`}>
-                          {p.cta === "hero" ? "Book a consultation" : "Begin your journey"}
+                          Book a consultation
                         </Link>
                         {p.cta === "final" && (
                           <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="btn">
-                            Talk to our fertility specialist
+                            Message us on WhatsApp
                           </a>
                         )}
                       </div>
@@ -604,7 +607,7 @@ function StaticStory() {
                 {c.n > 1 && (
                   <figcaption>
                     <span className="pl">Fig. {c.n}</span>
-                    <span>{c.title}. {photo ? "AI-generated image, not a patient." : "Illustrative visualisation, not to scale; not an individual outcome."}</span>
+                    <span>{c.title}. {photo ? "AI-generated image, not a patient." : "Illustration, not to scale; not a patient's treatment or result."}</span>
                   </figcaption>
                 )}
               </figure>

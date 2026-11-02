@@ -58,12 +58,12 @@ Knowledge Centre:
 
 ## 4. Life Unfolds (home page story)
 
-The story now follows IVF in order, in eleven chapters, all in 3D: the beginning; understanding fertility; ovarian stimulation; egg collection; fertilisation; embryo development; embryo transfer; implantation and the pregnancy test; the early scan; pregnancy; the moment that matters.
+The story now follows IVF in order, in eleven chapters, all in 3D: the beginning; understanding fertility; ovarian stimulation; egg collection; fertilisation; embryo development; embryo transfer; implantation and the pregnancy test; the early scan; pregnancy; every hope matters.
 
 - [ ] Medical review of every visualisation: anatomy (front view) and resting (antral) follicles; stimulation with several follicles growing in both ovaries; the monitoring scan; the trigger; egg collection (schematic: a transvaginal needle under ultrasound draining follicles, fluid to the laboratory); fertilisation by IVF and ICSI; pronuclei; cleavage stages with day labels; morula; blastocyst; transcervical transfer under ultrasound; hatching and the start of implantation; early pregnancy at about 7 weeks (heart at about 135 beats a minute); the sculptural pregnancy at about 12, 20, 28 and 36 weeks (sizes by week, the baby turning head-down, one continuous cord to a placenta on the uterine wall); and the newborn in her arms.
 - [ ] Timings in the captions against Momtree's own practice: length of stimulation, trigger-to-collection interval, day of transfer, day of the pregnancy test, timing of the early scan, progesterone support and embryo-number policy.
 - [ ] Caption and chapter wording, including the statements that fertilisation, implantation and pregnancy are not guaranteed.
-- [ ] The sculptural mother and baby: a stylised porcelain figure built in code, faceless, draped, not a likeness of anyone.
+- [ ] The sculptural mother and baby: a stylised porcelain figure built in code, faceless and clothed (a bodice and a pallu across the chest), not a likeness of anyone.
 - [ ] Use of the three generated photographs (mother, hands, newborn), now only in the reduced-motion version and the share card, each marked "AI-generated image, not a patient".
 - [ ] **20-week illustration (optional, still image only).** The live story shows the pregnancy in 3D. A reviewed AI illustration could also appear in the reduced-motion version; a first version was rejected internally (cord drawn in two pieces, floating placenta). Approve a new render, or leave it out.
 - [ ] Sound: an original synthesised score. Optional: supply a licensed baby-coo recording.
