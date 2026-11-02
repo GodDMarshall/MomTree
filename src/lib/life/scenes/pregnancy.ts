@@ -1,6 +1,35 @@
 import * as THREE from "three";
+import { HAS_ILLUSTRATION, plateSizes } from "../story";
 import { backdropMaterial, cellMaterial, fullscreenQuad, glassMaterial, glow, motes } from "../materials";
-import { Rig, disposeScene, frameForCaptions, smooth, taperedTube, windowed, type Ctx, type Hud, type StoryScene } from "./common";
+import { Rig, disposeScene, frameForCaptions, smooth, span, taperedTube, windowed, type Ctx, type Hud, type StoryScene } from "./common";
+
+// The optional ~20-week illustration (a reviewed, generated image) follows the 7-week model.
+const ILLUS_ID = "ch06-fetus";
+const ILLUS_IN: [number, number] = [82.0, 83.0];
+const ILLUS_OUT: [number, number] = [85.0, 85.5];
+const LABELS_END = HAS_ILLUSTRATION ? 82.4 : 83.4;
+
+const ILLUS_VERT = /* glsl */ `
+varying vec2 vUv;
+void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+// The image sits in a soft circle; around it the plane paints the chapter's backdrop gradient, so the
+// early-pregnancy model behind is fully covered while the illustration is shown.
+const ILLUS_FRAG = /* glsl */ `
+uniform sampler2D uMap;
+uniform float uOpacity;
+uniform float uAspect;
+uniform float uImg;
+uniform vec3 uInner;
+uniform vec3 uOuter;
+varying vec2 vUv;
+void main(){
+  vec2 p = (vUv - 0.5) * vec2(uAspect, 1.0);
+  vec3 bg = mix(uInner, uOuter, smoothstep(0.0, 0.85, length(p)));
+  vec2 iuv = p / uImg + 0.5;
+  vec3 img = texture2D(uMap, clamp(iuv, 0.0, 1.0)).rgb;
+  float m = smoothstep(0.5, 0.36, length(iuv - 0.5));
+  gl_FragColor = vec4(mix(bg, img, m), uOpacity);
+}`;
 
 // Units: 1 = 1 cm. Early pregnancy at about 7 weeks: a gestational sac (~2.7 cm) with chorionic
 // villi, the amnion around a ~1 cm C-shaped embryo with limb buds and a beating heart, and the
@@ -105,17 +134,74 @@ export class PregnancyScene implements StoryScene {
 
   async load() {}
 
+  private illus?: THREE.Mesh;
+  private illusRequested = false;
+
+  /** Load the illustration at the smallest size that is sharp on this screen (square, so the short side decides). */
+  private async loadIllustration(ctx: Ctx) {
+    const sizes = plateSizes(ILLUS_ID);
+    if (!sizes.length) return;
+    const need = Math.min(ctx.width, ctx.height) * ctx.dpr * 0.7;
+    const [key] = sizes.find(([, [w]]) => w >= need) ?? sizes[sizes.length - 1];
+    const tex = await new THREE.TextureLoader().loadAsync(`/story/${ILLUS_ID}-${key}.webp`).catch(() => null);
+    if (!tex) return;
+    tex.generateMipmaps = true;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.anisotropy = 4;
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: ILLUS_VERT,
+      fragmentShader: ILLUS_FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uMap: { value: tex },
+        uOpacity: { value: 0 },
+        uAspect: { value: 1 },
+        uImg: { value: 0.4 },
+        uInner: { value: new THREE.Color("#5b2c37") },
+        uOuter: { value: new THREE.Color("#1d0e11") },
+      },
+    });
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+    plane.renderOrder = 50;
+    plane.frustumCulled = false;
+    plane.visible = false;
+    plane.position.set(0, 0, -1);
+    this.camera.add(plane);
+    if (!this.camera.parent) this.scene.add(this.camera);
+    this.illus = plane;
+  }
+
   layout(ctx: Ctx) {
     frameForCaptions(this.camera, ctx);
     this.scene.traverse((o) => {
       const m = (o as THREE.Points).material as THREE.ShaderMaterial | undefined;
       if (m?.uniforms?.uPixelRatio) m.uniforms.uPixelRatio.value = ctx.dpr;
     });
+    if (HAS_ILLUSTRATION && !this.illusRequested) {
+      this.illusRequested = true;
+      void this.loadIllustration(ctx);
+    }
   }
 
   update(u: number, _dt: number, ctx: Ctx) {
     frameForCaptions(this.camera, ctx, 0.15);
     this.rig.apply(this.camera, u, ctx, 0.1);
+    if (this.illus) {
+      const op = smooth(ILLUS_IN[0], ILLUS_IN[1], u) * (1 - smooth(ILLUS_OUT[0], ILLUS_OUT[1], u));
+      const m = this.illus.material as THREE.ShaderMaterial;
+      m.uniforms.uOpacity.value = op;
+      this.illus.visible = op > 0.001;
+      // Cover the whole view (generously, to allow for the caption offset), with the image filling
+      // about two thirds of the screen height and drifting slowly closer.
+      const aspect = ctx.width / ctx.height;
+      const viewH = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+      this.illus.scale.set(viewH * aspect * 1.8, viewH * 1.8, 1);
+      m.uniforms.uAspect.value = aspect;
+      m.uniforms.uImg.value = ((ctx.portrait ? 0.5 : 0.68) / 1.8) * (1 + span(u, ILLUS_IN[0], ILLUS_OUT[1]) * 0.06);
+      this.group.visible = op < 0.999;
+    }
     const t = performance.now() / 1000;
     // 150 bpm: a quick double rise each beat.
     const beat = (t * 2.5) % 1;
@@ -129,11 +215,11 @@ export class PregnancyScene implements StoryScene {
   hud(u: number): Hud {
     return {
       labels: [
-        { id: "sac", pos: new THREE.Vector3(-0.9, 1.05, 0.3), a: windowed(u, 78.6, 83.4) },
-        { id: "yolk", pos: this.yolkPos.clone().add(new THREE.Vector3(0.12, -0.22, 0.1)), a: windowed(u, 79, 83.4) },
-        { id: "embryo7", pos: this.body.getPointAt(0.05).clone().add(new THREE.Vector3(0.05, 0.16, 0.1)), a: windowed(u, 79.4, 83.4) },
+        { id: "sac", pos: new THREE.Vector3(-0.9, 1.05, 0.3), a: windowed(u, 78.6, LABELS_END) },
+        { id: "yolk", pos: this.yolkPos.clone().add(new THREE.Vector3(0.12, -0.22, 0.1)), a: windowed(u, 79, LABELS_END) },
+        { id: "embryo7", pos: this.body.getPointAt(0.05).clone().add(new THREE.Vector3(0.05, 0.16, 0.1)), a: windowed(u, 79.4, LABELS_END) },
       ],
-      scale: { from: new THREE.Vector3(-1.6, -1.5, 0), to: new THREE.Vector3(-0.6, -1.5, 0), label: "1 cm", a: windowed(u, 78.6, 83.6) },
+      scale: { from: new THREE.Vector3(-1.6, -1.5, 0), to: new THREE.Vector3(-0.6, -1.5, 0), label: "1 cm", a: windowed(u, 78.6, LABELS_END + 0.2) },
     };
   }
 

@@ -1,7 +1,14 @@
 {
-  "note": "Prepared 4K jobs on ElevenLabs Creative (flow below). None has run yet: the free generation queue was busy on 2026-11-02. Run them with creative_run_flow_nodes, download each result, then put plate masters in assets-src/generated/4k/ (same file names) and clinic photos in public/clinic/, and run `npm run assets`.",
+  "note": "Prepared 4K jobs on ElevenLabs Creative (flow below), priced 2026-11-02 but not yet run: the free generation queue was busy. Run them with creative_run_flow_nodes and ALWAYS pass generations_count: 1 (left unset, upscales render 4 copies each and the 11 upscales cost $2.13 instead of $0.53). Download each result within 2 hours (signed URLs expire), then follow 'afterDownload'.",
   "flow": "V5nbiB7KKUEl7jUhPHNe",
-  "estimatedCostUSD": { "plateUpscale": 0.05, "clinicUpscale": 0.05, "flux4kRender": 0.47 },
+  "estimatedCostUSD": {
+    "_basis": "estimate_only quotes, 2026-11-02, one generation each",
+    "upscale": 0.0485,
+    "flux3Render4k": 0.465,
+    "nanoBananaProEdit4k": 0.227,
+    "approvedBatch": 1.93,
+    "withHandsRepair": 2.16
+  },
   "plateUpscales": {
     "_settings": "Topaz Image Upscale, High Fidelity V3, 2x (2048 -> 4096), no crop, face creativity 0",
     "ch01-mother-wide.png": "Yc9HBDVatiYgDgdp7hhy",
@@ -12,6 +19,15 @@
     "_settings": "FLUX 3 Image, 9:16, native 4K",
     "ch01-mother-tall.png": "861BHGKEVUmvX5iJb0QO",
     "ch07-newborn-tall.png": "GqXQmOWA7H9RIUXNG7KX"
+  },
+  "fetusIllustration": {
+    "_settings": "FLUX 3 Image, 1:1, native 4K, prompt corrected after the image review (one continuous cord, placenta built into the sac wall, lean 20-week build, no particles)",
+    "ch06-fetus-20w.png": "lkGCVwCtbpxYW3NsN7Nk",
+    "_v1": "Seedream node 8vFl82it4lFbNguO67ar produced the rejected v1 (see docs/ASSETS.md). Do not reuse it."
+  },
+  "handsRepair": {
+    "_settings": "Nano Banana Pro (gemini-3-pro-image) edit of the hands render at 4K, 16:9; fed from the original render kKTekwVT33VfSsJbo9dn; up to 2 tries",
+    "ch06-hands-farhand-fix": "9XSN9gQO5c3FidFP1UHc"
   },
   "clinicUpscales": {
     "_settings": "Topaz Image Upscale, High Fidelity V3, 2.4x (1600 -> 3840), no crop, face enhancement OFF (genuine photos must not be altered)",
@@ -24,8 +40,16 @@
     "07.jpg": "Mi0CpZFg8aqI1Mu36Ufn",
     "08.jpg": "EpbTXmiYRdK37Nh9TXxD"
   },
+  "afterDownload": [
+    "Plate upscales -> assets-src/generated/4k/<same file name>.",
+    "Mother 4K: python -P scripts/retouch/heal-ch01-hand.py <in> <out> 2 (removes the hand mark; the upscale starts from the unretouched render).",
+    "Hands 4K: align the accepted far-hand repair to the upscale and composite only the far-hand region (about x 2060-2340, y 900-1920 at 4096x2304) with a feathered mask; never touch the near hand.",
+    "Tall plates -> assets-src/generated/4k/ch01-mother-tall.png and ch07-newborn-tall.png; then set their focus/zoomTo in src/lib/life/story.ts.",
+    "Fetus -> assets-src/generated/4k/ch06-fetus-20w.png only after it passes review and the clinic signs off.",
+    "Clinic photos -> public/clinic/; update src in src/content/clinic.ts and src/content/treatments.ts (width/height 3840x2160).",
+    "Check every image at 100% (hands, faces, digits, doubled edges, specks, text), then npm run assets, typecheck, build, npm run check."
+  ],
   "notUpscaled": {
     "2025/06/tyhtyh-02.png": "Dr. Navyashri's portrait is not AI-upscaled: upscalers can subtly change a real person's face. Ask the clinic for a high-resolution original."
-  },
-  "fetusIllustration": "v1 rejected (umbilical cord drawn discontinuous, see docs/ASSETS.md). Regenerate with the corrected prompt at native 4K (FLUX 3, 1:1), then review before use."
+  }
 }

@@ -5,6 +5,7 @@ import { REVIEW_MODE } from "@/lib/review";
 import { treatments } from "@/content/treatments";
 import { articles } from "@/content/articles";
 import { events, facilities, googleSummary, photos } from "@/content/clinic";
+import { HAS_ILLUSTRATION } from "@/lib/life/story";
 import { PageHero } from "@/components/site/PageHero";
 
 export const metadata: Metadata = { title: "Approval checklist", robots: { index: false, follow: false } };
@@ -60,8 +61,12 @@ function rows(): { area: string; items: Row[] }[] {
           .map((p) => ({ item: p.caption, why: (p as { note?: string }).note!, where: p.src })),
         ...events.map((e) => ({ item: e.caption, why: e.note!, where: "Patient stories (review build only)" })),
         ...facilities.filter((f) => !f.photos.length).map((f) => ({ item: `${f.name}: photograph`, why: "No genuine photograph available yet.", where: "Facilities" })),
+        { item: "Clinic photographs at full resolution", why: "The old site only holds the clinic photographs at 1600×900. Supply camera originals so they stay sharp on large screens (faithful AI upscales, with face enhancement off, are only a stopgap).", where: "Facilities, Treatments" },
         { item: "Generated story imagery", why: "The mother, hands and newborn plates in Life Unfolds are original AI-generated images (not patients). Approve their use.", where: "Home" },
         { item: "Life Unfolds medical visualisations", why: "Anatomy, fertilisation, ICSI, embryo stages, transfer and early pregnancy must be reviewed by the medical team.", where: "Home", href: "/" },
+        ...(HAS_ILLUSTRATION
+          ? [{ item: "20-week pregnancy illustration", why: "An AI-generated medical illustration shown after the 7-week scene in chapter 06 and captioned as an illustration. Check the cord, placenta and fetal proportions before approving it.", where: "Home", href: "/" }]
+          : []),
       ],
     },
     {

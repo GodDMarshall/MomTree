@@ -61,12 +61,14 @@ Knowledge Centre:
 - [ ] Medical review of every visualisation: anatomy (front view), follicle maturation and ovulation, fertilisation by IVF, ICSI, pronuclei, cleavage stages with day labels, morula, blastocyst, transcervical embryo transfer under ultrasound, early pregnancy at about 7 weeks.
 - [ ] Caption and chapter wording, including the statements that fertilisation, implantation and pregnancy are not guaranteed.
 - [ ] Use of the three original generated photographs (mother, hands, newborn). They depict no real patients.
+- [ ] **20-week illustration (optional, not yet shown).** An AI-generated illustration of a pregnancy at about 20 weeks can follow the 7-week scene in chapter 06, captioned as an illustration. It appears only after the image is added. A first version was rejected internally (cord drawn in two pieces, floating placenta). Approve the new render, or leave it out.
 - [ ] Sound: an original synthesised score. Optional: supply a licensed baby-coo recording.
 
 ## 5. Photographs and reviews
 
 - [ ] Reception (07.jpg) and consultation room (08.jpg): are these photographs of the actual clinic, or design renders?
 - [ ] Supply genuine photographs of: operation theatre / clean room, in-house pharmacy, ultrasound room, andrology laboratory.
+- [ ] Camera originals of the clinic photographs, and of Dr. Navyashri's portrait. The old site only holds them at 1600×900. Faithful AI upscales (face enhancement off) can stand in for the clinic photographs until then; approve that, or wait for the originals. The portrait is not AI-upscaled.
 - [ ] Event photographs (baby shower, celebration): written consent from everyone identifiable, or remove. These are shown only in review mode.
 - [ ] Google reviews quoted by name (5, verbatim): confirm the selection and permission.
 - [ ] Google rating "4.8 from 170 reviews" (from the old site): confirm current figures, or leave them out.

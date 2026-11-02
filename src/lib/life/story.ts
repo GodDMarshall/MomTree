@@ -1,5 +1,9 @@
 // The Life Unfolds timeline. One scroll axis, measured in "units" from 0 to 100, drives both the
 // WebGL scenes and the HTML captions, so text and image can never drift apart.
+import plateManifest from "./plates.json";
+
+/** The ~20-week illustration in chapter 06 appears only once an approved image has been built. */
+export const HAS_ILLUSTRATION = "ch06-fetus" in plateManifest;
 
 export const TOTAL_UNITS = 100;
 
@@ -90,7 +94,8 @@ export const captions: Caption[] = [
   { from: 55.6, to: 58.9, fig: "Fig. 4d", text: "Morula: the cells draw together", day: "about day 4" },
   { from: 58.9, to: 62.2, fig: "Fig. 4e", text: "Blastocyst: inner cell mass, outer layer and cavity", day: "about days 5–6" },
   { from: 63.2, to: 76.2, fig: "Fig. 5", text: "Embryo transfer through the cervix, side view (embryo shown enlarged)" },
-  { from: 77.2, to: 85.2, fig: "Fig. 6", text: "Early pregnancy at about 7 weeks: gestational sac, yolk sac and a 1 cm embryo" },
+  { from: 77.2, to: HAS_ILLUSTRATION ? 82.3 : 85.2, fig: "Fig. 6", text: "Early pregnancy at about 7 weeks: gestational sac, yolk sac and a 1 cm embryo" },
+  ...(HAS_ILLUSTRATION ? [{ from: 82.5, to: 85.3, fig: "Fig. 6a", text: "A developing pregnancy at about 20 weeks (illustration)" }] : []),
 ];
 
 export type Panel = {
@@ -275,7 +280,6 @@ export const labelText: Record<string, string> = {
 // ------------------------------------------------------------------------------------ plates
 // Variants are produced by scripts/prepare-assets.mjs, which also writes plates.json listing the
 // sizes that really exist (1k / 2k / 4k by long edge). Nothing here assumes a size is present.
-import plateManifest from "./plates.json";
 
 export type SizeKey = "1k" | "2k" | "4k";
 type PlateEntry = { master: string; w: number; h: number; sizes: Partial<Record<SizeKey, [number, number]>>; blur: string };
