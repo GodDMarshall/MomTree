@@ -1,13 +1,12 @@
 import * as THREE from "three";
-import type { SceneId } from "../story";
-import { fabricMaterial, fullscreenQuad, motes, plateMaterial, shared } from "../materials";
+import { plateSizes, type PlateFraming, type SceneId, type SizeKey } from "../story";
+import { fabricMaterial, fullscreenQuad, motes, plateMaterial, setPlateImage } from "../materials";
 import { damp, span, type Ctx, type Hud, type StoryScene } from "./common";
 
-type PlateOpts = {
+type PlateOpts = PlateFraming & {
   id: SceneId;
-  base: string;
-  focus: [number, number];
-  zoomTo: [number, number];
+  /** Optional portrait (9:16) version, used on tall screens. */
+  tall?: PlateFraming;
   /** [from, to, zoomStart, zoomEnd] in story units. */
   zoom: [number, number, number, number];
   pan?: [number, number];
@@ -16,9 +15,13 @@ type PlateOpts = {
   moteColor: string;
 };
 
+type Variant = "wide" | "tall";
+
 /**
  * A photographic plate inside the 3D scene: the image is a full-screen layer with depth parallax,
  * a light sweep and bloom, with real 3D elements (sheer fabric, floating motes) in front of it.
+ * On tall screens it uses the portrait version of the photograph when one exists, and swaps
+ * between the two if the device rotates.
  */
 export class PlateScene implements StoryScene {
   id: SceneId;
@@ -30,6 +33,8 @@ export class PlateScene implements StoryScene {
   private fabric?: THREE.Mesh;
   private motes: THREE.Points;
   private pointer = new THREE.Vector2();
+  private variant: Variant | null = null;
+  private loadingVariant: Variant | null = null;
   private loading?: Promise<void>;
 
   constructor(opts: PlateOpts) {
@@ -48,33 +53,72 @@ export class PlateScene implements StoryScene {
     }
   }
 
+  private wanted(ctx: Ctx): Variant {
+    return ctx.portrait && this.opts.tall ? "tall" : "wide";
+  }
+
+  /** The smallest variant that stays sharp at this screen size and pixel ratio (up to 4K). */
+  private sizeFor(framing: PlateFraming, ctx: Ctx): SizeKey {
+    const sizes = plateSizes(framing.asset);
+    const need = Math.max(ctx.width, ctx.height) * ctx.dpr * 0.92;
+    const fit = sizes.find(([, [w, h]]) => Math.max(w, h) >= need) ?? sizes[sizes.length - 1];
+    return fit ? fit[0] : "1k";
+  }
+
+  private loadedKey = "";
+
   load(ctx: Ctx) {
-    if (this.loading) return this.loading;
-    const size = ctx.tier === "high" && !ctx.portrait ? 2048 : 1280;
-    const url = `${this.opts.base}-${size}.webp`;
+    const v = this.wanted(ctx);
+    const framing = v === "tall" ? this.opts.tall! : this.opts;
+    const rank = { "1k": 0, "2k": 1, "4k": 2 } as const;
+    let size = this.sizeFor(framing, ctx);
+    // Never trade a sharper texture for a smaller one just because the window shrank.
+    const [loadedVariant, loadedSize] = this.loadedKey.split(":") as [Variant | "", SizeKey | undefined];
+    if (this.ready && loadedVariant === v && loadedSize && rank[size] <= rank[loadedSize]) size = loadedSize;
+    const key = `${v}:${size}`;
+    if (this.ready && this.loadedKey === key) return Promise.resolve();
+    if (this.loading && this.loadingVariant === v && this.loadingKey === key) return this.loading;
+    this.loadingVariant = v;
+    this.loadingKey = key;
     this.loading = new THREE.TextureLoader()
-      .loadAsync(url)
+      .loadAsync(`${framing.base}-${size}.webp`)
       .then((tex) => {
+        if (this.loadingKey !== key) {
+          tex.dispose(); // a newer request (rotation or resize) superseded this one
+          return;
+        }
         tex.generateMipmaps = true;
         tex.minFilter = THREE.LinearMipmapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
         tex.anisotropy = 4;
-        this.material = plateMaterial(tex, this.opts.focus, this.opts.zoomTo);
-        const quad = fullscreenQuad(this.material);
-        this.scene.add(quad);
+        if (!this.material) {
+          this.material = plateMaterial(tex, framing.focus, framing.zoomTo);
+          this.scene.add(fullscreenQuad(this.material));
+        } else {
+          setPlateImage(this.material, tex, framing.focus, framing.zoomTo);
+        }
+        this.variant = v;
+        this.loadedKey = key;
         this.ready = true;
       })
       .catch(() => {
-        // Leave ready = false: the HTML image underneath stays visible.
+        // Keep whatever is showing; on first load the HTML image underneath stays visible.
+      })
+      .finally(() => {
+        if (this.loadingKey === key) this.loading = undefined;
       });
     return this.loading;
   }
+
+  private loadingKey = "";
 
   layout(ctx: Ctx) {
     this.camera.aspect = ctx.width / ctx.height;
     this.camera.updateProjectionMatrix();
     (this.motes.material as THREE.ShaderMaterial).uniforms.uPixelRatio.value = ctx.dpr;
     if (this.fabric) this.fabric.position.x = ctx.portrait ? -0.6 : -1.6;
+    // Rotation (wide ↔ tall) or a move to a larger, denser screen loads a better-fitting variant.
+    if (this.ready) void this.load(ctx);
   }
 
   update(u: number, dt: number, ctx: Ctx) {
@@ -99,7 +143,6 @@ export class PlateScene implements StoryScene {
     this.camera.position.x = this.pointer.x * 0.25;
     this.camera.position.y = this.pointer.y * 0.18;
     this.camera.lookAt(0, 0, 0);
-    void shared;
   }
 
   hud(): Hud {

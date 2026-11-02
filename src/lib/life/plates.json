@@ -1,0 +1,50 @@
+{
+  "ch01-mother": {
+    "master": "2k",
+    "w": 2048,
+    "h": 1152,
+    "sizes": {
+      "1k": [
+        1280,
+        720
+      ],
+      "2k": [
+        2048,
+        1152
+      ]
+    },
+    "blur": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQBACdASogABIAPslUoUunpSMhsAwA8BkJZQDFEUAABAI45w3u8dE0j8eUnoAAw/pQb35Tta50DlotQ5HjfKUD+wpruPhBUXdpgOi1/r25oNLAZKaDsDIhW66z/7e7+kvPQaDqoAA="
+  },
+  "ch06-hands": {
+    "master": "2k",
+    "w": 2048,
+    "h": 1152,
+    "sizes": {
+      "1k": [
+        1280,
+        720
+      ],
+      "2k": [
+        2048,
+        1152
+      ]
+    },
+    "blur": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAADwBACdASogABIAPtFcpk0oJSOiMBgIAQAaCWUAs4AxP+4SdUm+Ml29CSK5u57nKuAA/RmhfzqC/5ls5zT77aRBqAAk3E6Gzao1kNsLdjNhnK0wTFvIGhfHhELrourL1qzUAAAA"
+  },
+  "ch07-newborn": {
+    "master": "2k",
+    "w": 2048,
+    "h": 1152,
+    "sizes": {
+      "1k": [
+        1280,
+        720
+      ],
+      "2k": [
+        2048,
+        1152
+      ]
+    },
+    "blur": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAAAQBQCdASogABIAPtFWpEwoJKOiMAgBABoJYwCdACFRzueXc9CP/Botl1FooaIhyStgAP7zfuJXwJQ9m7/xza9QdutO+q2ZZhl7AwXZbmGish6o/7l/Dlu5uXSMSjtUk9/JmF6uGRDRC7gxJGzoZ4dUGzWHO4twAAA="
+  }
+}

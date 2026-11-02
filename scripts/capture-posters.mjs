@@ -26,7 +26,8 @@ for (const channel of ["msedge", "chrome"]) {
 }
 if (!browser) throw new Error("No local Edge or Chrome found.");
 
-const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 });
+// 1920×1080 at a 2× device pixel ratio renders a true 4K (3840×2160) canvas.
+const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
 await page.goto(`${BASE}/?posters=1`, { waitUntil: "networkidle" });
 await page.waitForFunction(() => Boolean(window.__life), null, { timeout: 60000 });
 fs.mkdirSync(OUT, { recursive: true });
@@ -39,7 +40,8 @@ for (const [name, u] of FRAMES) {
     return document.querySelector(".life-canvas").toDataURL("image/png");
   }, u);
   const buf = Buffer.from(data.split(",")[1], "base64");
-  await sharp(buf).resize({ width: 1600 }).webp({ quality: 82 }).toFile(path.join(OUT, `${name}.webp`));
-  console.log(`poster ${name} @ ${u}`);
+  const meta = await sharp(buf).metadata();
+  await sharp(buf).resize({ width: 3840, withoutEnlargement: true }).webp({ quality: 84, effort: 6 }).toFile(path.join(OUT, `${name}.webp`));
+  console.log(`poster ${name} @ ${u}: ${meta.width}x${meta.height}`);
 }
 await browser.close();

@@ -344,6 +344,18 @@ void main(){
   gl_FragColor = vec4(col, uFade);
 }`;
 
+/** Swap a plate's image and framing in place (used when a phone rotates between wide and tall plates). */
+export function setPlateImage(material: THREE.ShaderMaterial, texture: THREE.Texture, focusImg: [number, number], zoomToImg: [number, number]) {
+  const img = texture.image as { width: number; height: number };
+  const u = material.uniforms;
+  const previous = u.uMap.value as THREE.Texture | null;
+  u.uMap.value = texture;
+  u.uImgAspect.value = img.width / img.height;
+  u.uFocus.value.set(focusImg[0], 1 - focusImg[1]);
+  u.uZoomTo.value.set(zoomToImg[0], 1 - zoomToImg[1]);
+  if (previous && previous !== texture) previous.dispose();
+}
+
 /** `focus` and `zoomTo` are given in image coordinates (origin top-left), as measured on the photo. */
 export function plateMaterial(texture: THREE.Texture, focusImg: [number, number], zoomToImg: [number, number]) {
   const img = texture.image as { width: number; height: number };

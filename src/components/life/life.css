@@ -26,6 +26,15 @@
 }
 .life-hero-img {
   z-index: 0;
+  display: block;
+}
+.life-hero-img img {
+  object-position: var(--pos-wide, 80% 52%);
+}
+@media (max-aspect-ratio: 17/20) {
+  .life-hero-img img {
+    object-position: var(--pos-tall, var(--pos-wide, 80% 52%));
+  }
 }
 .life-canvas {
   position: absolute;

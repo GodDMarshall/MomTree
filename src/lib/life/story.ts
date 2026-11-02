@@ -272,9 +272,41 @@ export const labelText: Record<string, string> = {
   embryo7: "Embryo, about 1 cm",
 };
 
-/** Generated photographic plates (original, see docs/ASSETS.md). `tall` is optional. */
-export const plates = {
-  mother: { base: "/story/ch01-mother", focus: [0.8, 0.52] as [number, number], zoomTo: [0.82, 0.7] as [number, number] },
-  hands: { base: "/story/ch06-hands", focus: [0.64, 0.58] as [number, number], zoomTo: [0.63, 0.62] as [number, number] },
-  newborn: { base: "/story/ch07-newborn", focus: [0.86, 0.46] as [number, number], zoomTo: [0.66, 0.5] as [number, number] },
+// ------------------------------------------------------------------------------------ plates
+// Variants are produced by scripts/prepare-assets.mjs, which also writes plates.json listing the
+// sizes that really exist (1k / 2k / 4k by long edge). Nothing here assumes a size is present.
+import plateManifest from "./plates.json";
+
+export type SizeKey = "1k" | "2k" | "4k";
+type PlateEntry = { master: string; w: number; h: number; sizes: Partial<Record<SizeKey, [number, number]>>; blur: string };
+const manifest = plateManifest as unknown as Record<string, PlateEntry>;
+
+/** Where to keep in frame (`focus`) and where to push in (`zoomTo`), in image coordinates from the top-left. */
+export type PlateFraming = { asset: string; base: string; focus: [number, number]; zoomTo: [number, number] };
+
+/** Available sizes for a plate, smallest first. */
+export function plateSizes(id: string): [SizeKey, [number, number]][] {
+  const sizes = manifest[id]?.sizes ?? {};
+  return (["1k", "2k", "4k"] as SizeKey[]).filter((k) => sizes[k]).map((k) => [k, sizes[k]!]);
+}
+
+/** The largest variant of a plate (used as the source for responsive HTML images). */
+export function plateBest(id: string) {
+  const sizes = plateSizes(id);
+  if (!sizes.length) return null;
+  const [key, [w, h]] = sizes[sizes.length - 1];
+  return { url: `/story/${id}-${key}.webp`, w, h, blur: manifest[id].blur };
+}
+
+const tall = (id: string, focus: [number, number], zoomTo: [number, number]): PlateFraming | undefined =>
+  manifest[id] ? { asset: id, base: `/story/${id}`, focus, zoomTo } : undefined;
+
+/**
+ * Generated photographic plates (original, see docs/ASSETS.md). `tall` is the portrait version for
+ * phones when it has been generated; otherwise phones crop the wide plate around `focus`.
+ */
+export const plates: Record<"mother" | "hands" | "newborn", PlateFraming & { tall?: PlateFraming }> = {
+  mother: { asset: "ch01-mother", base: "/story/ch01-mother", focus: [0.8, 0.52], zoomTo: [0.82, 0.7], tall: tall("ch01-mother-tall", [0.58, 0.42], [0.6, 0.6]) },
+  hands: { asset: "ch06-hands", base: "/story/ch06-hands", focus: [0.64, 0.58], zoomTo: [0.63, 0.62] },
+  newborn: { asset: "ch07-newborn", base: "/story/ch07-newborn", focus: [0.86, 0.46], zoomTo: [0.66, 0.5], tall: tall("ch07-newborn-tall", [0.55, 0.4], [0.52, 0.45]) },
 };

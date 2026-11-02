@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { captions, chapters, labelText, panels, toneAt, veilAt, type Panel } from "@/lib/life/story";
+import { captions, chapters, labelText, panels, plateBest, plates, toneAt, veilAt, type Panel } from "@/lib/life/story";
 import type { FrameInfo, LifeEngine } from "@/lib/life/engine";
 import type { StoryAudio } from "@/lib/life/audio";
 import { whatsappLink } from "@/lib/site";
@@ -189,7 +189,9 @@ export function LifeUnfolds() {
         return;
       }
       const posterMode = new URLSearchParams(location.search).has("posters");
-      engine = new mod.LifeEngine(canvasRef.current!, { tier: mod.detectTier(), portrait: isPortrait(), preserveDrawingBuffer: posterMode });
+      // Poster capture always renders at full quality (4K with a 2× device pixel ratio).
+      const tier = posterMode ? "high" : mod.detectTier();
+      engine = new mod.LifeEngine(canvasRef.current!, { tier, portrait: isPortrait(), preserveDrawingBuffer: posterMode });
       engine.onFrame = (f) => apply(f.u, f);
       engine.onLost = () => setMode("static");
       engine.jumpTo(st.progress * 100);
@@ -264,18 +266,7 @@ export function LifeUnfolds() {
 
       <div ref={stageRef} className="life-stage" data-tone="light">
         {/* First paint: the opening plate as a real image, so the hero never waits for WebGL. */}
-        <div className="life-hero-img absolute inset-0">
-          <Image
-            src="/story/ch01-mother-2048.webp"
-            alt="A pregnant woman in soft afternoon light, her hands resting on her belly"
-            fill
-            priority
-            sizes="100vw"
-            quality={82}
-            className="object-cover"
-            style={{ objectPosition: "80% 52%" }}
-          />
-        </div>
+        <HeroPicture />
         <canvas ref={canvasRef} className={`life-canvas ${ready ? "is-ready" : ""}`} aria-hidden="true" />
         <div ref={veilRef} className="life-veil" aria-hidden="true" />
         <div className="life-scrim" aria-hidden="true" />
@@ -435,6 +426,32 @@ export function LifeUnfolds() {
 }
 
 // =============================================================================================
+const HERO_ALT = "A pregnant woman in soft afternoon light, her hands resting on her belly";
+const pos = (f: [number, number]) => `${Math.round(f[0] * 100)}% ${Math.round(f[1] * 100)}%`;
+
+/**
+ * The opening plate as a real, art-directed image so the hero never waits for WebGL: the portrait
+ * version on tall screens when it exists, and up to 4K on large, dense displays.
+ */
+function HeroPicture() {
+  const wide = plateBest(plates.mother.asset)!;
+  const tallPlate = plates.mother.tall ? plateBest(plates.mother.tall.asset) : null;
+  const common = { alt: HERO_ALT, sizes: "100vw", quality: 82, fetchPriority: "high", loading: "eager" } as const;
+  const w = getImageProps({ ...common, src: wide.url, width: wide.w, height: wide.h }).props;
+  const t = tallPlate ? getImageProps({ ...common, src: tallPlate.url, width: tallPlate.w, height: tallPlate.h }).props : null;
+  return (
+    <picture
+      className="life-hero-img absolute inset-0"
+      style={{ ["--pos-wide" as string]: pos(plates.mother.focus), ...(plates.mother.tall ? { ["--pos-tall" as string]: pos(plates.mother.tall.focus) } : {}) }}
+    >
+      {t && <source media="(max-aspect-ratio: 17/20)" srcSet={t.srcSet} sizes="100vw" />}
+      {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
+      <img {...w} className="h-full w-full object-cover" />
+    </picture>
+  );
+}
+
+// =============================================================================================
 function SoundControl({ audio }: { audio: React.RefObject<StoryAudio | null> }) {
   const [on, setOn] = useState(false);
   const [volume, setVolume] = useState(0.6);
@@ -519,13 +536,13 @@ function SoundControl({ audio }: { audio: React.RefObject<StoryAudio | null> }) 
 // =============================================================================================
 // For reduced motion, Save-Data, or no WebGL2: the same story as an editorial sequence.
 const POSTERS: Record<number, { src: string; alt: string; pos?: string }> = {
-  1: { src: "/story/ch01-mother-2048.webp", alt: "A pregnant woman in soft afternoon light, her hands resting on her belly", pos: "80% 52%" },
+  1: { src: plateBest(plates.mother.asset)!.url, alt: HERO_ALT, pos: pos(plates.mother.focus) },
   2: { src: "/story/posters/ch02.webp", alt: "Illustration of the female reproductive system: uterus, fallopian tubes and ovaries" },
   3: { src: "/story/posters/ch03.webp", alt: "Illustration of an egg surrounded by corona cells as sperm approach" },
   4: { src: "/story/posters/ch04.webp", alt: "Illustration of a blastocyst-stage embryo within its zona pellucida" },
   5: { src: "/story/posters/ch05.webp", alt: "Illustration of an embryo transfer catheter passing through the cervix into the uterus" },
-  6: { src: "/story/ch06-hands-2048.webp", alt: "A pregnant woman's hands gently cradling her belly", pos: "64% 58%" },
-  7: { src: "/story/ch07-newborn-2048.webp", alt: "A mother smiling down at her sleeping newborn, held securely in her arms", pos: "86% 46%" },
+  6: { src: plateBest(plates.hands.asset)!.url, alt: "A pregnant woman's hands gently cradling her belly", pos: pos(plates.hands.focus) },
+  7: { src: plateBest(plates.newborn.asset)!.url, alt: "A mother smiling down at her sleeping newborn, held securely in her arms", pos: pos(plates.newborn.focus) },
 };
 
 function StaticStory() {

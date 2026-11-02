@@ -11,8 +11,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [480, 640, 828, 1080, 1280, 1600, 2048],
-    qualities: [70, 75, 82],
+    // Up to 3840 px so 4K and high-density screens receive full-resolution images.
+    deviceSizes: [480, 640, 828, 1080, 1280, 1600, 2048, 2560, 3840],
+    qualities: [70, 75, 82, 85],
   },
   async headers() {
     return [

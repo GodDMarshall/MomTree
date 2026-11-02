@@ -1,0 +1,31 @@
+{
+  "note": "Prepared 4K jobs on ElevenLabs Creative (flow below). None has run yet: the free generation queue was busy on 2026-11-02. Run them with creative_run_flow_nodes, download each result, then put plate masters in assets-src/generated/4k/ (same file names) and clinic photos in public/clinic/, and run `npm run assets`.",
+  "flow": "V5nbiB7KKUEl7jUhPHNe",
+  "estimatedCostUSD": { "plateUpscale": 0.05, "clinicUpscale": 0.05, "flux4kRender": 0.47 },
+  "plateUpscales": {
+    "_settings": "Topaz Image Upscale, High Fidelity V3, 2x (2048 -> 4096), no crop, face creativity 0",
+    "ch01-mother-wide.png": "Yc9HBDVatiYgDgdp7hhy",
+    "ch06-hands-wide.png": "a29znnnUzUyZEZpzRSfG",
+    "ch07-newborn-wide.png": "0172oho8PKWCfyH4OYjw"
+  },
+  "tallRenders4k": {
+    "_settings": "FLUX 3 Image, 9:16, native 4K",
+    "ch01-mother-tall.png": "861BHGKEVUmvX5iJb0QO",
+    "ch07-newborn-tall.png": "GqXQmOWA7H9RIUXNG7KX"
+  },
+  "clinicUpscales": {
+    "_settings": "Topaz Image Upscale, High Fidelity V3, 2.4x (1600 -> 3840), no crop, face enhancement OFF (genuine photos must not be altered)",
+    "01.jpg": "5mexgLNZQeBm6I4VLdro",
+    "02.jpg": "q5qsQUwA4qYARiGl2dAb",
+    "03.jpg": "XizqBsywFyTpf0CIs4xB",
+    "04.jpg": "gmHNLrarx8UgwcV81b1w",
+    "05.jpg": "3JoggdTGYYITbtFfFdJi",
+    "06.jpg": "vQfrQMJCnuoWG7gk8wyY",
+    "07.jpg": "Mi0CpZFg8aqI1Mu36Ufn",
+    "08.jpg": "EpbTXmiYRdK37Nh9TXxD"
+  },
+  "notUpscaled": {
+    "2025/06/tyhtyh-02.png": "Dr. Navyashri's portrait is not AI-upscaled: upscalers can subtly change a real person's face. Ask the clinic for a high-resolution original."
+  },
+  "fetusIllustration": "v1 rejected (umbilical cord drawn discontinuous, see docs/ASSETS.md). Regenerate with the corrected prompt at native 4K (FLUX 3, 1:1), then review before use."
+}

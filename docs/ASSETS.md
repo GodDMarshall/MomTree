@@ -12,9 +12,35 @@ web versions are in `public/story/` (built by `npm run assets`).
 | `ch06-hands-wide.png` | Chapter 06 bridge, static story | Close-up of hands cradling a pregnant belly, ivory knit, warm backlight, face out of frame |
 | `ch07-newborn-wide.png` | Chapter 07, static story | Indian mother looking down at a sleeping newborn held securely in both arms, morning light |
 
-Not yet generated (the provider's free queue was busy): portrait (9:16) versions of chapters 01 and
-07, and an illustrative ~20-week fetal image. The site crops the wide plates around a focal point
-on phones, so nothing is missing. Add the files named in `scripts/prepare-assets.mjs` to use them.
+### Resolution (4K)
+
+`npm run assets` builds each plate at 1K, 2K and 4K (long edge 1280, 2048, 3840 px) and writes
+`src/lib/life/plates.json`; the site only offers sizes that really exist. A 4K master placed in
+`assets-src/generated/4k/` (same file name) takes precedence over the 2K original. The story engine
+picks the smallest variant that is sharp for the screen, and HTML images are served up to 3840 px
+wide, so 4K and high-density displays get full resolution. The static-story posters are rendered
+at 3840×2160.
+
+Pending (prepared but not yet run, because the provider's free queue was busy; job map in
+`assets-src/generated/4k-jobs.json`):
+
+| Job | Method |
+| --- | --- |
+| Mother, hands, newborn plates to 4K | Topaz Image Upscale, High Fidelity V3, 2×, no creative face changes |
+| Portrait (9:16) plates for chapters 01 and 07 | FLUX 3, rendered natively at 4K |
+| Genuine clinic photographs 01–08 to 3840 px | Topaz High Fidelity V3, 2.4×, **face enhancement off** so real people are not altered |
+| Illustrative ~20-week fetal image | Regenerate at native 4K with a corrected prompt, then clinical review |
+
+Until then the site serves the 2K masters (and phones crop the wide plates around their focal point).
+
+**Not upscaled on purpose:** Dr. Navyashri's portrait. AI upscalers can subtly alter a real person's
+face, so the clinic should supply a high-resolution original instead. The clinic's photographs are
+only available at 1600×900 on the old site (checked as both JPEG and WebP), so camera originals would
+be better still than upscales.
+
+**Rejected:** the first 20-week illustration (`assets-src/generated/rejected/ch06-fetus-20w-v1.png`)
+drew the umbilical cord as two separate pieces, one running from the placenta to the back of the
+head. It is kept for the record and is not used.
 
 ## 3D and illustrations
 

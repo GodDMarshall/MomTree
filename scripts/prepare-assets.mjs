@@ -1,5 +1,9 @@
 // Builds web-ready assets from source material:
-//   story plates (WebP, two sizes), the single-tone brand mark, favicons and the social share card.
+//   story plates as WebP at 1K / 2K / 4K (long edge 1280 / 2048 / 3840) plus a manifest the site
+//   reads, the single-tone brand mark, favicons and the social share card.
+// Masters: a 4K master in assets-src/generated/4k/ wins over the 2K original of the same name.
+// A size is only produced if the master is at least that large, so nothing is presented as 4K
+// unless it really is.
 // Run with: npm run assets
 import fs from "node:fs";
 import path from "node:path";
@@ -14,32 +18,55 @@ const out = (p) => {
 };
 
 // ---------------------------------------------------------------- story plates
-// Generated originals live in assets-src/generated (see docs/ASSETS.md for prompts and provenance).
+const SIZES = [
+  ["1k", 1280, 78],
+  ["2k", 2048, 82],
+  ["4k", 3840, 84],
+];
 const plates = [
-  { id: "ch01-mother", file: "assets-src/generated/ch01-mother-wide.png" },
-  { id: "ch06-hands", file: "assets-src/generated/ch06-hands-wide.png" },
-  { id: "ch07-newborn", file: "assets-src/generated/ch07-newborn-wide.png" },
-  { id: "ch06-fetus", file: "assets-src/generated/ch06-fetus-20w.png", optional: true },
-  { id: "ch01-mother-tall", file: "assets-src/generated/ch01-mother-tall.png", optional: true },
-  { id: "ch07-newborn-tall", file: "assets-src/generated/ch07-newborn-tall.png", optional: true },
+  { id: "ch01-mother", file: "ch01-mother-wide.png" },
+  { id: "ch01-mother-tall", file: "ch01-mother-tall.png", optional: true },
+  { id: "ch06-hands", file: "ch06-hands-wide.png" },
+  { id: "ch06-fetus", file: "ch06-fetus-20w.png", optional: true },
+  { id: "ch07-newborn", file: "ch07-newborn-wide.png" },
+  { id: "ch07-newborn-tall", file: "ch07-newborn-tall.png", optional: true },
 ];
 
+const manifest = {};
 for (const p of plates) {
-  if (!fs.existsSync(src(p.file))) {
+  const master = [`assets-src/generated/4k/${p.file}`, `assets-src/generated/${p.file}`].find((f) => fs.existsSync(src(f)));
+  if (!master) {
     if (!p.optional) throw new Error(`Missing required plate: ${p.file}`);
     console.log(`skip (not generated yet): ${p.file}`);
     continue;
   }
-  for (const w of [2048, 1280]) {
-    await sharp(src(p.file))
-      .resize({ width: w, withoutEnlargement: true })
-      .webp({ quality: w > 1500 ? 82 : 78, effort: 6 })
-      .toFile(out(`public/story/${p.id}-${w}.webp`));
+  const meta = await sharp(src(master)).metadata();
+  const long = Math.max(meta.width, meta.height);
+  const entry = { master: path.basename(path.dirname(master)) === "4k" ? "4k" : "2k", w: meta.width, h: meta.height, sizes: {} };
+  for (const [key, edge, quality] of SIZES) {
+    if (long < edge * 0.98) continue;
+    const resize = meta.width >= meta.height ? { width: edge } : { height: edge };
+    const info = await sharp(src(master))
+      .resize({ ...resize, withoutEnlargement: true })
+      .webp({ quality, effort: 6, smartSubsample: true })
+      .toFile(out(`public/story/${p.id}-${key}.webp`));
+    entry.sizes[key] = [info.width, info.height];
   }
-  // Tiny blurred placeholder, inlined as a data URL by the page while the plate loads.
-  const tiny = await sharp(src(p.file)).resize(32).blur(1.2).webp({ quality: 50 }).toBuffer();
-  fs.writeFileSync(out(`public/story/${p.id}-blur.txt`), `data:image/webp;base64,${tiny.toString("base64")}`);
-  console.log(`plate ${p.id}`);
+  const tiny = await sharp(src(master)).resize(32).blur(1.2).webp({ quality: 50 }).toBuffer();
+  entry.blur = `data:image/webp;base64,${tiny.toString("base64")}`;
+  manifest[p.id] = entry;
+  console.log(`plate ${p.id}: master ${entry.master} ${meta.width}x${meta.height} → ${Object.keys(entry.sizes).join(", ")}`);
+}
+fs.writeFileSync(out("src/lib/life/plates.json"), JSON.stringify(manifest, null, 2));
+
+// Remove variants from the old naming scheme, and any size that is no longer backed by a master.
+for (const f of fs.readdirSync(src("public/story"))) {
+  const m = f.match(/^(.*)-(1280|2048|1k|2k|4k)\.webp$|^(.*)-blur\.txt$/);
+  if (!m) continue;
+  const id = m[1] ?? m[3];
+  const key = m[2];
+  const keep = key && manifest[id]?.sizes[key];
+  if (!keep) fs.rmSync(src(`public/story/${f}`));
 }
 
 // ---------------------------------------------------------------- brand mark
@@ -48,10 +75,9 @@ for (const p of plates) {
 const markSrc = src("public/legacy/2024/08/BACKDROP-04-1.png");
 const markTrimmed = await sharp(markSrc).trim({ threshold: 1 }).toBuffer();
 const markMeta = await sharp(markTrimmed).metadata();
-console.log(`mark trimmed to ${markMeta.width}x${markMeta.height}`);
-await sharp(markTrimmed).resize({ height: 512 }).png({ compressionLevel: 9 }).toFile(out("public/brand/mark-mask.png"));
+console.log(`mark trimmed to ${markMeta.width}x${markMeta.height} (used at native resolution)`);
+await sharp(markTrimmed).png({ compressionLevel: 9 }).toFile(out("public/brand/mark-mask.png"));
 
-// Tinted mark helper: keep the alpha, replace the colour.
 async function tintedMark(height, rgb) {
   const resized = await sharp(markTrimmed).resize({ height }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { data, info } = resized;
@@ -77,18 +103,18 @@ async function iconOnBackground(size, markHeight, rgb, bg, file) {
 }
 await iconOnBackground(512, 360, charcoal, ivory, "src/app/icon.png");
 await iconOnBackground(180, 128, charcoal, ivory, "src/app/apple-icon.png");
-await iconOnBackground(512, 360, gold, plum, "public/brand/mark-gold-on-plum.png");
-fs.writeFileSync(out("public/brand/mark-charcoal.png"), await tintedMark(256, charcoal));
-fs.writeFileSync(out("public/brand/mark-gold.png"), await tintedMark(256, gold));
+await iconOnBackground(1024, 720, gold, plum, "public/brand/mark-gold-on-plum.png");
+fs.writeFileSync(out("public/brand/mark-charcoal.png"), await tintedMark(512, charcoal));
+fs.writeFileSync(out("public/brand/mark-gold.png"), await tintedMark(512, gold));
 console.log("brand marks + icons");
 
 // ---------------------------------------------------------------- social share card (1200x630)
+// 1200x630 is the size social platforms display; it is rendered from the best available master.
 {
   const W = 1200;
   const H = 630;
-  const base = await sharp(src("assets-src/generated/ch01-mother-wide.png"))
-    .resize({ width: W, height: H, fit: "cover", position: "right" })
-    .toBuffer();
+  const motherMaster = ["assets-src/generated/4k/ch01-mother-wide.png", "assets-src/generated/ch01-mother-wide.png"].find((f) => fs.existsSync(src(f)));
+  const base = await sharp(src(motherMaster)).resize({ width: W, height: H, fit: "cover", position: "right" }).toBuffer();
   const mark = await tintedMark(64, charcoal);
   const overlay = Buffer.from(`
     <svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
@@ -113,7 +139,7 @@ console.log("brand marks + icons");
       { input: overlay, left: 0, top: 0 },
       { input: mark, left: 80, top: 96 },
     ])
-    .jpeg({ quality: 86, mozjpeg: true })
+    .jpeg({ quality: 88, mozjpeg: true })
     .toFile(out("public/og.jpg"));
   console.log("og card");
 }
