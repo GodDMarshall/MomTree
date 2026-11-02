@@ -4,7 +4,7 @@ import { Rig, disposeScene, frameForCaptions, smooth, span, windowed, type Ctx, 
 
 // Units: 1 = 1 cm. A sagittal (side) cutaway of an anteverted uterus, patient facing left.
 // The transfer catheter follows the true route: along the vagina, through the cervical canal,
-// into the cavity, releasing the embryo about 1.5 cm below the fundus under ultrasound guidance.
+// into the cavity, releasing the embryo about 1.3 cm below the top of the cavity under ultrasound guidance.
 
 const AXIS = new THREE.Vector3(-0.42, 0.91, 0).normalize(); // cervix → fundus
 const ANT = new THREE.Vector3(-0.91, -0.42, 0).normalize(); // anterior wall direction
@@ -72,7 +72,8 @@ export class TransferScene implements StoryScene {
     const myo = tissueMaterial({ color: "#bb6671", deep: "#4a1a24", rim: "#f3aeb7", fibre: 1.5, echo: 0.42 });
     const endoMat = tissueMaterial({ color: "#eb98a5", deep: "#a3415a", rim: "#ffd7dd", fibre: 3.2, echo: 0.84, glow: 0.35 });
     const cervMat = tissueMaterial({ color: "#d98b97", deep: "#7a3242", rim: "#ffcfd6", fibre: 2.2, echo: 0.6 });
-    const cavMat = tissueMaterial({ color: "#2b0e14", deep: "#18070a", rim: "#5d2a35", echo: 0.05 });
+    // The slit-like cavity: a muted violet, not a black gash.
+    const cavMat = tissueMaterial({ color: "#4f2f5c", deep: "#2a1636", rim: "#7f5c8e", echo: 0.3 });
     const myoMesh = new THREE.Mesh(slab(outer, 1.2, true), myo);
     const endoMesh = new THREE.Mesh(slab(endo, 1.66, false), endoMat);
     const cervMesh = new THREE.Mesh(slab(cervixLining, 1.665, false), cervMat);
@@ -96,8 +97,9 @@ export class TransferScene implements StoryScene {
     );
     s.add(vag);
 
-    // Catheter path: along the vagina, curving into the os, up the canal, into the cavity.
-    this.release.copy(local(2.2, 0));
+    // Catheter path: along the vagina, curving into the os, up the canal, into the cavity. The release point is about
+    // 1.3 cm below the cavity apex (x ≈ 3.02).
+    this.release.copy(local(1.75, 0));
     this.path = new THREE.CatmullRomCurve3(
       [
         OS.clone().addScaledVector(VAG, 7.2),
@@ -117,8 +119,8 @@ export class TransferScene implements StoryScene {
     this.catheter.renderOrder = 8;
     s.add(this.catheter);
 
-    // The embryo (shown enlarged; a real blastocyst is about 0.15 mm) with an air bubble either side,
-    // the tiny bright "flash" clinicians watch for on the ultrasound screen.
+    // The embryo (shown enlarged; a real blastocyst is about 0.15 mm) with an air bubble either side. The bubbles,
+    // not the embryo, make the tiny bright "flash" clinicians watch for on the ultrasound screen.
     this.embryo = glow("#fff3e6", 0.2, 0.16);
     this.embryo.renderOrder = 10;
     s.add(this.embryo);
@@ -137,11 +139,11 @@ export class TransferScene implements StoryScene {
     this.rig = new Rig([
       { u: 62.5, target: tgt(os1), pos: [os1.x + 0.9, os1.y + 0.5, 4.5] },
       { u: 64.2, target: tgt(OS), pos: [OS.x + 0.7, OS.y + 0.5, 5.6] },
-      { u: 66.2, target: tgt(at(-1, 0)), pos: [at(-1, 0).x + 0.8, at(-1, 0).y + 0.4, 8.2] },
-      { u: 68.4, target: tgt(at(2, 0)), pos: [at(2, 0).x + 0.6, at(2, 0).y + 0.2, 7.6] },
-      { u: 70.6, target: [-0.5, 0.6, 0], pos: [0.6, 0.9, 12] },
-      { u: 73.2, target: [-0.4, -0.9, 0], pos: [1.4, 0.1, 17] },
-      { u: 76.6, target: [-0.4, -0.6, 0], pos: [-0.8, 0.6, 16.5] },
+      { u: 66.2, target: tgt(at(-1, 0)), pos: [at(-1, 0).x + 0.8, at(-1, 0).y + 0.4, 12] },
+      { u: 68.4, target: tgt(at(2, 0)), pos: [at(2, 0).x + 0.6, at(2, 0).y + 0.2, 11] },
+      { u: 70.6, target: [-0.5, 1.2, 0], pos: [0.6, 0.9, 12] },
+      { u: 73.2, target: [-0.4, -0.1, 0], pos: [1.4, 0.1, 17] },
+      { u: 76.6, target: [-0.4, 0.15, 0], pos: [-0.8, 0.6, 16.5] },
     ]);
   }
 
@@ -170,26 +172,31 @@ export class TransferScene implements StoryScene {
     (this.catheter.material as THREE.ShaderMaterial).uniforms.uFade.value = 1 - smooth(70.8, 71.8, u);
     this.path.getPointAt(Math.min(1, sTip), this.tip);
 
-    // Embryo rides at the tip until released at 68.6, then rests in the cavity.
+    // Embryo rides at the tip until released at 68.6, then lies free in the middle of the cavity, never on the wall.
     const released = u >= 68.6;
     const pos = released ? this.release : this.tip;
-    const settle = span(u, 69, 72);
-    this.embryo.position.copy(pos).addScaledVector(ANT, settle * 0.08);
+    this.embryo.position.copy(pos);
     const em = this.embryo.material as THREE.ShaderMaterial;
-    const t = performance.now() / 1000;
-    em.uniforms.uOpacity.value = smooth(62.5, 63.2, u) * (released ? 0.75 + Math.sin(t * 1.6) * 0.15 : 1);
+    // Drawn larger as the camera pulls back, so the enlarged embryo never shrinks to a pinprick.
+    const grow = Math.max(1, this.camera.position.distanceTo(this.embryo.position) / 8);
+    em.uniforms.uScale.value = 0.2 * grow;
+    this.bubbles.forEach((b) => ((b.material as THREE.ShaderMaterial).uniforms.uScale.value = 0.07 * grow));
+    // A 0.15 mm embryo cannot be seen on ultrasound: hide it while the scan view is on (the bright spot is the air
+    // bubbles), and keep it steady rather than pulsing.
+    const us = smooth(65.4, 66.4, u) * (1 - smooth(70.2, 71.2, u));
+    em.uniforms.uOpacity.value = smooth(62.5, 63.2, u) * (1 - us) * 0.8;
     const tan = this.path.getTangentAt(Math.min(0.999, Math.max(0.001, released ? 1 : sTip)));
     this.bubbles.forEach((b, i) => {
       b.position.copy(this.embryo.position).addScaledVector(tan, i === 0 ? 0.16 : -0.16);
       (b.material as THREE.ShaderMaterial).uniforms.uOpacity.value = smooth(62.5, 63.4, u) * (1 - smooth(72, 74, u)) * 0.9;
     });
 
-    // Ultrasound guidance: a transabdominal sector from above.
+    // Ultrasound guidance: a transabdominal sector from above (axis angle 0).
     const w = ctx.width * ctx.dpr;
     const h = ctx.height * ctx.dpr;
-    shared.uUS.value = smooth(65.4, 66.4, u) * (1 - smooth(70.2, 71.2, u));
-    if (ctx.portrait) shared.uProbe.value.set(w * 0.5, h * 1.02, h * 0.82);
-    else shared.uProbe.value.set(w * 0.62, h * 1.03, h * 0.98);
+    shared.uUS.value = us;
+    if (ctx.portrait) shared.uProbe.value.set(w * 0.5, h * 1.02, h * 0.82, 0);
+    else shared.uProbe.value.set(w * 0.64, h * 1.03, h * 0.85, 0);
   }
 
   hud(u: number): Hud {
@@ -198,7 +205,9 @@ export class TransferScene implements StoryScene {
         { id: "cervix", pos: local(-2.9, -1.35).setZ(1.7), a: windowed(u, 63.4, 66.6) },
         { id: "catheter", pos: OS.clone().addScaledVector(VAG, 2.4).add(new THREE.Vector3(0.15, 0, 1.7)), a: windowed(u, 63.6, 66.8) },
         { id: "endometrium", pos: local(1.0, 0.78).setZ(1.7), a: windowed(u, 68.8, 73) },
-        { id: "embryoT", pos: this.embryo.position.clone().add(new THREE.Vector3(0.2, 0.22, 0)), a: windowed(u, 69, 74.4) },
+        // During the scan the bright spot is labelled as the bubbles; the embryo is labelled once the scan view is off.
+        { id: "flash", pos: this.release.clone().add(new THREE.Vector3(0.3, 0.25, 0)), a: windowed(u, 68.9, 71.2) },
+        { id: "embryoT", pos: this.embryo.position.clone().add(new THREE.Vector3(0.2, 0.22, 0)), a: windowed(u, 71.4, 75.6) },
         { id: "uterus", pos: local(0.4, -2.0).setZ(1.6), a: windowed(u, 71.2, 76) },
         { id: "bladder", pos: new THREE.Vector3(-2.2, -2.4, 1.6), a: windowed(u, 71.6, 76) },
       ],

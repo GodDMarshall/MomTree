@@ -53,29 +53,38 @@ picks the smallest variant that is sharp for the screen, and HTML images are ser
 wide, so 4K and high-density displays get full resolution. The static-story posters are rendered
 at 3840×2160.
 
-Pending (prepared and priced but not yet run, because the provider's free queue was busy; flow and
-node IDs are in `assets-src/generated/4k-jobs.json`). Run every job with **one generation each**:
-left unset, the service renders four copies of each upscale and charges for all four.
+Done (2026-11-02): the mother, hands and newborn plates are 4K masters (Topaz Image Upscale, High
+Fidelity V3, 2×, no creative face changes), and clinic photograph 01 is served at 3840×2160
+(`public/clinic/01.jpg`; Topaz, 2.4×, **face enhancement off** so the real person is not altered).
+Each upscale was checked against its original: shrunk back to the original's size it differs by 1–2.4
+levels in 255 on average and by at most 4.4 in any 32 px block, so nothing was invented; faces and
+hands were also checked at 100%. Every Topaz upscale came back with a 9 px dark band on each edge.
+`scripts/retouch/fix-upscale-border.mjs` refills it from the original (no crop or rescale); run it on
+each new upscale before anything else.
+
+Still to run (flow and node IDs in `assets-src/generated/4k-jobs.json`): the provider's free plan hit
+its daily image limit after the fourth job. Run every job with **one generation each**: left unset,
+the service renders four copies of each upscale and charges for all four.
 
 | Job | Method | Estimate |
 | --- | --- | --- |
-| Mother, hands, newborn plates to 4K | Topaz Image Upscale, High Fidelity V3, 2×, no creative face changes | $0.15 |
-| Genuine clinic photographs 01–08 to 3840 px | Topaz High Fidelity V3, 2.4×, **face enhancement off** so real people are not altered | $0.39 |
+| Genuine clinic photographs 02–08 to 3840 px | Topaz High Fidelity V3, 2.4×, **face enhancement off** so real people are not altered | $0.34 |
 | Portrait (9:16) plates for chapters 01 and 07 | FLUX 3, rendered natively at 4K | $0.93 |
-| Illustrative ~20-week image, version 2 | FLUX 3, 1:1, native 4K, prompt corrected after the review | $0.47 |
 | Hands plate, far-hand repair | Nano Banana Pro edit at 4K; only the far hand is composited onto the upscale | $0.23 a try |
+| Illustrative ~20-week image, version 2 (optional) | FLUX 3, 1:1, native 4K, prompt corrected after the review | $0.47 |
 
-Until then the site serves the 2K masters (and phones crop the wide plates around their focal point).
+Until then clinic photographs 02–08 are served at their original 1600×900, and phones crop the wide
+plates around their focal point.
 
 Accept a new render only after checking it at 100%: hands (five separate digits), faces, and no
 doubled edges, specks or text. The 20-week illustration must also show one unbroken cord from the
 navel to the placenta, nothing touching the head, and a placenta that forms part of the sac wall.
 It then needs the clinic's medical sign-off.
 
-**20-week illustration support.** The story can already show a 20-week illustration after the
-7-week scene in chapter 06. When `ch06-fetus-20w.png` is present, `npm run assets` adds it to the
-manifest and the chapter shows it in a soft circle with its own caption ("Fig. 6a … (illustration)").
-Without the file nothing changes, so add it only after sign-off.
+**20-week illustration.** No longer needed by the story: the all-3D Life Unfolds shows the baby at
+about 12, 20, 28 and 36 weeks in the sculpture itself. The job is kept in case the clinic wants a still
+image; if one is ever added (`ch06-fetus-20w.png`, after sign-off), `npm run assets` builds it and the
+review page lists it, but the story does not show it.
 
 **Not upscaled on purpose:** Dr. Navyashri's portrait. AI upscalers can subtly alter a real person's
 face, so the clinic should supply a high-resolution original instead. The clinic's photographs are

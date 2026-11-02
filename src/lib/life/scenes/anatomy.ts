@@ -25,7 +25,7 @@ const TUBE_PATH = [
 const OVARY_CENTRE = new THREE.Vector3(5.4, 0.2, 0);
 const OVARY_RADII = new THREE.Vector3(1.5, 0.9, 0.75);
 const OVARY_STIM = new THREE.Vector3(2.25, 1.5, 1.25);
-/** Where the needle enters: the vaginal wall beside the cervix (schematic). */
+/** Where the needle enters: the vaginal wall beside the cervix (schematic). The probe's fan opens from here too. */
 const ENTRY = new THREE.Vector3(1.9, -4.6, 1.1);
 
 function ellipsoidPoint(dir: THREE.Vector3, radii: THREE.Vector3, centre: THREE.Vector3, lift = 1) {
@@ -73,9 +73,13 @@ export class AnatomyScene implements StoryScene {
   private stimGroupL!: THREE.Group;
   private trigger: THREE.Mesh;
   private eggPos = new THREE.Vector3();
+  /** Uterus, lining, tubes and ligaments: they step back in the ovary close-ups. */
+  private context: THREE.ShaderMaterial[] = [];
   private m = new THREE.Matrix4();
   private q = new THREE.Quaternion();
   private up = new THREE.Vector3(0, 1, 0);
+  private tmpA = new THREE.Vector3();
+  private tmpB = new THREE.Vector3();
 
   constructor() {
     const s = this.scene;
@@ -92,7 +96,8 @@ export class AnatomyScene implements StoryScene {
     );
     const lathe = new THREE.LatheGeometry(profile.getPoints(64).map((p) => new THREE.Vector2(p.x, p.y)), 72);
     lathe.scale(1, 1, 0.62);
-    const uterus = new THREE.Mesh(lathe, tissueMaterial({ color: "#c97b86", deep: "#4e1f2b", rim: "#ffc3cb", opacity: 0.58, fibre: 1.1, echo: 0.42 }));
+    const uterus = new THREE.Mesh(lathe, tissueMaterial({ color: "#bd7f9c", deep: "#43203f", rim: "#f6c9e0", opacity: 0.58, fibre: 0.8, echo: 0.42 }));
+    this.context.push(uterus.material as THREE.ShaderMaterial);
     uterus.renderOrder = 3;
     this.root.add(uterus);
 
@@ -107,14 +112,18 @@ export class AnatomyScene implements StoryScene {
     cav.quadraticCurveTo(-0.62, 0.55, -1.62, 2.45);
     const cavGeo = new THREE.ExtrudeGeometry(cav, { depth: 0.34, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.1, bevelSegments: 3, curveSegments: 24 });
     cavGeo.translate(0, 0, -0.17);
-    const endo = new THREE.Mesh(cavGeo, tissueMaterial({ color: "#f2a6b1", deep: "#a3465a", rim: "#ffe0e4", glow: 0.7, fibre: 2.4, echo: 0.8 }));
+    // Opacity just under 1 so the lining blends and can fade with the rest of the context.
+    const endo = new THREE.Mesh(cavGeo, tissueMaterial({ color: "#e6a8c6", deep: "#8e4a78", rim: "#ffe4f2", glow: 0.6, fibre: 1.6, echo: 0.8, opacity: 0.999 }));
+    this.context.push(endo.material as THREE.ShaderMaterial);
     endo.renderOrder = 1;
     this.root.add(endo);
 
     // ------------------------------------------------------------------ tubes, fimbriae, ovaries (both sides)
-    const tubeMat = tissueMaterial({ color: "#d58c96", deep: "#5d2533", rim: "#ffcdd3", opacity: 0.92, fibre: 2.6, echo: 0.5 });
-    const ovaryMat = tissueMaterial({ color: "#e4b8b0", deep: "#74404a", rim: "#ffe4dc", opacity: 0.96, fibre: 0.5, echo: 0.55 });
-    const ligMat = tissueMaterial({ color: "#bf7f87", deep: "#4f2330", rim: "#f3b9c0", opacity: 0.75, echo: 0.45 });
+    // A rose-mauve family, so the anatomy reads as tissue and sits in the violet night.
+    const tubeMat = tissueMaterial({ color: "#cc92b2", deep: "#4a2347", rim: "#f8d2e7", opacity: 0.92, fibre: 2.6, echo: 0.5 });
+    const ovaryMat = tissueMaterial({ color: "#e6c3cf", deep: "#6a3f60", rim: "#ffe9f2", opacity: 0.96, fibre: 0.5, echo: 0.55 });
+    const ligMat = tissueMaterial({ color: "#b585a5", deep: "#432040", rim: "#ecc0dc", opacity: 0.75, echo: 0.45 });
+    this.context.push(tubeMat, ligMat);
     // Follicles are fluid-filled, so they show dark on ultrasound (echo near 0).
     const follicleMat = glassMaterial({ color: "#f8dccf", rim: "#fff2ea", opacity: 0.14, rimStrength: 0.95, echo: 0.04 });
 
@@ -122,8 +131,9 @@ export class AnatomyScene implements StoryScene {
       const pts = TUBE_PATH.map(([x, y, z]) => new THREE.Vector3(x * side, y, z));
       const curve = new THREE.CatmullRomCurve3(pts, false, "centripetal");
       this.tubeCurves.push(curve);
-      // Isthmus narrow, ampulla wider, infundibulum flaring at the end.
-      const radius = (u: number) => 0.16 + 0.2 * THREE.MathUtils.smoothstep(u, 0.3, 0.6) + 0.22 * THREE.MathUtils.smoothstep(u, 0.86, 1);
+      // Isthmus narrow, ampulla wider, infundibulum flaring at the end; the end inside the uterine wall tapers to a point.
+      const radius = (u: number) =>
+        (0.16 + 0.2 * THREE.MathUtils.smoothstep(u, 0.3, 0.6) + 0.22 * THREE.MathUtils.smoothstep(u, 0.86, 1)) * THREE.MathUtils.smoothstep(u, 0, 0.04);
       const tube = new THREE.Mesh(taperedTube(curve, 180, 14, radius), tubeMat);
       tube.renderOrder = 2;
       this.root.add(tube);
@@ -178,37 +188,54 @@ export class AnatomyScene implements StoryScene {
       }
       this.root.add(group);
 
-      // Utero-ovarian ligament.
+      // Utero-ovarian ligament, tapering to a point inside the uterine wall.
       const lig = new THREE.CatmullRomCurve3([
         new THREE.Vector3(2.0 * side, 1.55, -0.1),
         new THREE.Vector3(3.1 * side, 1.0, -0.15),
         new THREE.Vector3(4.05 * side, 0.45, -0.1),
       ]);
-      this.root.add(new THREE.Mesh(taperedTube(lig, 30, 8, () => 0.13), ligMat));
+      this.root.add(new THREE.Mesh(taperedTube(lig, 30, 8, (u) => 0.13 * THREE.MathUtils.smoothstep(u, 0, 0.12)), ligMat));
     }
 
     // ------------------------------------------------------------------ stimulation: several follicles grow at once
-    this.stimMat = glassMaterial({ color: "#fbe3d6", rim: "#fff6ee", opacity: 0.2, rimStrength: 1.0, rimPow: 2, echo: 0.03 });
+    // Soft rims, so the grown follicles sit in the ovary rather than reading as a pile of bubbles.
+    this.stimMat = glassMaterial({ color: "#f6dfe6", rim: "#fff4f8", opacity: 0.14, rimStrength: 0.6, rimPow: 3, echo: 0.03 });
     const dirs = [
       [0.35, -0.55, 0.78], [-0.25, -0.62, 0.72], [0.72, -0.1, 0.66], [-0.6, -0.1, 0.78], [0.1, 0.2, 0.98],
       [0.62, 0.48, 0.6], [-0.45, 0.52, 0.7], [0.05, -0.85, 0.5], [0.85, -0.45, 0.25],
     ];
+    // A mixed cohort: a few leading follicles about 16-19 mm across (the first three are the ones drained), others smaller.
+    // Each branch makes one r() call, so the seeded layout is unchanged.
     dirs.forEach(([x, y, z], i) => {
-      this.follicles.push({ dir: new THREE.Vector3(x, y, z).normalize(), r0: 0.13 + r() * 0.08, r1: lerp(0.55, 0.82, r()) * (i < 3 ? 1.08 : 1), delay: r() * 6, pos: new THREE.Vector3(), radius: 0 });
+      this.follicles.push({
+        dir: new THREE.Vector3(x, y, z).normalize(),
+        r0: 0.13 + r() * 0.08,
+        r1: i < 3 ? lerp(0.82, 0.95, r()) : i < 6 ? lerp(0.55, 0.72, r()) : lerp(0.3, 0.42, r()),
+        delay: r() * 6,
+        pos: new THREE.Vector3(),
+        radius: 0,
+      });
     });
     this.stim = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 40, 28), this.stimMat, this.follicles.length);
     this.stim.renderOrder = 5;
     this.ovaryGroup.add(this.stim);
     // Mirror image on the other side (its group is mirrored by its own rotation and position).
-    dirs.forEach(([x, y, z]) => {
-      this.folliclesL.push({ dir: new THREE.Vector3(-x, y * 0.9, z).normalize(), r0: 0.13 + r() * 0.08, r1: lerp(0.5, 0.78, r()), delay: r() * 6, pos: new THREE.Vector3(), radius: 0 });
+    dirs.forEach(([x, y, z], i) => {
+      this.folliclesL.push({
+        dir: new THREE.Vector3(-x, y * 0.9, z).normalize(),
+        r0: 0.13 + r() * 0.08,
+        r1: i < 2 ? lerp(0.78, 0.92, r()) : i < 5 ? lerp(0.5, 0.7, r()) : lerp(0.28, 0.4, r()),
+        delay: r() * 6,
+        pos: new THREE.Vector3(),
+        radius: 0,
+      });
     });
     this.stimL = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 40, 28), this.stimMat, this.folliclesL.length);
     this.stimL.renderOrder = 5;
     this.stimGroupL.add(this.stimL);
 
     // The trigger: a soft pulse through the ovary as the eggs complete their maturation.
-    this.trigger = glow("#e9d8ff", 2.6, 0.0);
+    this.trigger = glow("#cdb8f4", 2.2, 0.0);
     this.trigger.renderOrder = 8;
     this.ovaryGroup.add(this.trigger);
 
@@ -219,9 +246,10 @@ export class AnatomyScene implements StoryScene {
     this.needle.renderOrder = 9;
     this.root.add(this.needle);
 
-    // A drop of follicle fluid travelling down the needle (pale straw, as it is in life).
-    this.cumulus = glow("#f3e3bb", 0.5, 0.0);
-    this.egg = glow("#fbf2dc", 0.22, 0.12);
+    // Follicle fluid running back along the needle: a faint straw tint no wider than the needle and with no bright
+    // core, so it cannot read as an egg (eggs are about 0.1 mm and are only found under the microscope).
+    this.cumulus = glow("#f3e3bb", 0.16, 0.0);
+    this.egg = glow("#f1e4c8", 0.09, 0.0);
     this.cumulus.renderOrder = 10;
     this.egg.renderOrder = 11;
     this.root.add(this.cumulus, this.egg);
@@ -230,8 +258,8 @@ export class AnatomyScene implements StoryScene {
 
     this.rig = new Rig([
       { u: 0, target: [0, 1.7, 0], pos: [0.4, 2.0, 5.2] },
-      { u: 8, target: [0, 0.8, 0], pos: [1.6, 1.6, 17.5] },
-      { u: 21, target: [0, 0.6, 0], pos: [-2.6, 2.3, 23] },
+      { u: 8, target: [0.6, 0.8, 0], pos: [2.2, 1.6, 20.5] },
+      { u: 21, target: [0.4, 0.6, 0], pos: [-2.0, 2.3, 26] },
       { u: 30, target: [3.4, 0.4, 0], pos: [4.8, 1.8, 15.5] },
       { u: 38, target: [5.4, 0.25, 0.3], pos: [6.7, 1.4, 9.6] },
       { u: 56, target: [5.5, 0.15, 0.4], pos: [7.0, 0.9, 9.0] },
@@ -252,7 +280,7 @@ export class AnatomyScene implements StoryScene {
 
   update(u: number, _dt: number, ctx: Ctx) {
     // Wide shots sit well right of the captions; close-ups come back toward the centre.
-    frameForCaptions(this.camera, ctx, 0.19 - span(u, 26, 38) * 0.09);
+    frameForCaptions(this.camera, ctx, 0.23 - span(u, 26, 38) * 0.13);
     this.rig.apply(this.camera, u, ctx, 0.08);
 
     // Fimbriae sway gently, as they do in life.
@@ -277,7 +305,7 @@ export class AnatomyScene implements StoryScene {
       const pick = PICKS.findIndex((p) => p.k === k);
       const drain = pick >= 0 ? drained[pick] : 0;
       f.radius = lerp(f.r0, f.r1, g) * (1 - drain * 0.7);
-      f.pos.copy(ellipsoidPoint(f.dir, R, new THREE.Vector3(), 0.88));
+      f.pos.copy(ellipsoidPoint(f.dir, R, new THREE.Vector3(), 0.8));
       this.m.compose(f.pos, this.q.identity(), new THREE.Vector3().setScalar(Math.max(0.001, f.radius)));
       this.stim.setMatrixAt(k, this.m);
     });
@@ -291,22 +319,26 @@ export class AnatomyScene implements StoryScene {
     this.restingL.instanceMatrix.needsUpdate = true;
     this.folliclesL.forEach((f, k) => {
       f.radius = lerp(f.r0, f.r1, span(u, 31 + f.delay, 57));
-      f.pos.copy(ellipsoidPoint(f.dir, R, new THREE.Vector3(), 0.88));
+      f.pos.copy(ellipsoidPoint(f.dir, R, new THREE.Vector3(), 0.8));
       this.m.compose(f.pos, this.q.identity(), new THREE.Vector3().setScalar(Math.max(0.001, f.radius)));
       this.stimL.setMatrixAt(k, this.m);
     });
     this.stimL.instanceMatrix.needsUpdate = true;
     this.stimL.visible = u > 29;
-    this.stimMat.uniforms.uOpacity.value = 0.2 * smooth(29, 31, u);
+    this.stimMat.uniforms.uOpacity.value = 0.14 * smooth(29, 31, u);
 
-    // Trigger: a slow pulse, then calm.
+    // Trigger: a slow, soft pulse, then calm.
     const trig = windowed(u, 58, 64, 1.4);
     const tm = this.trigger.material as THREE.ShaderMaterial;
-    tm.uniforms.uOpacity.value = trig * (0.55 + 0.25 * Math.sin(t * 2.2));
-    this.stimMat.uniforms.uRimStrength.value = 1.0 + trig * 0.8;
+    tm.uniforms.uOpacity.value = trig * (0.22 + 0.1 * Math.sin(t * 2.2));
+    this.stimMat.uniforms.uRimStrength.value = 0.6 + trig * 0.5;
     this.ovaryGroup.updateMatrixWorld();
 
-    // Egg collection: the needle reaches each follicle, drains it, and the egg travels down the needle.
+    // In the ovary close-ups the uterus and tubes step back, so the copy and the ovary own the frame.
+    const ctxA = 1 - 0.68 * span(u, 28, 34);
+    this.context.forEach((m) => (m.uniforms.uFade.value = ctxA));
+
+    // Egg collection: the needle reaches each follicle and drains it; the fluid runs back along the needle.
     let tip = ENTRY.clone();
     let eggA = 0;
     for (let i = 0; i < PICKS.length; i++) {
@@ -323,7 +355,8 @@ export class AnatomyScene implements StoryScene {
     }
     const withdraw = span(u, 87, 92);
     tip.lerp(ENTRY, withdraw);
-    const shown = smooth(64.5, 66, u) * (1 - smooth(91, 92, u));
+    // Fades while it withdraws, so no stub is left at the entry point.
+    const shown = smooth(64.5, 66, u) * (1 - smooth(88.5, 90.5, u));
     const dir = tip.clone().sub(ENTRY);
     const len = Math.max(0.001, dir.length());
     this.needle.position.copy(ENTRY);
@@ -338,12 +371,18 @@ export class AnatomyScene implements StoryScene {
     (this.egg.material as THREE.ShaderMaterial).uniforms.uOpacity.value = eggA;
     (this.cumulus.material as THREE.ShaderMaterial).uniforms.uOpacity.value = eggA * 0.45;
 
-    // Ultrasound: scans during monitoring, and the guidance view during collection (probe below).
+    // Ultrasound: scans during monitoring, and the guidance view during collection.
     const w = ctx.width * ctx.dpr;
     const h = ctx.height * ctx.dpr;
     shared.uUS.value = Math.max(windowed(u, 44, 55, 1.2), windowed(u, 64.5, 91, 1.2));
-    if (ctx.portrait) shared.uProbe.value.set(w * 0.5, h * 1.0, h * 0.86);
-    else shared.uProbe.value.set(w * 0.6, h * 1.03, h * 1.0);
+    // Monitoring and collection are transvaginal: the fan opens from the probe at the needle's entry and points at the
+    // ovary, so the needle runs inside it.
+    this.camera.updateMatrixWorld();
+    const apex = this.tmpA.copy(ENTRY).project(this.camera);
+    const aim = this.tmpB.copy(OVARY_CENTRE).project(this.camera);
+    const ax = (apex.x * 0.5 + 0.5) * w, ay = (apex.y * 0.5 + 0.5) * h;
+    const bx = (aim.x * 0.5 + 0.5) * w, by = (aim.y * 0.5 + 0.5) * h;
+    shared.uProbe.value.set(ax, ay, Math.hypot(bx - ax, by - ay) * 1.6, Math.atan2(bx - ax, ay - by));
   }
 
   hud(u: number): Hud {
@@ -361,7 +400,12 @@ export class AnatomyScene implements StoryScene {
         { id: "antral", pos: ovaryTop, a: windowed(u, 22, 31) },
         { id: "follicles", pos: lead.clone().add(new THREE.Vector3(0.4, 0.6, 0.4)), a: windowed(u, 36, 63) },
         { id: "needleR", pos: ENTRY.clone().lerp(this.needleTip, 0.45).add(new THREE.Vector3(0.3, 0, 0.4)), a: windowed(u, 67, 90) },
-        { id: "eggC", pos: this.eggPos.clone().add(new THREE.Vector3(0.25, 0.1, 0)), a: windowed(u, 71, 74.5, 0.4) },
+        // Shown on every drain, not just the first.
+        {
+          id: "eggC",
+          pos: this.eggPos.clone().add(new THREE.Vector3(0.25, 0.1, 0)),
+          a: Math.max(windowed(u, 71, 74.5, 0.4), windowed(u, 77.4, 81, 0.4), windowed(u, 83.9, 87.5, 0.4)),
+        },
       ],
       scale: closeUp > 0.01
         ? { from: new THREE.Vector3(3.0, -2.6, 0.5), to: new THREE.Vector3(4.0, -2.6, 0.5), label: "1 cm", a: closeUp }

@@ -9,7 +9,8 @@ export const shared = {
   uTime: { value: 0 },
   uRes: { value: new THREE.Vector2(1, 1) },
   uUS: { value: 0 },
-  uProbe: { value: new THREE.Vector3(0, 0, 0) },
+  // xy: fan apex in drawing-buffer px; z: radius in px; w: axis angle (0 = opens downwards, PI = upwards).
+  uProbe: { value: new THREE.Vector4(0, 0, 0, 0) },
 };
 
 // ------------------------------------------------------------------------------------------- cells
@@ -22,9 +23,10 @@ uniform float uDent;
 uniform vec3 uDentDir;
 void main(){
   vec3 pos = position;
-  // A soft dimple where a needle presses on the membrane (used during ICSI).
+  // A small funnel where the needle tip presses on the membrane (used during ICSI), not a flattened side.
   float d = dot(normalize(position), uDentDir);
-  pos -= normalize(position) * uDent * 0.16 * smoothstep(0.86, 1.0, d);
+  float k = smoothstep(0.94, 1.0, d);
+  pos -= normalize(position) * uDent * 0.24 * k * k;
   mat4 m = modelMatrix;
   #ifdef USE_INSTANCING
     m = modelMatrix * instanceMatrix;
@@ -105,7 +107,7 @@ ${NOISE}
 void main(){
   vec3 pos = position;
   if (uFuzz > 0.0) {
-    float f = snoise(position * 6.0 + vec3(0.0, uTime * 0.05, 0.0));
+    float f = snoise(position * 3.2 + vec3(0.0, uTime * 0.05, 0.0));
     pos += normal * f * uFuzz;
   }
   mat4 m = modelMatrix;
@@ -129,6 +131,7 @@ uniform float uStriae;
 uniform float uTime;
 uniform float uFade;
 uniform float uEcho;
+uniform vec2 uAxisFade; // fades the glass out along object y, from .x to .y (off when .y <= .x)
 varying vec3 vN;
 varying vec3 vV;
 varying vec3 vObj;
@@ -142,6 +145,7 @@ void main(){
   float s = uStriae > 0.0 ? snoise(vObj * vec3(2.0, 9.0, 2.0) + uTime * 0.02) * uStriae : 0.0;
   vec3 c = mix(uColor, uRim, fres) + s * 0.12;
   float a = (uOpacity + fres * uRimStrength + s * 0.05) * (gl_FrontFacing ? 1.0 : 0.55);
+  if (uAxisFade.y > uAxisFade.x) a *= 1.0 - smoothstep(uAxisFade.x, uAxisFade.y, vObj.y);
   c = usShade(c, uEcho, uTime);
   gl_FragColor = vec4(c, clamp(a, 0.0, 1.0) * uFade);
 }`;
@@ -175,6 +179,7 @@ export function glassMaterial(o: {
       uFuzz: { value: o.fuzz ?? 0 },
       uFade: { value: 1 },
       uEcho: { value: o.echo ?? 0.5 },
+      uAxisFade: { value: new THREE.Vector2(0, 0) },
       uTime: shared.uTime,
       uUS: shared.uUS,
       uProbe: shared.uProbe,
@@ -480,7 +485,7 @@ void main(){
   gl_FragColor = vec4(uColor, a * uOpacity);
 }`;
 
-/** Camera-facing soft glow; used for the released egg, the transferred embryo and the heartbeat. */
+/** Camera-facing soft glow; used for the follicle fluid, the trigger pulse, the transferred embryo and the heartbeat. */
 export function glow(color: RGB, scale = 0.3, core = 0.12) {
   const m = new THREE.ShaderMaterial({
     vertexShader: GLOW_VERT,

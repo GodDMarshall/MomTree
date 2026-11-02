@@ -139,10 +139,10 @@ export const captions: Caption[] = [
   cap(S.implant, 63.2, 67.2, "Fig. 8", "The blastocyst hatches from its shell, the zona", "about day 6"),
   cap(S.implant, 67.2, 71.8, "Fig. 8a", "Implantation: the blastocyst begins to attach to the lining of the uterus (illustration)", "about days 6–10"),
   cap(S.scan, 77.2, 85.2, "Fig. 9", "Early pregnancy at about 7 weeks: gestational sac, yolk sac and a 1 cm embryo"),
-  cap(S.life, 13, 23, "Fig. 10", "About 12 weeks: around 6 cm from head to bottom (illustration)"),
-  cap(S.life, 23.5, 37, "Fig. 10a", "About 20 weeks: around 25 cm from head to heel"),
-  cap(S.life, 37.5, 51, "Fig. 10b", "About 28 weeks: many babies begin to turn head-down"),
-  cap(S.life, 51.5, 63, "Fig. 10c", "About 36 weeks: most babies have settled head-down"),
+  cap(S.life, 13, 20.5, "Fig. 10", "About 12 weeks: around 6 cm from head to bottom (illustration)"),
+  cap(S.life, 24.5, 34, "Fig. 10a", "About 20 weeks: around 25 cm from head to heel"),
+  cap(S.life, 37.5, 47.5, "Fig. 10b", "About 28 weeks: many babies are turning head-down"),
+  cap(S.life, 52, 63, "Fig. 10c", "About 36 weeks: most babies have settled head-down"),
 ];
 
 export type Panel = {
@@ -353,7 +353,7 @@ export const labelText: Record<string, string> = {
   antral: "Resting (antral) follicles",
   follicles: "Growing follicles",
   needleR: "Collection needle, guided by ultrasound",
-  eggC: "Follicle fluid, checked for eggs in the laboratory",
+  eggC: "Follicle fluid: the eggs are too small to see and are found in the laboratory",
   follicle: "Maturing follicle",
   egg: "Egg",
   corona: "Corona cells",
@@ -369,6 +369,7 @@ export const labelText: Record<string, string> = {
   bladder: "Bladder",
   catheter: "Transfer catheter",
   embryoT: "Embryo (enlarged)",
+  flash: "Bright spot: air bubbles in the drop, not the embryo",
   sac: "Gestational sac",
   yolk: "Yolk sac",
   embryo7: "Embryo, about 1 cm",

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { backdropMaterial, cellMaterial, fullscreenQuad, glassMaterial, glow, motes } from "../materials";
 import { Rig, disposeScene, frameForCaptions, smooth, taperedTube, windowed, type Ctx, type Hud, type StoryScene } from "./common";
 
-// Units: 1 = 1 cm. Early pregnancy at about 7 weeks: a gestational sac (~2.7 cm) with chorionic
+// Units: 1 = 1 cm. Early pregnancy at about 7 weeks: a gestational sac (~2 cm) with chorionic
 // villi, the amnion around a ~1 cm C-shaped embryo with limb buds and a beating heart, and the
 // yolk sac outside the amnion. Accurate to stage; deliberately not a "baby".
 
@@ -18,7 +18,7 @@ export class PregnancyScene implements StoryScene {
   private group = new THREE.Group();
   private heart: THREE.Mesh;
   private body: THREE.CatmullRomCurve3;
-  private yolkPos = new THREE.Vector3(0.82, -0.42, 0.25);
+  private yolkPos = new THREE.Vector3(0.66, -0.36, 0.2);
 
   constructor() {
     const s = this.scene;
@@ -27,8 +27,8 @@ export class PregnancyScene implements StoryScene {
 
     // Chorionic sac, its surface softened by villi.
     const chorion = new THREE.Mesh(
-      new THREE.SphereGeometry(1.35, 96, 72),
-      glassMaterial({ color: "#eab7be", rim: "#ffdade", opacity: 0.05, rimStrength: 0.8, rimPow: 2.2, fuzz: 0.045 }),
+      new THREE.SphereGeometry(1.05, 96, 72),
+      glassMaterial({ color: "#eab7be", rim: "#ffdade", opacity: 0.05, rimStrength: 0.8, rimPow: 2.2, fuzz: 0.018 }),
     );
     chorion.renderOrder = 8;
     this.group.add(chorion);
@@ -54,6 +54,10 @@ export class PregnancyScene implements StoryScene {
     const headCap = new THREE.Mesh(new THREE.SphereGeometry(radius(0) * 1.02, 32, 24), embryoMat);
     headCap.position.copy(this.body.getPointAt(0));
     this.group.add(headCap);
+    // The tail end is closed too, not a flat-cut tube.
+    const tailCap = new THREE.Mesh(new THREE.SphereGeometry(radius(1) * 1.02, 16, 12), embryoMat);
+    tailCap.position.copy(this.body.getPointAt(1));
+    this.group.add(tailCap);
 
     // Limb buds on the ventral side (the inside of the C).
     const centre = new THREE.Vector3(0.1, 0.0, 0).add(AMNION);
@@ -88,17 +92,17 @@ export class PregnancyScene implements StoryScene {
     const ductStart = this.body.getPointAt(0.5);
     const duct = new THREE.CatmullRomCurve3([ductStart, ductStart.clone().lerp(this.yolkPos, 0.5).add(new THREE.Vector3(0.05, 0.12, 0.1)), this.yolkPos.clone().add(new THREE.Vector3(-0.15, 0.05, 0))]);
     this.group.add(new THREE.Mesh(taperedTube(duct, 40, 8, () => 0.022), embryoMat));
-    // Connecting stalk toward the chorion wall (the future umbilical cord).
+    // Connecting stalk to the chorion wall (the future umbilical cord), running behind the embryo.
     const stalkStart = this.body.getPointAt(0.6);
-    const stalk = new THREE.CatmullRomCurve3([stalkStart, new THREE.Vector3(-0.55, 0.55, -0.1), new THREE.Vector3(-0.85, 1.0, -0.2)]);
+    const stalk = new THREE.CatmullRomCurve3([stalkStart, new THREE.Vector3(-0.45, 0.45, -0.35), new THREE.Vector3(-0.62, 0.72, -0.45)]);
     this.group.add(new THREE.Mesh(taperedTube(stalk, 40, 10, (u) => 0.05 - u * 0.012), embryoMat));
 
     s.add(motes({ count: 110, box: [9, 6, 8], color: "#e0cff5", size: 1.8, opacity: 0.4 }));
 
     this.rig = new Rig([
       { u: 76.5, target: [0.1, 0.0, 0.1], pos: [0.35, 0.15, 1.3] },
-      { u: 78.6, target: [0.05, 0, 0], pos: [1.4, 0.9, 7.3] },
-      { u: 82.0, target: [0.05, 0, 0], pos: [-1.9, 1.2, 7.0] },
+      { u: 78.6, target: [0.05, 0, 0], pos: [1.1, 0.7, 5.8] },
+      { u: 82.0, target: [0.05, 0, 0], pos: [-1.5, 0.95, 5.6] },
       { u: 85.6, target: [0.0, 0, 0], pos: [-0.4, 0.4, 3.4] },
     ]);
   }
@@ -129,7 +133,7 @@ export class PregnancyScene implements StoryScene {
   hud(u: number): Hud {
     return {
       labels: [
-        { id: "sac", pos: new THREE.Vector3(-0.9, 1.05, 0.3), a: windowed(u, 78.6, 83.4) },
+        { id: "sac", pos: new THREE.Vector3(-0.7, 0.8, 0.25), a: windowed(u, 78.6, 83.4) },
         { id: "yolk", pos: this.yolkPos.clone().add(new THREE.Vector3(0.12, -0.22, 0.1)), a: windowed(u, 79, 83.4) },
         { id: "embryo7", pos: this.body.getPointAt(0.05).clone().add(new THREE.Vector3(0.05, 0.16, 0.1)), a: windowed(u, 79.4, 83.4) },
       ],

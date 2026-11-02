@@ -72,7 +72,7 @@ The story now follows IVF in order, in eleven chapters, all in 3D: the beginning
 
 - [ ] Reception (07.jpg) and consultation room (08.jpg): are these photographs of the actual clinic, or design renders?
 - [ ] Supply genuine photographs of: operation theatre / clean room, in-house pharmacy, ultrasound room, andrology laboratory.
-- [ ] Camera originals of the clinic photographs, and of Dr. Navyashri's portrait. The old site only holds them at 1600×900. Faithful AI upscales (face enhancement off) can stand in for the clinic photographs until then; approve that, or wait for the originals. The portrait is not AI-upscaled.
+- [ ] Camera originals of the clinic photographs, and of Dr. Navyashri's portrait. The old site only holds them at 1600×900. Faithful AI upscales (face enhancement off) can stand in for the clinic photographs until then: photograph 01 (embryo assessment at the stereo microscope) is already served as one, checked against the original; 02–08 will follow. Approve that, or supply the originals. The portrait is not AI-upscaled.
 - [ ] Event photographs (baby shower, celebration): written consent from everyone identifiable, or remove. These are shown only in review mode.
 - [ ] Google reviews quoted by name (5, verbatim): confirm the selection and permission.
 - [ ] Legal review of testimonials, quoted reviews and patient stories against current medical advertising rules (the National Medical Commission's guidelines on advertising and public communication), which may not permit promotional patient stories or testimonials even with consent.

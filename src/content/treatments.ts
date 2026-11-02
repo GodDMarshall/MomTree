@@ -345,7 +345,7 @@ export const treatments: Treatment[] = [
       { q: "Can blastocysts be frozen?", a: "Yes. Vitrification, a rapid freezing method, is widely used for blastocysts." },
     ],
     related: ["ivf", "icsi", "laser-assisted-hatching"],
-    photo: { src: `${L}/01.jpg`, alt: "An embryologist examining embryos under a stereo microscope at Momtree", caption: "Embryo assessment at the stereo microscope", width: 1600, height: 900 },
+    photo: { src: "/clinic/01.jpg", alt: "An embryologist examining embryos under a stereo microscope at Momtree", caption: "Embryo assessment at the stereo microscope", width: 3840, height: 2160 },
     review: "pending",
   },
   {

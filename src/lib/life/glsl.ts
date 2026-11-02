@@ -58,23 +58,31 @@ float hash12(vec2 p){
 `;
 
 /**
- * Ultrasound look for the embryo transfer chapter. Inside a fan-shaped sector anchored at a probe
- * position (in drawing-buffer pixels), surfaces are re-shaded as grey speckle by their echogenicity.
+ * Ultrasound look for the monitoring scans, egg collection and embryo transfer. Inside a fan-shaped
+ * sector anchored at a probe position (in drawing-buffer pixels), surfaces are re-shaded as B-mode
+ * speckle by their echogenicity. Needs NOISE included before it.
  */
 export const ULTRASOUND = /* glsl */ `
 uniform float uUS;
-uniform vec3 uProbe; // xy: probe position in px, z: sector radius in px
-float usFan(){
+uniform vec4 uProbe; // xy: apex in px; z: radius in px; w: axis angle (0 = opens downwards, PI = upwards)
+vec3 usPolar(){
   vec2 d = gl_FragCoord.xy - uProbe.xy;
-  float r = length(d);
-  float ang = atan(d.x, -d.y);
-  return smoothstep(0.5, 0.46, abs(ang)) * smoothstep(uProbe.z, uProbe.z * 0.96, r) * smoothstep(uProbe.z * 0.05, uProbe.z * 0.09, r);
+  float c = cos(uProbe.w), s = sin(uProbe.w);
+  d = vec2(c * d.x + s * d.y, -s * d.x + c * d.y);
+  return vec3(length(d), atan(d.x, -d.y), uProbe.z);
+}
+float usFan(){
+  vec3 pr = usPolar();
+  return smoothstep(0.5, 0.46, abs(pr.y)) * smoothstep(pr.z, pr.z * 0.96, pr.x) * smoothstep(pr.z * 0.05, pr.z * 0.09, pr.x);
 }
 vec3 usShade(vec3 col, float echo, float t){
   float m = uUS * usFan();
   if (m <= 0.0) return col;
-  float speck = hash12(floor(gl_FragCoord.xy / 2.0) + floor(t * 18.0) * 17.13);
-  float g = clamp(echo + (speck - 0.5) * 0.36, 0.0, 1.0);
-  return mix(col, vec3(g * 0.93, g * 0.95, g), m);
+  vec3 pr = usPolar();
+  float depth = pr.x / pr.z;
+  // B-mode speckle: smooth, stretched along the arc and drifting slowly, in violet-tinted greys.
+  float speck = snoise(vec3(pr.y * 70.0, depth * 150.0, t * 0.4)) * 0.5 + 0.5;
+  float g = clamp(echo * (0.7 + 0.6 * speck) * (1.0 - 0.35 * depth) + 0.035 * speck, 0.0, 1.0);
+  return mix(col, mix(vec3(0.06, 0.04, 0.09), vec3(0.92, 0.9, 0.97), g), m);
 }
 `;

@@ -73,7 +73,8 @@ export class LifeEngine {
     THREE.ColorManagement.enabled = false;
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: opts.tier !== "low",
+      // MSAA on every tier: cheap on tile-based mobile GPUs (the cost is the raymarch).
+      antialias: true,
       alpha: true,
       powerPreference: "high-performance",
       preserveDrawingBuffer: Boolean(opts.preserveDrawingBuffer),
@@ -109,20 +110,23 @@ export class LifeEngine {
       sculpture: new SculptureScene(
         {
           id: "sculpture",
-          week: [[0, 0], [10, 0], [14, 12], [26, 20], [40, 28], [56, 37], [63, 38], [66.5, 0]],
-          glass: [[0, 0], [11, 0], [14, 1], [62.5, 1], [65.5, 0]],
+          // Each week holds under its caption (Fig. 10–10c) and grows between them; the drop to 0 at
+          // the birth happens under the glow, after the window has closed.
+          week: [[0, 0], [10, 0], [10.4, 10], [14, 12], [20, 12.6], [26, 20], [32, 20.8], [40, 28], [46, 29], [54, 36], [63, 38], [64.6, 38], [66.6, 0]],
+          glass: [[0, 0], [11, 0], [14, 1], [62.4, 1], [64.4, 0]],
           pose: [[0, 0], [11, 0], [16, 1], [63, 1], [69, 2]],
-          baby: [[0, 0], [65, 0], [70, 1]],
-          bloom: [[0, 0], [61, 0], [65.5, 0.92], [71, 0]],
+          baby: [[0, 0], [65.3, 0], [69, 1]],
+          bloom: [[0, 0], [61, 0], [65.5, 0.8], [71, 0]],
           leaves: [[0, 0], [74, 0], [95, 1]],
+          // Wide enough through chapter 10 and the newborn that her head and face stay in frame, clear of the nav.
           camera: [
             { u: 0, pos: [-1.1, 1.5, 3.0], target: [0, 1.15, 0] },
             { u: 10, pos: [-1.5, 1.35, 4.2], target: [0, 1.0, 0] },
-            { u: 10.5, pos: [-1.6, 1.15, 1.6], target: [0, 1.0, 0.12] },
-            { u: 30, pos: [-1.75, 1.12, 1.3], target: [0, 1.0, 0.14] },
-            { u: 56, pos: [-1.8, 1.15, 1.4], target: [0, 1.02, 0.16] },
-            { u: 64, pos: [-1.2, 1.3, 1.9], target: [0.02, 1.12, 0.12] },
-            { u: 76, pos: [-0.65, 1.32, 1.75], target: [0.02, 1.16, 0.1] },
+            { u: 10.5, pos: [-1.85, 1.3, 2.25], target: [0, 1.16, 0.1] },
+            { u: 30, pos: [-2.0, 1.28, 2.0], target: [0, 1.15, 0.12] },
+            { u: 56, pos: [-2.05, 1.3, 2.05], target: [0, 1.16, 0.14] },
+            { u: 64, pos: [-1.5, 1.38, 2.5], target: [0.02, 1.2, 0.1] },
+            { u: 76, pos: [-1.0, 1.4, 2.55], target: [0.02, 1.22, 0.08] },
             { u: 100, pos: [-1.15, 1.45, 3.2], target: [0, 1.3, 0] },
           ],
         },

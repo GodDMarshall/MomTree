@@ -6,7 +6,7 @@ export type Photo = { src: string; alt: string; caption: string; width: number; 
 const L8 = "/legacy/2024/08";
 
 export const photos = {
-  embryologist: { src: `${L8}/01.jpg`, alt: "An embryologist examining embryos under a stereo microscope", caption: "Embryo assessment at the stereo microscope", width: 1600, height: 900 },
+  embryologist: { src: "/clinic/01.jpg", alt: "An embryologist examining embryos under a stereo microscope", caption: "Embryo assessment at the stereo microscope", width: 3840, height: 2160 },
   icsiStation: { src: "/clinic/02-lab.jpg", alt: "An embryologist working at the ICSI micromanipulation workstation", caption: "The embryology laboratory: ICSI workstation", width: 1600, height: 755 },
   micromanipulator: { src: `${L8}/03.jpg`, alt: "Close view of the micromanipulators used for ICSI", caption: "Micromanipulators, used to hold an egg and inject a single sperm", width: 1600, height: 900 },
   microscope: { src: `${L8}/04.jpg`, alt: "A laboratory stereo microscope", caption: "Laboratory microscopy", width: 1600, height: 900 },

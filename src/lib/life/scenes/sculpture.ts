@@ -94,10 +94,10 @@ uniform vec3 uBellyR;
 uniform vec3 uShR; uniform vec3 uElR; uniform vec3 uWrR; uniform vec3 uTipR;
 uniform vec3 uShL; uniform vec3 uElL; uniform vec3 uWrL; uniform vec3 uTipL;
 uniform vec3 uBabyC; uniform mat3 uBabyRot; uniform float uBabyS;
-uniform float uGlass; uniform vec3 uWinC; uniform vec3 uWinR;
+uniform float uGlass; uniform vec3 uWinC;
 uniform vec3 uFetusC; uniform mat3 uFetusRot; uniform float uFetusS; uniform float uHeadR;
 uniform vec3 uCordA; uniform vec3 uCordB; uniform vec3 uCordC; uniform float uCordR;
-uniform vec3 uPlacC; uniform vec3 uPlacR;
+uniform vec3 uPlacC; uniform vec3 uPlacR; uniform vec3 uUterC; uniform vec3 uUterR;
 uniform float uFetusOn;
 uniform float uBloom;
 uniform float uPix;
@@ -122,18 +122,22 @@ float sdHead(vec3 p){
   float cranium = sdEllipsoid(q - vec3(0.0, 0.09, 0.0), vec3(0.076, 0.103, 0.091));
   float jaw = sdEllipsoid(q - vec3(0.0, 0.036, 0.036), vec3(0.05, 0.057, 0.058));
   float d = smin(cranium, jaw, 0.04);
-  float nose = sdEllipsoid(q - vec3(0.0, 0.076, 0.092), vec3(0.01, 0.021, 0.015));
-  return smin(d, nose, 0.012);
+  // Featureless but sculpted: a soft brow plane and a small, blended nose, not a lone mannequin bump.
+  d = smin(d, sdEllipsoid(q - vec3(0.0, 0.108, 0.074), vec3(0.056, 0.014, 0.022)), 0.022);
+  float nose = sdEllipsoid(q - vec3(0.0, 0.074, 0.086), vec3(0.008, 0.017, 0.011));
+  return smin(d, nose, 0.02);
 }
 float sdHair(vec3 p){
   vec3 q = uHeadRot * (p - NECK_TOP);
   float cap = sdEllipsoid(q - vec3(0.0, 0.1, -0.012), vec3(0.082, 0.1, 0.091));
   cap = max(cap, q.z - (0.022 + 0.55 * (q.y - 0.1)));
+  // Fine strands carved back towards the bun.
+  cap -= 0.0015 * sin(atan(q.x, q.y - 0.02) * 30.0) * smoothstep(0.03, 0.12, q.y);
   float bun = length(q - vec3(0.0, 0.08, -0.104)) - 0.047;
   return smin(cap, bun, 0.026);
 }
 
-// x: distance, y: material (1 porcelain, 2 hair, 3 newborn)
+// x: distance, y: material (0.7 arms, 1 porcelain, 2 hair, 3 swaddle, 3.5 newborn's face)
 vec2 mapFigure(vec3 p){
   float d = sdRoundCone(p, vec3(0.0, 0.02, -0.02), vec3(0.0, 0.9, -0.01), 0.3, 0.162);
   float ang = atan(p.z, p.x);
@@ -146,9 +150,13 @@ vec2 mapFigure(vec3 p){
   d = smin(d, sdEllipsoid(p - vec3(0.0, 1.222, 0.03), vec3(0.13, 0.06, 0.07)), 0.06);
   vec3 nq = p - vec3(0.0, 1.372, 0.004);
   d = smin(d, length(vec2(length(nq.xz * vec2(1.0, 1.25)) - 0.052, nq.y)) - 0.009, 0.012);
-  float pallu = sdCapsule(p, vec3(0.13, 1.392, 0.0), vec3(0.02, 1.225, 0.116), 0.021);
-  pallu = min(pallu, sdCapsule(p, vec3(0.02, 1.225, 0.116), vec3(-0.115, 1.035, 0.098), 0.021));
-  d = smin(d, pallu, 0.028);
+  // The pallu as cloth, not a cord: a thin layer on the torso within a diagonal band (front and
+  // back), with a few soft folds, kept above the bump and the window.
+  vec3 bn = normalize(vec3(-0.48, 0.88, 0.0));
+  float band = abs(dot(p - vec3(0.0, 1.24, 0.0), bn)) - 0.055;
+  band = max(band, max(p.y - 1.43, 1.0 - p.y));
+  float pallu = max(abs(d - 0.006) - 0.004, band) - 0.0012 * sin(dot(p, bn) * 260.0);
+  d = smin(d, pallu, 0.006);
   d = smin(d, sdCapsule(p, vec3(-0.142, 1.358, -0.016), vec3(0.142, 1.358, -0.016), 0.043), 0.065);
   d = smin(d, sdCapsule(p, vec3(0.0, 1.37, -0.005), NECK_TOP, 0.037), 0.045);
   d = smin(d, sdHead(p), 0.03);
@@ -161,37 +169,47 @@ vec2 mapFigure(vec3 p){
   aL = smin(aL, sdRoundCone(p, uWrL, uTipL, 0.021, 0.012), 0.011);
   float body = d;
   d = smin(d, min(aR, aL), 0.022);
-  // Arms and hands are material 1.3: porcelain, but never part of the belly window.
-  vec2 res = vec2(d, d < body - 0.0005 || min(aR, aL) < body ? 1.3 : 1.0);
+  // Arms and hands weigh 0.7 against the body's 1.0, blended softly, so the belly window fades
+  // out along the arm instead of being cut.
+  vec2 res = vec2(d, 1.0 - 0.3 * smoothstep(0.004, -0.004, min(aR, aL) - body));
+  // The hairline blends into the porcelain rather than switching material.
   float hair = sdHair(p);
-  if (hair < res.x) res = vec2(hair, 2.0);
+  float hw = clamp(0.5 + (res.x - hair) / 0.008, 0.0, 1.0);
+  res = vec2(min(res.x, hair), mix(res.y, 2.0, hw));
   if (uBabyS > 0.001) {
     vec3 q = uBabyRot * (p - uBabyC) / uBabyS;
     float sw = sdEllipsoid(q, vec3(0.068, 0.124, 0.066));
-    float hood = sdEllipsoid(q - vec3(0.0, 0.128, -0.012), vec3(0.067, 0.069, 0.065));
-    float head = length(q - vec3(0.0, 0.133, 0.01)) - 0.054;
-    float b = smin(smin(sw, hood, 0.03), head, 0.012) * uBabyS;
-    if (b < res.x) res = vec2(b, 3.0);
+    // The hood is open at the front, so a smooth face (no features) shows inside it.
+    float hood = sdEllipsoid(q - vec3(0.0, 0.128, -0.012), vec3(0.069, 0.071, 0.066));
+    hood = max(hood, -(length(q - vec3(0.0, 0.132, 0.068)) - 0.046));
+    float face = length(q - vec3(0.0, 0.132, 0.026)) - 0.05;
+    float wrap = smin(sw, hood, 0.03);
+    float b = min(wrap, face) * uBabyS;
+    if (b < res.x) res = vec2(b, face < wrap ? 3.5 : 3.0);
   }
   return res;
 }
 
-// x: distance, y: material (4 baby, 5 placenta, 6 cord)
+// x: distance, y: material (4 baby, 5 placenta, 6 cord, 7 uterine wall)
 vec2 mapFetus(vec3 p){
   vec3 q = uFetusRot * (p - uFetusC) / uFetusS;
   float head = length(q - vec3(0.05, 0.36 - (0.22 - uHeadR) * 0.6, 0.0)) - uHeadR;
   float body = sdEllipsoid(q - vec3(0.0, 0.03, 0.0), vec3(0.15, 0.26, 0.13));
   float d = smin(head, body, 0.06);
   vec3 qm = vec3(q.x, q.y, abs(q.z));
-  float limbs = sdCapsule(qm, vec3(0.06, 0.19, 0.085), vec3(0.17, 0.08, 0.09), 0.042);
-  limbs = min(limbs, sdCapsule(qm, vec3(0.17, 0.08, 0.09), vec3(0.15, 0.25, 0.06), 0.036));
-  limbs = min(limbs, sdCapsule(qm, vec3(0.02, -0.17, 0.07), vec3(0.21, 0.01, 0.085), 0.066));
-  limbs = min(limbs, sdCapsule(qm, vec3(0.21, 0.01, 0.085), vec3(0.11, -0.2, 0.075), 0.048));
-  limbs = min(limbs, sdCapsule(qm, vec3(0.11, -0.2, 0.075), vec3(0.19, -0.245, 0.065), 0.032));
-  d = smin(d, limbs, 0.03) * uFetusS;
+  float limbs = sdCapsule(qm, vec3(0.06, 0.19, 0.085), vec3(0.16, 0.09, 0.09), 0.044);
+  limbs = smin(limbs, sdCapsule(qm, vec3(0.16, 0.09, 0.09), vec3(0.14, 0.23, 0.06), 0.04), 0.03);
+  limbs = min(limbs, sdCapsule(qm, vec3(0.02, -0.17, 0.07), vec3(0.2, 0.0, 0.085), 0.066));
+  limbs = smin(limbs, sdCapsule(qm, vec3(0.2, 0.0, 0.085), vec3(0.11, -0.19, 0.075), 0.05), 0.03);
+  // Feet tucked in: short and thick, so nothing sticks out of the curl once the baby turns head-down.
+  limbs = smin(limbs, sdCapsule(qm, vec3(0.11, -0.19, 0.075), vec3(0.155, -0.215, 0.07), 0.042), 0.03);
+  d = smin(d, limbs, 0.05) * uFetusS;
   vec2 res = vec2(d, 4.0);
   float plac = sdEllipsoid(p - uPlacC, uPlacR);
   if (plac < res.x) res = vec2(plac, 5.0);
+  // Far half of the uterine wall: the placenta is seen attached to it and the baby inside the uterus.
+  float wall = max(abs(sdEllipsoid(p - uUterC, uUterR)) - 0.004, dot(p - uUterC, normalize(uCamPos - uUterC)));
+  if (wall < res.x) res = vec2(wall, 7.0);
   float cord = 1e5;
   vec3 prev = uCordA;
   for (int i = 1; i <= 7; i++) {
@@ -232,28 +250,32 @@ vec3 background(vec2 uv){
 }
 
 vec3 porcelain(vec3 p, vec3 n, vec3 rd, float mat){
-  vec3 base = mat < 1.5 ? vec3(0.95, 0.92, 0.975) : (mat < 2.5 ? vec3(0.6, 0.53, 0.68) : vec3(1.0, 0.96, 0.95));
+  // Porcelain blending into a soft lavender hair glaze; a lavender-tinted cream swaddle and a warm porcelain face.
+  vec3 base = mat < 2.5 ? mix(vec3(0.95, 0.92, 0.975), vec3(0.78, 0.71, 0.86), smoothstep(1.0, 2.0, mat)) : (mat < 3.25 ? vec3(0.93, 0.91, 0.98) : vec3(1.0, 0.95, 0.9));
   vec3 L = normalize(vec3(-0.55, 0.75, 0.65));
   vec3 R = normalize(vec3(0.8, 0.3, -0.55));
   float wrap = clamp((dot(n, L) + 0.45) / 1.45, 0.0, 1.0);
   float ao = figureAO(p, n);
   float fres = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 3.0);
-  float spec = pow(clamp(dot(reflect(rd, n), L), 0.0, 1.0), 48.0);
+  // A tight glaze highlight plus a faint broad sheen.
+  float spec = pow(clamp(dot(reflect(rd, n), L), 0.0, 1.0), 140.0);
+  float sheen = pow(clamp(dot(reflect(rd, n), L), 0.0, 1.0), 14.0);
   float rim = clamp(dot(n, R), 0.0, 1.0);
   vec3 c = base * (0.2 + 0.92 * wrap) * (0.5 + 0.5 * ao);
   c += vec3(0.3, 0.15, 0.32) * (1.0 - wrap) * 0.32;
   c += vec3(0.8, 0.7, 1.0) * rim * rim * 0.42;
   c += vec3(0.85, 0.8, 1.0) * fres * 0.22;
-  c += spec * (mat < 2.5 ? 0.24 : 0.12);
+  c += spec * (mat < 2.5 ? 0.5 : 0.25) + sheen * 0.06;
   return c;
 }
 vec3 inner(vec3 p, vec3 n, vec3 rd, float mat){
-  // Porcelain cream for the baby (no pink or blue), a muted rose placenta, a pearly cord.
-  vec3 base = mat < 4.5 ? vec3(0.97, 0.9, 0.85) : (mat < 5.5 ? vec3(0.74, 0.46, 0.56) : vec3(0.92, 0.86, 0.96));
-  vec3 L = normalize(vec3(-0.4, 0.8, 0.6));
-  float wrap = clamp((dot(n, L) + 0.6) / 1.6, 0.0, 1.0);
+  // Porcelain cream for the baby (no pink or blue), a muted rose placenta, a pearly cord, a mauve uterine wall.
+  vec3 base = mat < 4.5 ? vec3(0.97, 0.9, 0.85) : (mat < 5.5 ? vec3(0.74, 0.46, 0.56) : (mat < 6.5 ? vec3(0.92, 0.86, 0.96) : vec3(0.44, 0.34, 0.5)));
+  // A high key light with little wrap, so the curled baby's head, back and limbs read as forms.
+  vec3 L = normalize(vec3(-0.25, 0.85, 0.45));
+  float wrap = clamp((dot(n, L) + 0.3) / 1.3, 0.0, 1.0);
   float fres = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 2.0);
-  return base * (0.32 + 0.78 * wrap) + vec3(0.92, 0.86, 1.0) * fres * 0.32;
+  return base * (0.26 + 0.84 * wrap) + vec3(0.92, 0.86, 1.0) * fres * (mat < 4.5 ? 0.16 : 0.32);
 }
 
 vec2 cylinder(vec3 ro, vec3 rd, float r){
@@ -293,8 +315,9 @@ void main(){
       t += res.x * 0.92;
       if (t > tb.y) break;
     }
-    // Rays that only graze the silhouette still get partial coverage, so edges stay smooth.
-    float cover = hit > 0.0 ? 1.0 : 1.0 - smoothstep(0.0, uPix * 1.4, md);
+    // Rays that only graze the silhouette still get partial coverage, so edges stay smooth. The ramp
+    // starts where the hit test ends.
+    float cover = hit > 0.0 ? 1.0 : 1.0 - smoothstep(0.0006, 0.0006 + uPix * 1.5, md);
     if (cover > 0.002) {
       float th = hit > 0.0 ? hit : mt;
       vec3 P = ro + rd * th;
@@ -303,9 +326,15 @@ void main(){
       vec3 bg = col;
       vec3 body = porcelain(P, n, rd, res.y);
       col = body;
-      // Glass window over the uterus: look inside to the baby, cord and placenta.
-      vec3 wq = (P - uWinC) / uWinR;
-      float win = uGlass * smoothstep(1.32, 0.86, length(wq)) * smoothstep(-0.2, 0.3, dot(n, normalize(P - uWinC))) * step(res.y, 1.1);
+      // Glass window over the uterus: look inside to the baby, cord and placenta. It is wherever the view
+      // ray passes through the uterus (its outline as seen from the camera), so the baby is never cut off,
+      // even early on when the uterus lies a few centimetres behind the skin. A tight edge, kept above the
+      // groin, leaving out the arms, and fading where the belly turns away from view (no glass bowl).
+      vec3 uo = (P - uUterC) / (uUterR * 1.05);
+      vec3 ud = rd / (uUterR * 1.05);
+      float wd = length(uo + ud * max(-dot(uo, ud) / dot(ud, ud), 0.0));
+      float facing = smoothstep(0.12, 0.45, dot(n, -rd));
+      float win = uGlass * smoothstep(1.03, 0.95, wd) * facing * smoothstep(-0.2, 0.3, dot(n, normalize(P - uWinC))) * smoothstep(0.8, 0.84, P.y) * smoothstep(0.78, 0.98, res.y) * step(res.y, 1.1);
       if (win > 0.003) {
         vec3 amnion = vec3(0.52, 0.44, 0.64); // soft lavender, never wine red
         vec3 seen = amnion + uGlowCol * 0.12;
@@ -329,6 +358,8 @@ void main(){
         col = mix(body, seen, win * (1.0 - fres * 0.55));
         col += vec3(0.92, 0.86, 1.0) * fres * win * 0.45;
       }
+      // A faint glass rim, so it reads as a window (not on the arms).
+      col += vec3(0.95, 0.92, 1.0) * uGlass * smoothstep(0.93, 0.99, wd) * smoothstep(1.05, 0.99, wd) * facing * smoothstep(0.78, 0.98, res.y) * step(res.y, 1.1) * 0.3;
       col = mix(bg, col, cover);
       if (cover > 0.5) {
         vec4 clip = uViewProj * vec4(P, 1.0);
@@ -338,7 +369,8 @@ void main(){
   }
 
   vec2 g = (vUv - uGlowPos) * vec2(uRes.x / uRes.y, 1.0);
-  col = mix(col, vec3(1.0, 0.97, 1.0), uBloom * (0.55 + 0.45 * exp(-dot(g, g) * 2.0)));
+  // The birth glow: around the pair, not a white-out of the page.
+  col = mix(col, vec3(0.97, 0.93, 1.0), uBloom * 0.9 * exp(-dot(g, g) * 1.4));
   float grain = fract(sin(dot(gl_FragCoord.xy + uTime, vec2(12.9898, 78.233))) * 43758.5453);
   col += (grain - 0.5) * 0.014;
   gl_FragColor = vec4(col, 1.0);
@@ -351,6 +383,7 @@ uniform float uTime;
 uniform float uLeaves;
 varying vec2 vUv;
 varying float vShade;
+varying vec3 vN;
 void main(){
   float appear = smoothstep(aLeaf.x, aLeaf.x + 0.32, uLeaves);
   vec3 p = position * appear;
@@ -359,6 +392,7 @@ void main(){
   p = vec3(p.x * c - p.z * s, p.y, p.x * s + p.z * c);
   vUv = uv;
   vShade = aLeaf.w;
+  vN = normalize(mat3(modelMatrix * instanceMatrix) * vec3(0.0, 0.0, 1.0));
   vec4 wp = modelMatrix * instanceMatrix * vec4(p, 1.0);
   wp.y += sin(uTime * 0.5 + aLeaf.z * 5.0) * 0.006 * appear;
   gl_Position = projectionMatrix * viewMatrix * wp;
@@ -368,9 +402,13 @@ uniform vec3 uLeaf;
 uniform vec3 uLeafLight;
 varying vec2 vUv;
 varying float vShade;
+varying vec3 vN;
 void main(){
   vec3 c = mix(uLeaf * (0.78 + 0.22 * vShade), uLeafLight, smoothstep(0.2, 1.0, vUv.y) * 0.35);
-  gl_FragColor = vec4(c, 1.0);
+  // Lit from the key light (either face), with a darker midrib.
+  float lit = 0.62 + 0.38 * abs(dot(normalize(vN), normalize(vec3(-0.45, 0.75, 0.5))));
+  float rib = 1.0 - 0.22 * (1.0 - smoothstep(0.0, 0.03, abs(vUv.x - 0.53))) * smoothstep(0.05, 0.2, vUv.y);
+  gl_FragColor = vec4(c * lit * rib, 1.0);
 }`;
 
 /** The leaf of the Momtree logo: a rounded leaf with a pointed tip and a notch at the stem. */
@@ -415,7 +453,7 @@ export class SculptureScene implements StoryScene {
     this.rig = new Rig(beats.camera);
     // Raymarch budgets by GPU tier: the figure, the view through the belly window, and occlusion.
     const steps = tier === "high" ? 110 : tier === "mid" ? 84 : 64;
-    const fsteps = tier === "high" ? 56 : tier === "mid" ? 40 : 30;
+    const fsteps = tier === "low" ? 44 : 56;
     const aos = tier === "high" ? 5 : 3;
     const vec = () => ({ value: new THREE.Vector3() });
     const m3 = () => ({ value: new THREE.Matrix3() });
@@ -447,7 +485,6 @@ export class SculptureScene implements StoryScene {
         uBabyS: { value: 0 },
         uGlass: { value: 0 },
         uWinC: vec(),
-        uWinR: { value: new THREE.Vector3(0.1, 0.1, 0.1) },
         uFetusC: vec(),
         uFetusRot: m3(),
         uFetusS: { value: 0.1 },
@@ -456,6 +493,7 @@ export class SculptureScene implements StoryScene {
         uCordR: { value: 0.006 },
         uPlacC: vec(),
         uPlacR: { value: new THREE.Vector3(0.05, 0.01, 0.04) },
+        uUterC: vec(), uUterR: vec(),
         uFetusOn: { value: 0 },
         uBloom: { value: 0 },
         uPix: { value: 0.001 },
@@ -471,7 +509,7 @@ export class SculptureScene implements StoryScene {
 
     // Leaves: mostly above and behind the pair, never in front of the faces.
     const geo = leafGeometry();
-    const count = 34;
+    const count = 44;
     this.leafMat = new THREE.ShaderMaterial({
       vertexShader: LEAF_VERT,
       fragmentShader: LEAF_FRAG,
@@ -482,21 +520,21 @@ export class SculptureScene implements StoryScene {
     const attr = new Float32Array(count * 4);
     const r = rng(7);
     const o = new THREE.Object3D();
-    // A crown like the logo's canopy: leaves in a dome over the pair, each pointing outwards,
-    // laid out facing the closing camera and set just behind her head.
+    // A crown like the logo's canopy: small leaves in an egg-shaped crown around the pair, each
+    // pointing outwards, laid out facing the closing camera and set just behind her head.
     const az = -0.37;
     const right = v3(Math.cos(az), 0, -Math.sin(az));
     const back = v3(-Math.sin(az), 0, -Math.cos(az));
     for (let i = 0, placed = 0; placed < count && i < 4000; i++) {
-      const a = lerp(-1.95, 1.95, r());
-      const rad = lerp(0.3, 0.6, Math.sqrt(r()));
-      const lx = Math.sin(a) * rad * 1.05;
-      const ly = 1.6 + Math.cos(a) * rad * 0.78;
-      if (ly < 1.4) continue;
+      const a = lerp(-2.3, 2.3, r());
+      const rad = lerp(0.22, 0.42, Math.sqrt(r()));
+      const lx = Math.sin(a) * rad * 0.95;
+      const ly = 1.55 + Math.cos(a) * rad * 0.85;
+      if (ly < 1.24) continue;
       const depthOff = 0.1 + r() * 0.1;
       o.position.copy(right).multiplyScalar(lx).add(v3(0, ly, -0.04)).addScaledVector(back, depthOff);
       o.rotation.set((r() - 0.5) * 0.5, az + (r() - 0.5) * 0.6, -a + (r() - 0.5) * 0.45);
-      o.scale.setScalar(lerp(0.045, 0.085, r()));
+      o.scale.setScalar(lerp(0.035, 0.065, r()));
       o.updateMatrix();
       leaves.setMatrixAt(placed, o.matrix);
       attr.set([placed / count * 0.68, r(), r(), r()], placed * 4);
@@ -533,17 +571,19 @@ export class SculptureScene implements StoryScene {
     const w = clamp01((week - 10) / 30);
     const uterusC = v3(0, lerp(0.86, 1.03, smooth(0, 1, w)), lerp(0.05, 0.13, w));
     const uterusR = v3(lerp(0.055, 0.15, w), lerp(0.06, 0.19, w), lerp(0.045, 0.15, w));
-    // The glass window sits over the uterus; once the bump shows it follows the belly itself.
-    const bw = smooth(0.15, 0.45, g);
-    U.uWinC.value.copy(uterusC).add(v3(0, 0, uterusR.z * 0.35)).lerp(bellyC.clone().add(v3(0, 0, bellyR.z * 0.2)), bw);
-    U.uWinR.value.copy(uterusR).multiplyScalar(1.05).lerp(bellyR, bw);
+    // Centre of the glass window (the shader keeps it to the side of the body facing this point): the uterus,
+    // then the bump once it shows.
+    U.uWinC.value.copy(uterusC).add(v3(0, 0, uterusR.z * 0.35)).lerp(bellyC.clone().add(v3(0, 0, bellyR.z * 0.2)), smooth(0.15, 0.45, g));
 
     // The baby inside: crown-rump length by week, turning head-down in the third trimester.
     const fetusOn = week >= 10 ? 1 : 0;
     U.uFetusOn.value = fetusOn;
     const crl = table(CRL, week);
-    U.uFetusS.value = crl;
-    U.uHeadR.value = table(HEAD, week);
+    // Drawn at `crl` the model is only 74-86% of the CRL table with a mid-pregnancy head-to-body ratio. Grow the body
+    // with the weeks while keeping the head its true size, so the baby matches its week and fills the uterus near term.
+    const k = lerp(1.15, 1.35, smooth(12, 40, week));
+    U.uFetusS.value = crl * k;
+    U.uHeadR.value = table(HEAD, week) / k;
     const turn = lerp(0.35, Math.PI - 0.3, smooth(22, 31, week));
     this.q.setFromEuler(new THREE.Euler(0, -1.0, turn, "YXZ"));
     const fetusC = uterusC.clone().add(v3(0, -0.01, -uterusR.z * 0.08));
@@ -551,13 +591,16 @@ export class SculptureScene implements StoryScene {
     U.uFetusC.value.copy(fetusC);
     this.m4.makeRotationFromQuaternion(this.q.clone().invert());
     U.uFetusRot.value.setFromMatrix4(this.m4);
-    const navel = v3(0.13, -0.05, 0).multiplyScalar(crl).applyQuaternion(this.q).add(fetusC);
+    const navel = v3(0.13, -0.05, 0).multiplyScalar(crl * k).applyQuaternion(this.q).add(fetusC);
     const plac = uterusC.clone().add(v3(uterusR.x * 0.1, uterusR.y * 0.62, -uterusR.z * 0.55));
     U.uPlacC.value.copy(plac);
     U.uPlacR.value.set(uterusR.x * 0.62, uterusR.y * 0.12 + 0.006, uterusR.z * 0.46);
+    U.uUterC.value.copy(uterusC);
+    U.uUterR.value.copy(uterusR);
     U.uCordA.value.copy(navel);
     U.uCordC.value.copy(plac).add(v3(0, -uterusR.y * 0.08, uterusR.z * 0.12));
-    U.uCordB.value.copy(navel).add(plac).multiplyScalar(0.5).add(v3(uterusR.x * 0.55, -uterusR.y * 0.1, uterusR.z * 0.45));
+    // Bow towards the viewer so the whole cord, navel to placenta, is seen.
+    U.uCordB.value.copy(navel).add(plac).multiplyScalar(0.5).add(v3(-uterusR.x * 0.6, -uterusR.y * 0.1, uterusR.z * 0.6));
     U.uCordR.value = lerp(0.0035, 0.008, w);
 
     // Arms: blend three poses. Pose 1 follows the belly so the hands rest on it.
@@ -566,8 +609,8 @@ export class SculptureScene implements StoryScene {
       { el: [v3(-0.215, 1.08, 0.025), v3(0.215, 1.06, 0.025)], wr: [v3(-0.06, 0.965, 0.118), v3(0.055, 0.935, 0.112)], tip: [v3(0.02, 0.95, 0.13), v3(-0.025, 0.92, 0.125)] },
       {
         el: [v3(-0.225, 1.12, 0.05 + 0.25 * bellyR.z), v3(0.225, 0.99, 0.03 + 0.2 * bellyR.z)],
-        wr: [bellyC.clone().add(v3(-0.08, bellyR.y * 0.42, bellyR.z * 0.9 + 0.018)), bellyC.clone().add(v3(0.09, -bellyR.y * 0.6, bellyR.z * 0.82 + 0.016))],
-        tip: [bellyC.clone().add(v3(0.0, bellyR.y * 0.5, bellyR.z * 0.98 + 0.012)), bellyC.clone().add(v3(0.0, -bellyR.y * 0.72, bellyR.z * 0.86 + 0.012))],
+        wr: [bellyC.clone().add(v3(-0.08, bellyR.y * 0.42, bellyR.z * 0.97 + 0.03)), bellyC.clone().add(v3(0.09, -bellyR.y * 0.6, bellyR.z * 0.9 + 0.028))],
+        tip: [bellyC.clone().add(v3(0.0, bellyR.y * 0.5, bellyR.z * 1.0 + 0.024)), bellyC.clone().add(v3(0.0, -bellyR.y * 0.72, bellyR.z * 0.94 + 0.022))],
       },
       { el: [v3(-0.19, 1.04, 0.11), v3(0.205, 1.1, 0.04)], wr: [v3(0.0, 1.075, 0.245), v3(0.12, 1.215, 0.165)], tip: [v3(0.09, 1.1, 0.24), v3(0.065, 1.265, 0.205)] },
     ];
@@ -592,7 +635,7 @@ export class SculptureScene implements StoryScene {
     U.uHeadRot.value.setFromMatrix4(this.m4);
 
     // The newborn lies diagonally across her chest, head towards her left shoulder.
-    U.uBabyS.value = babyIn > 0.001 ? lerp(0.55, 1, babyIn) : 0;
+    U.uBabyS.value = babyIn > 0.001 ? lerp(0.85, 1, babyIn) : 0;
     const breathe = Math.sin(shared.uTime.value * 1.4) * 0.002;
     U.uBabyC.value.set(0.035, 1.165 + breathe, 0.172);
     const ay = v3(0.62, 0.58, 0.18).normalize();

@@ -73,6 +73,16 @@
   z-index: 2;
   pointer-events: none;
 }
+/* A night band under the transparent navigation, so the logo, links and figure caption stay legible over any frame. */
+.life-stage[data-tone="dark"]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(var(--nav-h) + 120px);
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(14 7 25 / 0.66), rgb(14 7 25 / 0.3) 55%, transparent);
+}
 
 /* ---------------------------------------------------------------- captions */
 .life-panel {
@@ -99,12 +109,13 @@
   filter: blur(8px);
   pointer-events: none;
 }
-/* A deep-violet pool behind dark-chapter captions keeps them legible over any frame of the 3D. */
+/* A deep-violet pool behind dark-chapter captions keeps them legible over any frame of the 3D. It reaches at least
+   72px above and below, so a short caption gets a round pool rather than a streak. */
 .life-panel[data-ptone="dark"]::before {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -22% -30% -22% -40%;
+  inset: min(-22%, -72px) -30% min(-22%, -72px) -40%;
   background: radial-gradient(closest-side, rgb(18 9 31 / 0.72), rgb(18 9 31 / 0.38) 55%, transparent);
   filter: blur(6px);
   pointer-events: none;
@@ -125,6 +136,9 @@
 }
 .life-panel[data-ptone="dark"] .life-eyebrow {
   color: var(--color-leaf);
+  text-shadow:
+    0 0 2px rgb(14 7 25 / 0.9),
+    0 1px 10px rgb(14 7 25 / 0.8);
 }
 .life-h2 {
   font-family: var(--font-serif);
@@ -162,14 +176,14 @@
   left: 0;
   top: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   white-space: nowrap;
   font-size: 10.5px;
+  line-height: 1.5;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgb(255 255 255 / 0.92);
-  text-shadow: 0 1px 12px rgb(14 7 25 / 0.65);
   pointer-events: none;
   will-change: transform, opacity;
   transition: opacity 0.25s linear;
@@ -178,6 +192,8 @@
   position: relative;
   width: 7px;
   height: 7px;
+  /* Centred on the first line of text, so a label that wraps keeps its dot where a one-line label has it. */
+  margin-top: calc(2px + 0.75em - 3.5px);
   margin-left: -3.5px;
   margin-right: 34px;
   border-radius: 50%;
@@ -193,6 +209,27 @@
   width: 24px;
   height: 1px;
   background: rgb(128 192 65 / 0.75);
+}
+.life-label-text {
+  font-weight: inherit;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgb(18 9 31 / 0.55);
+  /* Long labels wrap into a short block instead of running off the screen. */
+  white-space: normal;
+  max-width: 360px;
+}
+/* Flipped (set by LifeUnfolds): the text runs out to the left of its dot, so the dot stays on its anchor. */
+.life-label.is-flip {
+  flex-direction: row-reverse;
+}
+.life-label.is-flip i {
+  margin-left: 34px;
+  margin-right: -3.5px;
+}
+.life-label.is-flip i::after {
+  left: auto;
+  right: 9px;
 }
 
 /* ---------------------------------------------------------------- figure caption */
@@ -253,6 +290,9 @@
   flex-direction: column;
   gap: 4px;
   align-items: flex-end;
+  text-shadow:
+    0 0 2px rgb(14 7 25 / 0.9),
+    0 1px 10px rgb(14 7 25 / 0.7);
 }
 .life-illus {
   margin-top: 14px;
@@ -391,7 +431,7 @@
     right: var(--gutter);
     width: auto;
     top: auto;
-    bottom: calc(var(--hud-bottom) + 76px);
+    bottom: calc(var(--hud-bottom) + 100px);
     transform: translate3d(0, var(--py), 0);
   }
   .life-scrim {
@@ -399,9 +439,17 @@
     background: linear-gradient(to top, rgb(255 255 255 / 0.94) 38%, transparent);
   }
   .life-stage[data-tone="dark"] .life-scrim {
-    background: linear-gradient(to top, rgb(16 8 28 / 0.9) 40%, transparent);
+    height: 72%;
+    background: linear-gradient(to top, rgb(16 8 28 / 0.92) 0%, rgb(16 8 28 / 0.86) 42%, rgb(16 8 28 / 0.6) 68%, transparent 100%);
   }
+  /* The caption body stays top right; the illustration notice is pinned above the HUD, on the dark scrim and clear
+     of the figure. Both are positioned against the stage. */
   .life-caption {
+    position: static;
+  }
+  .life-caption-body {
+    position: absolute;
+    z-index: 4;
     top: calc(var(--nav-h) + 8px);
     right: var(--gutter);
     width: 62vw;
@@ -410,16 +458,28 @@
     display: none;
   }
   .life-illus {
-    margin-top: 8px;
-    font-size: 8.5px;
-    letter-spacing: 0.1em;
+    position: absolute;
+    z-index: 5;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: calc(var(--hud-bottom) + 64px);
+    margin: 0;
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 0.08em;
   }
   .life-label {
     font-size: 9.5px;
     letter-spacing: 0.14em;
   }
+  .life-label-text {
+    max-width: min(56vw, 230px);
+  }
   .life-label i {
     margin-right: 28px;
+  }
+  .life-label.is-flip i {
+    margin-left: 28px;
   }
   .life-hud {
     right: calc(var(--gutter) + 64px);

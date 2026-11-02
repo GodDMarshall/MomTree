@@ -86,12 +86,18 @@ export function LifeUnfolds() {
       if (s.active) document.documentElement.dataset.tone = tone;
     }
 
+    let panelEl: HTMLElement | null = null;
+    let panelVis = 0.05;
     for (const p of panels) {
       const el = panelEls.current.get(p.id);
       if (!el) continue;
       const fadeIn = p.from < 0 ? 1 : sstep(p.from, p.from + 1.1, u);
       const fadeOut = 1 - sstep(p.to - 1.1, p.to, u);
       const vis = Math.min(fadeIn, fadeOut);
+      if (vis > panelVis) {
+        panelVis = vis;
+        panelEl = el;
+      }
       const dir = u < (p.from + p.to) / 2 ? 1 : -1;
       el.style.opacity = vis.toFixed(3);
       el.style.setProperty("--py", `${((1 - vis) * 28 * dir).toFixed(1)}px`);
@@ -128,14 +134,40 @@ export function LifeUnfolds() {
 
     // Labels and the true-to-scale bar come from the 3D camera.
     const seen = new Set<string>();
+    const vw = stage.clientWidth; // the canvas width, without the page scrollbar
+    // On phones only the caption body is at the top right (the notice sits above the HUD); on desktop the notice is under it.
+    const capEl = window.innerWidth < 768 ? capWrap.current : capWrap.current?.parentElement;
+    const capBox = capEl ? capEl.getBoundingClientRect() : null;
+    // On phones the words sit across the lower part of the stage, and labels that would cover them are hidden.
+    const panelTop = window.innerWidth < 768 && panelEl ? panelEl.getBoundingClientRect().top - stage.getBoundingClientRect().top : Infinity;
     frame?.labels.forEach((l) => {
       const el = labelEls.current.get(l.id);
       if (!el) return;
       seen.add(l.id);
-      // Keep labels on screen: one anchored near the right edge would otherwise run off it.
-      const x = Math.min(l.x, window.innerWidth - el.offsetWidth - 12);
-      el.style.transform = `translate3d(${x.toFixed(1)}px, ${l.y.toFixed(1)}px, 0)`;
-      el.style.opacity = l.a.toFixed(3);
+      if (l.a < 0.001) {
+        el.style.opacity = "0";
+        return;
+      }
+      const text = el.lastElementChild as HTMLElement | null;
+      if (text) text.style.maxWidth = "";
+      let w = el.offsetWidth;
+      // Run the label out to the left of its dot when it would leave the screen or cross the figure caption, so the
+      // dot always stays on the structure it names. If it fits on neither side it takes the roomier one (the left, if
+      // it would cross the caption) and its text wraps narrower to fit. Anchors off screen are hidden.
+      const overCaption = !!capBox && capBox.height > 0 && l.y > capBox.top - 12 && l.y < capBox.bottom + 12 && l.x + w > capBox.left - 8;
+      const roomR = vw - 12 - l.x;
+      const roomL = l.x - 12;
+      let flip = w > roomR || overCaption;
+      if (flip && w > roomL && !overCaption && roomR > roomL) flip = false;
+      const room = flip ? roomL : roomR;
+      if (w > room && text) {
+        text.style.maxWidth = `${Math.max(72, room - (w - text.offsetWidth)).toFixed(0)}px`;
+        w = el.offsetWidth;
+      }
+      el.classList.toggle("is-flip", flip);
+      el.style.transform = `translate3d(${(flip ? l.x - w : l.x).toFixed(1)}px, ${l.y.toFixed(1)}px, 0)`;
+      const clear = l.y + el.offsetHeight < panelTop - 4;
+      el.style.opacity = (l.x > 6 && l.x < vw - 6 && clear ? l.a : 0).toFixed(3);
     });
     labelEls.current.forEach((el, id) => {
       if (!seen.has(id)) el.style.opacity = "0";
@@ -291,7 +323,7 @@ export function LifeUnfolds() {
               style={{ opacity: 0 }}
             >
               <i />
-              {text}
+              <b className="life-label-text">{text}</b>
             </span>
           ))}
         </div>
@@ -351,7 +383,7 @@ export function LifeUnfolds() {
         ))}
 
         {/* Figure caption, day counter, scale bar. The illustration notice sits outside the fading part,
-            so it stays on screen for the whole story. */}
+            so it stays on screen for the whole story (on phones the CSS pins it above the HUD). */}
         <div className="life-caption" aria-hidden="true">
           <div ref={capWrap} className="life-caption-body" style={{ opacity: 0 }}>
             <span ref={capFig} className="life-fig" />

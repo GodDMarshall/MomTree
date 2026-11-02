@@ -1,5 +1,11 @@
 {
-  "note": "Prepared 4K jobs on ElevenLabs Creative (flow below), priced 2026-11-02 but not yet run: the free generation queue was busy. Run them with creative_run_flow_nodes and ALWAYS pass generations_count: 1 (left unset, upscales render 4 copies each and the 11 upscales cost $2.13 instead of $0.53). Download each result within 2 hours (signed URLs expire), then follow 'afterDownload'.",
+  "note": "4K jobs on ElevenLabs Creative (flow below), priced 2026-11-02. Four have run (see status); the rest stopped at the free plan's daily image limit. Run them with creative_run_flow_nodes and ALWAYS pass generations_count: 1 (left unset, upscales render 4 copies each and charge for all four). Run one job at a time, download each result within 2 hours (signed URLs expire), then follow 'afterDownload'.",
+  "status": {
+    "_asOf": "2026-11-02",
+    "done": ["ch01-mother-wide.png", "ch06-hands-wide.png", "ch07-newborn-wide.png", "clinic 01.jpg"],
+    "pending": ["clinic 02.jpg to 08.jpg", "ch01-mother-tall.png", "ch07-newborn-tall.png", "ch06-hands-farhand-fix", "ch06-fetus-20w.png (optional: the all-3D story no longer shows it)"],
+    "blocker": "ElevenLabs free plan: daily image generation limit reached (429 free_tier_image_limit_reached). Run the rest after the daily reset or on a paid plan."
+  },
   "flow": "V5nbiB7KKUEl7jUhPHNe",
   "estimatedCostUSD": {
     "_basis": "estimate_only quotes, 2026-11-02, one generation each",
@@ -41,12 +47,13 @@
     "08.jpg": "EpbTXmiYRdK37Nh9TXxD"
   },
   "afterDownload": [
+    "Every Topaz upscale comes back with a 9 px dark band on each edge. First run: node scripts/retouch/fix-upscale-border.mjs <original> <upscale> <out> (refills the band from the original; no crop or rescale).",
     "Plate upscales -> assets-src/generated/4k/<same file name>.",
     "Mother 4K: python -P scripts/retouch/heal-ch01-hand.py <in> <out> 2 (removes the hand mark; the upscale starts from the unretouched render).",
     "Hands 4K: align the accepted far-hand repair to the upscale and composite only the far-hand region (about x 2060-2340, y 900-1920 at 4096x2304) with a feathered mask; never touch the near hand.",
     "Tall plates -> assets-src/generated/4k/ch01-mother-tall.png and ch07-newborn-tall.png; then set their focus/zoomTo in src/lib/life/story.ts.",
     "Fetus -> assets-src/generated/4k/ch06-fetus-20w.png only after it passes review and the clinic signs off.",
-    "Clinic photos -> public/clinic/; update src in src/content/clinic.ts and src/content/treatments.ts (width/height 3840x2160).",
+    "Clinic photos -> public/clinic/<nn>.jpg (the border fix writes JPEG when <out> ends in .jpg); update src in src/content/clinic.ts and src/content/treatments.ts (width/height 3840x2160). 02 is served cropped below the stamped logo as /clinic/02-lab.jpg: crop the upscale the same way (top 348 px at 2.4x).",
     "Check every image at 100% (hands, faces, digits, doubled edges, specks, text), then npm run assets, typecheck, build, npm run check."
   ],
   "notUpscaled": {
