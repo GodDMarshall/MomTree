@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+.env
+# Raw research material (scrapes, reference pack, legacy videos) stays out of the repo.
+_reference/
+test-results/
+# Local editor / agent tooling
+.claude/

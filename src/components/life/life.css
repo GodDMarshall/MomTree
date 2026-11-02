@@ -1,0 +1,404 @@
+/* ==========================================================================
+   Life Unfolds
+   ========================================================================== */
+.life {
+  position: relative;
+  height: 1000vh;
+  background: var(--color-ivory);
+}
+@media (max-width: 767px) {
+  .life {
+    height: 720vh;
+  }
+}
+.life-stage {
+  --hud-bottom: calc(22px + env(safe-area-inset-bottom, 0px) + (100lvh - 100svh));
+  position: sticky;
+  top: 0;
+  height: 100lvh;
+  overflow: hidden;
+  color: var(--color-charcoal);
+  background: var(--color-ivory);
+  isolation: isolate;
+}
+.life-stage[data-tone="dark"] {
+  color: var(--color-ivory);
+}
+.life-hero-img {
+  z-index: 0;
+}
+.life-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 1.4s var(--ease-soft);
+}
+.life-canvas.is-ready {
+  opacity: 1;
+}
+.life-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+.life-scrim {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 34%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(250 247 242 / 0.55), transparent);
+  transition: background 0.9s var(--ease-soft);
+}
+.life-stage[data-tone="dark"] .life-scrim {
+  background: linear-gradient(to top, rgb(20 8 10 / 0.6), transparent);
+}
+.life-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- captions */
+.life-panel {
+  --py: 0px;
+  position: absolute;
+  z-index: 4;
+  left: var(--gutter);
+  top: 50%;
+  width: min(500px, 36vw);
+  transform: translate3d(0, calc(-50% + var(--py)), 0);
+  will-change: opacity, transform;
+  color: var(--color-charcoal);
+}
+.life-panel[data-ptone="dark"] {
+  color: var(--color-ivory);
+}
+/* Light chapters: a warm ivory pool behind the words, for screens where the photograph reaches them. */
+.life-panel[data-ptone="light"]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -26% -24% -26% -40%;
+  background: radial-gradient(closest-side, rgb(250 247 242 / 0.82), rgb(250 247 242 / 0.45) 55%, transparent);
+  filter: blur(8px);
+  pointer-events: none;
+}
+/* A soft plum pool behind dark-chapter captions keeps them legible over any frame of the 3D. */
+.life-panel[data-ptone="dark"]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -22% -30% -22% -40%;
+  background: radial-gradient(closest-side, rgb(26 11 14 / 0.72), rgb(26 11 14 / 0.38) 55%, transparent);
+  filter: blur(6px);
+  pointer-events: none;
+}
+.life-panel[data-kind="hero"],
+.life-panel[data-kind="final"] {
+  top: auto;
+  bottom: calc(var(--hud-bottom) + 88px);
+  width: min(780px, 54vw);
+  transform: translate3d(0, var(--py), 0);
+}
+.life-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-gold-ink);
+}
+.life-panel[data-ptone="dark"] .life-eyebrow {
+  color: var(--color-gold);
+}
+.life-h2 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(2.3rem, 4vw, 3.9rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.life-h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  line-height: 1.1;
+}
+.life-body {
+  font-size: clamp(1rem, 1.2vw, 1.12rem);
+  line-height: 1.75;
+  opacity: 0.88;
+  max-width: 44ch;
+}
+.life-lede {
+  font-size: clamp(1.08rem, 1.45vw, 1.28rem);
+  line-height: 1.65;
+  max-width: 46ch;
+  opacity: 0.86;
+}
+
+/* ---------------------------------------------------------------- labels */
+.life-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(250 247 242 / 0.92);
+  text-shadow: 0 1px 12px rgb(20 8 10 / 0.65);
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity 0.25s linear;
+}
+.life-label i {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  margin-right: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gold);
+  background: rgb(197 163 106 / 0.35);
+  flex: none;
+}
+.life-label i::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 2.5px;
+  width: 24px;
+  height: 1px;
+  background: rgb(197 163 106 / 0.75);
+}
+
+/* ---------------------------------------------------------------- figure caption */
+.life-caption {
+  position: absolute;
+  z-index: 4;
+  right: calc(var(--gutter) + 6px);
+  top: calc(var(--nav-h) + 40px);
+  width: min(280px, 26vw);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+  align-items: flex-end;
+  pointer-events: none;
+  color: rgb(250 247 242 / 0.85);
+}
+.life-fig {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--color-gold);
+}
+.life-captext {
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.life-day {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--color-glow);
+}
+.life-day:empty {
+  display: none;
+}
+.life-scale {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: 14px;
+}
+.life-scale-bar {
+  display: block;
+  height: 6px;
+  border: 1px solid var(--color-gold);
+  border-top: 0;
+  max-width: 240px;
+}
+.life-scale-label {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+}
+.life-illus {
+  margin-top: 14px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+/* ---------------------------------------------------------------- bottom HUD */
+.life-hud {
+  position: absolute;
+  z-index: 5;
+  left: var(--gutter);
+  right: calc(var(--gutter) + 72px);
+  bottom: var(--hud-bottom);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.life-rings {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: inherit;
+}
+.life-rings svg {
+  width: 58px;
+  height: 58px;
+  flex: none;
+}
+.life-ring-base {
+  fill: none;
+  stroke: currentColor;
+  stroke-opacity: 0.18;
+  stroke-width: 0.8;
+}
+.life-ring {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1.2;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  stroke-linecap: round;
+}
+.life-chapters {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 14px);
+  width: 290px;
+  padding: 10px;
+  border-radius: 20px;
+  background: rgb(250 247 242 / 0.95);
+  color: var(--color-charcoal);
+  border: 1px solid var(--color-hair);
+  box-shadow: 0 30px 70px -40px rgb(20 8 10 / 0.6);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition:
+    opacity 0.4s var(--ease-soft),
+    transform 0.4s var(--ease-soft),
+    visibility 0.4s;
+}
+.life-chapters.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.life-chapters button {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+.life-chapters button:hover,
+.life-chapters button:focus-visible {
+  background: var(--color-blush);
+}
+.life-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.life-sound {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 1px solid rgb(127 127 127 / 0.35);
+  backdrop-filter: blur(10px);
+}
+.life-sound-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 999px;
+}
+.life-sound-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 12px;
+}
+.life-sound-panel input[type="range"] {
+  width: 84px;
+  accent-color: var(--color-gold);
+}
+.life-sound-panel input[type="checkbox"] {
+  accent-color: var(--color-gold);
+}
+
+@media (max-width: 767px) {
+  .life-panel,
+  .life-panel[data-kind="hero"],
+  .life-panel[data-kind="final"] {
+    left: var(--gutter);
+    right: var(--gutter);
+    width: auto;
+    top: auto;
+    bottom: calc(var(--hud-bottom) + 76px);
+    transform: translate3d(0, var(--py), 0);
+  }
+  .life-scrim {
+    height: 66%;
+    background: linear-gradient(to top, rgb(250 247 242 / 0.94) 38%, transparent);
+  }
+  .life-stage[data-tone="dark"] .life-scrim {
+    background: linear-gradient(to top, rgb(24 10 13 / 0.9) 40%, transparent);
+  }
+  .life-caption {
+    top: calc(var(--nav-h) + 8px);
+    right: var(--gutter);
+    width: 62vw;
+  }
+  .life-captext,
+  .life-illus {
+    display: none;
+  }
+  .life-label {
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+  }
+  .life-label i {
+    margin-right: 28px;
+  }
+  .life-hud {
+    right: calc(var(--gutter) + 64px);
+  }
+  .life-sound-btn > span {
+    display: none;
+  }
+}
