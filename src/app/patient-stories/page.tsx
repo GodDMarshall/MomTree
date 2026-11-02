@@ -37,7 +37,7 @@ export default function PatientStoriesPage() {
         <div className="wrap">
           <ul className="grid gap-6 md:grid-cols-2">
             {reviews.map((r, i) => (
-              <li key={r.name} className={`rounded-[28px] border border-[var(--color-hair)] p-8 md:p-10 ${i === 0 ? "md:col-span-2 bg-ivory-2" : ""}`} data-reveal="">
+              <li key={r.name} className={`rounded-[28px] border border-[var(--color-hair)] p-8 md:p-10 ${i === 0 ? "md:col-span-2 bg-paper-2" : ""}`} data-reveal="">
                 <figure>
                   <blockquote className={`font-serif font-light italic leading-[1.2] ${i === 0 ? "text-[clamp(1.8rem,3.2vw,2.8rem)]" : "text-[1.7rem]"}`}>&ldquo;{r.text}&rdquo;</blockquote>
                   <figcaption className="mt-6 text-[14px]">
@@ -65,7 +65,7 @@ export default function PatientStoriesPage() {
               {events.map((e) => (
                 <li key={e.src}>
                   <figure className="plate">
-                    <div className="relative aspect-[9/16] overflow-hidden rounded-[18px] bg-blush">
+                    <div className="relative aspect-[9/16] overflow-hidden rounded-[18px] bg-lilac">
                       <Image src={e.src} alt={e.alt} fill sizes="(max-width: 640px) 100vw, 25vw" className="object-cover" />
                     </div>
                     <figcaption>{e.caption}</figcaption>
@@ -78,7 +78,7 @@ export default function PatientStoriesPage() {
         </section>
       )}
 
-      <section className="section-tight bg-ivory-2" aria-labelledby="share-title">
+      <section className="section-tight bg-paper-2" aria-labelledby="share-title">
         <div className="wrap grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-6">
             <h2 id="share-title" className="t-h2">

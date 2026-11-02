@@ -17,7 +17,7 @@ export const director = {
     { abbr: "Fellowship", detail: "Regenerative Medicine in Infertility" },
   ],
   experience: "More than 18 years",
-  portrait: { src: "/legacy/2025/06/tyhtyh-02.png", width: 1366, height: 1386, alt: "Portrait of Dr. Navyashri M S in a white coat" },
+  portrait: { src: "/doctors/dr-navyashri-m-s.webp", width: 1325, height: 1325, alt: "Portrait of Dr. Navyashri M S in a white coat" },
   summary:
     "Dr. Navyashri M S is a fertility specialist dedicated to helping individuals and couples on their journey to parenthood. With a strong foundation in obstetrics and gynaecology, she brings more than 18 years of experience to her practice in reproductive medicine.",
   bio: [
@@ -43,6 +43,8 @@ export const director = {
   ],
   video: {
     src: "/media/dr-navyashri-planning-your-family.mp4",
+    /** A frame from the clinic's own video (at 2 s), so the player never shows a cut-out portrait. */
+    poster: "/media/dr-navyashri-poster.jpg",
     title: "Planning to grow your family? Dr. Navyashri M S shares insights",
   },
   review: "pending" as ReviewStatus,

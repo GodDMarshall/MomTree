@@ -99,7 +99,7 @@ export default async function ArticlePage({ params }: Params) {
                   <ul key={i} className="space-y-3">
                     {b.items.map((it) => (
                       <li key={it} className="flex gap-4">
-                        <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
+                        <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf" aria-hidden="true" />
                         <span>{it}</span>
                       </li>
                     ))}
@@ -107,7 +107,7 @@ export default async function ArticlePage({ params }: Params) {
                 );
               if (b.type === "note")
                 return (
-                  <p key={i} className="!mt-12 rounded-[22px] bg-blush/60 p-7 font-serif text-[1.35rem] italic leading-snug">
+                  <p key={i} className="!mt-12 rounded-[22px] bg-lilac/60 p-7 font-serif text-[1.35rem] italic leading-snug">
                     {b.text}
                   </p>
                 );
@@ -119,7 +119,7 @@ export default async function ArticlePage({ params }: Params) {
         </div>
       </article>
 
-      <section className="section-tight bg-ivory-2" aria-labelledby="related-title">
+      <section className="section-tight bg-paper-2" aria-labelledby="related-title">
         <div className="wrap">
           <h2 id="related-title" className="t-h3">
             Related reading

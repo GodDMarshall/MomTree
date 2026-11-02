@@ -7,7 +7,7 @@ import { Pending } from "@/components/ui/Pending";
 function Capsule({ photo, w = "1.7em" }: { photo: Photo; w?: string }) {
   return (
     <span
-      className="relative mx-[0.12em] inline-block h-[0.78em] overflow-hidden rounded-full align-[-0.06em] bg-blush"
+      className="relative mx-[0.12em] inline-block h-[0.78em] overflow-hidden rounded-full align-[-0.06em] bg-lilac"
       style={{ width: w, ["--ap-r" as string]: "999px" }}
       data-aperture=""
     >

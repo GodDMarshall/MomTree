@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { plates, sceneAt, type SceneId } from "./story";
+import { localUnits, plates, sceneAt, sceneSlot, type SceneId } from "./story";
 import { shared } from "./materials";
 import { damp, type Ctx, type StoryScene, type Tier } from "./scenes/common";
 import { PlateScene } from "./scenes/plate";
@@ -7,6 +7,7 @@ import { AnatomyScene } from "./scenes/anatomy";
 import { SpecimenScene } from "./scenes/specimen";
 import { TransferScene } from "./scenes/transfer";
 import { PregnancyScene } from "./scenes/pregnancy";
+import { SculptureScene } from "./scenes/sculpture";
 
 export type { Tier };
 
@@ -80,7 +81,9 @@ export class LifeEngine {
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.renderer.setClearColor(0x000000, 0);
     const deviceDpr = window.devicePixelRatio || 1;
-    this.maxDpr = opts.tier === "high" ? Math.min(deviceDpr, 2) : opts.tier === "mid" ? Math.min(deviceDpr, 1.5) : 1;
+    // Poster capture renders at the full device pixel ratio (up to 4x, for the portrait hero still).
+    const cap = opts.preserveDrawingBuffer ? 4 : 2;
+    this.maxDpr = opts.tier === "high" ? Math.min(deviceDpr, cap) : opts.tier === "mid" ? Math.min(deviceDpr, 1.5) : 1;
     this.dpr = this.maxDpr;
     this.renderer.setPixelRatio(this.dpr);
 
@@ -101,25 +104,43 @@ export class LifeEngine {
       pregnancy: new PregnancyScene(),
       hands: new PlateScene({ id: "hands", ...plates.hands, zoom: [85.5, 88.5, 1.02, 1.12], moteColor: "#f5d9ad" }),
       newborn: new PlateScene({ id: "newborn", ...plates.newborn, zoom: [88.5, 100, 1.0, 1.1], moteColor: "#f6dcae" }),
+      // The sculptural mother, on her own timeline: 0–10 the opening; 10–64 the pregnancy, week by
+      // week; 64–100 the birth, the newborn in her arms and the leaves of the Momtree logo.
+      sculpture: new SculptureScene(
+        {
+          id: "sculpture",
+          week: [[0, 0], [10, 0], [14, 12], [26, 20], [40, 28], [56, 37], [63, 38], [66.5, 0]],
+          glass: [[0, 0], [11, 0], [14, 1], [62.5, 1], [65.5, 0]],
+          pose: [[0, 0], [11, 0], [16, 1], [63, 1], [69, 2]],
+          baby: [[0, 0], [65, 0], [70, 1]],
+          bloom: [[0, 0], [61, 0], [65.5, 0.92], [71, 0]],
+          leaves: [[0, 0], [74, 0], [95, 1]],
+          camera: [
+            { u: 0, pos: [-1.1, 1.5, 3.0], target: [0, 1.15, 0] },
+            { u: 10, pos: [-1.5, 1.35, 4.2], target: [0, 1.0, 0] },
+            { u: 10.5, pos: [-1.6, 1.15, 1.6], target: [0, 1.0, 0.12] },
+            { u: 30, pos: [-1.75, 1.12, 1.3], target: [0, 1.0, 0.14] },
+            { u: 56, pos: [-1.8, 1.15, 1.4], target: [0, 1.02, 0.16] },
+            { u: 64, pos: [-1.2, 1.3, 1.9], target: [0.02, 1.12, 0.12] },
+            { u: 76, pos: [-0.65, 1.32, 1.75], target: [0.02, 1.16, 0.1] },
+            { u: 100, pos: [-1.15, 1.45, 3.2], target: [0, 1.3, 0] },
+          ],
+        },
+        opts.tier,
+      ),
     };
 
     canvas.addEventListener("webglcontextlost", this.handleLost, false);
     window.addEventListener("pointermove", this.handlePointer, { passive: true });
   }
 
-  /** Load the opening plate, then start rendering. Later plates load in the background. */
+  /** Load whatever the opening needs, then start rendering. */
   async start() {
     this.resize();
-    await this.scenes.mother.load(this.ctx);
+    await this.scenes[sceneAt(this.u)].load(this.ctx);
     this.running = true;
     this.last = performance.now();
     this.raf = requestAnimationFrame(this.loop);
-    const later = () => {
-      this.scenes.hands.load(this.ctx);
-      this.scenes.newborn.load(this.ctx);
-    };
-    if ("requestIdleCallback" in window) (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(later);
-    else setTimeout(later, 2000);
   }
 
   setProgress(u: number) {
@@ -203,7 +224,9 @@ export class LifeEngine {
     this.ctx.pointer.x = damp(this.ctx.pointer.x, this.pointerTarget.x, 2.5, dt || 1);
     this.ctx.pointer.y = damp(this.ctx.pointer.y, this.pointerTarget.y, 2.5, dt || 1);
 
-    const id = sceneAt(this.u);
+    const slot = sceneSlot(this.u);
+    const id = slot.id;
+    const lu = localUnits(slot, this.u);
     const sc = this.scenes[id];
     shared.uUS.value = 0;
     if (!sc.ready) {
@@ -216,11 +239,11 @@ export class LifeEngine {
       sc.layout(this.ctx);
       this.laidOut.add(id);
     }
-    sc.update(this.u, dt, this.ctx);
+    sc.update(lu, dt, this.ctx);
     this.renderer.render(sc.scene, sc.camera);
 
     // Project labels and the scale bar for the HTML overlay.
-    const hud = sc.hud(this.u);
+    const hud = sc.hud(lu);
     const W = this.ctx.width;
     const H = this.ctx.height;
     const labels = hud.labels

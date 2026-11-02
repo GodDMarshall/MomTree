@@ -19,7 +19,7 @@ function rows(): { area: string; items: Row[] }[] {
     {
       area: "Brand & claims",
       items: [
-        { item: "Single-tone rendering of the tree logo", why: "The original logo is purple and green; the new identity tints it charcoal or gold. Approve, or supply a preferred version.", where: "Navigation, footer, favicon" },
+        { item: "Logo usage", why: "The site uses the official full-colour logo on white, and a white version of the same artwork on dark sections (story, footer, mobile menu), as the official site does on its hero. Approve, or supply the clinic's own reversed logo and vector (SVG or PDF) artwork.", where: "Navigation, footer, mobile menu, favicon" },
         { item: "Claims removed from the old site", why: "'Mysore's first AI powered fertility center', 'leading fertility clinic' and 'proven success rates' are unverifiable. They are not used. Supply evidence if any should return.", where: "Whole site" },
         { item: "Statistics", why: "The old site showed '0+' counters. No statistics are published. Supply verified figures only if wanted.", where: "Home" },
         { item: "AI-enabled andrology laboratory", why: "Name the system and what it does before any AI wording is published.", where: "Facilities, Andrology", href: "/facilities#andrology" },
@@ -62,8 +62,8 @@ function rows(): { area: string; items: Row[] }[] {
         ...events.map((e) => ({ item: e.caption, why: e.note!, where: "Patient stories (review build only)" })),
         ...facilities.filter((f) => !f.photos.length).map((f) => ({ item: `${f.name}: photograph`, why: "No genuine photograph available yet.", where: "Facilities" })),
         { item: "Clinic photographs at full resolution", why: "The old site only holds the clinic photographs at 1600×900. Supply camera originals so they stay sharp on large screens (faithful AI upscales, with face enhancement off, are only a stopgap).", where: "Facilities, Treatments" },
-        { item: "Generated story imagery", why: "The mother, hands and newborn plates in Life Unfolds are original AI-generated images (not patients). Approve their use.", where: "Home" },
-        { item: "Life Unfolds medical visualisations", why: "Anatomy, fertilisation, ICSI, embryo stages, transfer and early pregnancy must be reviewed by the medical team.", where: "Home", href: "/" },
+        { item: "Generated photographs", why: "The mother, hands and newborn photographs are original AI-generated images, used only in the reduced-motion version of the story and the share card, each marked as AI-generated. Approve their use.", where: "Home (reduced motion), share card" },
+        { item: "Life Unfolds medical visualisations", why: "The eleven IVF chapters in 3D: anatomy, stimulation and monitoring, egg collection, fertilisation (IVF, ICSI), embryo stages, transfer, hatching and implantation, the 7-week scan, the sculptural pregnancy by week, and the newborn. Check every visual, label, timing and caption against Momtree's practice.", where: "Home", href: "/" },
         ...(HAS_ILLUSTRATION
           ? [{ item: "20-week pregnancy illustration", why: "An AI-generated medical illustration shown after the 7-week scene in chapter 06 and captioned as an illustration. Check the cord, placenta and fetal proportions before approving it.", where: "Home", href: "/" }]
           : []),
@@ -73,6 +73,7 @@ function rows(): { area: string; items: Row[] }[] {
       area: "Reviews",
       items: [
         { item: "Google reviews quoted by name", why: "Quoted verbatim from the public Google profile. Confirm permission and choice of reviews.", where: "Home, Patient stories", href: "/patient-stories" },
+        { item: "Testimonials and medical advertising rules", why: "The National Medical Commission's guidelines on advertising may not permit promotional patient stories or testimonials, even with consent. Legal review before launch.", where: "Home, Patient stories", href: "/patient-stories" },
         { item: `Google rating ${googleSummary.rating} (${googleSummary.count} reviews)`, why: "Shown on the old site. Verify the current figures before display.", where: "Patient stories" },
       ],
     },

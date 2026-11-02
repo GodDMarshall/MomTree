@@ -77,7 +77,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section-tight bg-ivory-2" aria-labelledby="vision-title">
+      <section className="section-tight bg-paper-2" aria-labelledby="vision-title">
         <div className="wrap grid gap-10 lg:grid-cols-2">
           <div>
             <p className="t-label">Vision</p>
@@ -100,11 +100,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section" aria-labelledby="lead-title">
+      <section className="section overflow-x-clip" aria-labelledby="lead-title">
         <div className="wrap grid items-center gap-14 lg:grid-cols-12">
           <div className="relative mx-auto w-full max-w-[420px] lg:col-span-4">
-            <Rings className="absolute -inset-[16%] text-gold/50" count={6} />
-            <div className="relative aspect-square overflow-hidden rounded-full bg-blush">
+            <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[132%] w-[132%] max-w-none -translate-x-1/2 -translate-y-1/2 text-leaf/50" count={6} />
+            <div className="relative aspect-square overflow-hidden rounded-full bg-lilac">
               <Image src={director.portrait.src} alt={director.portrait.alt} fill sizes="420px" className="object-cover" />
             </div>
           </div>
@@ -141,15 +141,15 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section on-plum plum-glow" aria-labelledby="facilities-title">
+      <section className="section on-night night-glow" aria-labelledby="facilities-title">
         <div className="wrap">
           <p className="t-label">Facilities &amp; laboratory</p>
           <Words id="facilities-title" as="h2" className="t-display mt-6 max-w-[16ch]" text="Everything in *one place.*" />
           <ul className="mt-14 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
             {facilities.map((f) => (
-              <li key={f.id} className="border-t border-ivory/15 py-6">
+              <li key={f.id} className="border-t border-paper/15 py-6">
                 <h3 className="font-serif text-[1.55rem] leading-tight">{f.name}</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-on-plum-soft">{f.text}</p>
+                <p className="mt-3 text-[15px] leading-relaxed text-on-night-soft">{f.text}</p>
               </li>
             ))}
           </ul>
@@ -175,7 +175,7 @@ export default function AboutPage() {
               "Support for the emotional side of treatment, not just the medical.",
             ].map((x) => (
               <li key={x} className="flex gap-4 border-t border-[var(--color-hair)] pt-5 leading-relaxed">
-                <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
+                <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf" aria-hidden="true" />
                 {x}
               </li>
             ))}

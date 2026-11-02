@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// Bespoke gold line "plates" for each treatment, drawn in the manner of a natural-history plate.
+// Bespoke fine-line "plates" for each treatment, drawn in the manner of a natural-history plate.
 // Every stroke uses pathLength=1 so the RevealObserver can draw it in when it scrolls into view.
 
 type Props = { slug: string; className?: string; caption?: boolean };

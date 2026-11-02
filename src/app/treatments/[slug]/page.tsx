@@ -72,7 +72,7 @@ export default async function TreatmentPage({ params }: Params) {
           <div className="mt-12 grid items-center gap-14 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <p className="t-label" data-reveal="">
-                <span className="t-roman mr-3 normal-case tracking-normal">Pl. {roman(t.n)}</span>
+                <span className="t-roman mr-3 text-[16px] normal-case tracking-normal">Pl. {roman(t.n)}</span>
                 {group.label}
               </p>
               <Words as="h1" className="t-display mt-6" text={t.name} />
@@ -92,8 +92,8 @@ export default async function TreatmentPage({ params }: Params) {
               </div>
             </div>
             <div className="relative mx-auto w-full max-w-[460px] lg:col-span-5">
-              <Rings className="absolute -inset-[12%] text-gold/45" count={6} />
-              <div className="relative aspect-square rounded-full bg-blush/70 p-[12%] text-gold-ink">
+              <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[124%] w-[124%] max-w-none -translate-x-1/2 -translate-y-1/2 text-leaf/45" count={6} />
+              <div className="relative aspect-square rounded-full bg-lilac/70 p-[12%] text-violet">
                 <TreatmentPlate slug={t.slug} className="h-full w-full" />
               </div>
             </div>
@@ -117,7 +117,7 @@ export default async function TreatmentPage({ params }: Params) {
             <ol className="mt-5 space-y-2.5 border-l border-[var(--color-hair)] pl-5 text-[14px]">
               {SECTIONS.map(([id, label]) => (
                 <li key={id}>
-                  <a href={`#${id}`} className="link-line text-ink-soft hover:text-charcoal">
+                  <a href={`#${id}`} className="link-line text-ink-soft hover:text-ink">
                     {label}
                   </a>
                 </li>
@@ -143,7 +143,7 @@ export default async function TreatmentPage({ params }: Params) {
             <ul className="mt-8 grid gap-x-10 sm:grid-cols-2">
               {t.whoMayBeEvaluated.map((w) => (
                 <li key={w} className="flex gap-4 border-t border-[var(--color-hair)] py-4 leading-relaxed">
-                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
+                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf" aria-hidden="true" />
                   {w}
                 </li>
               ))}
@@ -152,10 +152,10 @@ export default async function TreatmentPage({ params }: Params) {
 
           <section id="how" className="scroll-mt-28">
             <h2 className="t-h2">How it works</h2>
-            <ol className="relative mt-10 space-y-10 border-l border-gold/50 pl-10">
+            <ol className="relative mt-10 space-y-10 border-l border-leaf/50 pl-10">
               {t.howItWorks.map((s, i) => (
                 <li key={s.title} className="relative" data-reveal="">
-                  <span className="absolute -left-[57px] top-0 grid h-8 w-8 place-items-center rounded-full border border-gold bg-ivory font-serif text-[15px] italic text-gold-ink">
+                  <span className="absolute -left-[57px] top-0 grid h-8 w-8 place-items-center rounded-full border border-leaf bg-paper font-serif text-[15px] italic text-violet">
                     {i + 1}
                   </span>
                   <h3 className="t-h3">{s.title}</h3>
@@ -176,13 +176,13 @@ export default async function TreatmentPage({ params }: Params) {
             </ul>
           </section>
 
-          <section id="risks" className="scroll-mt-28 rounded-[28px] bg-ivory-2 p-8 md:p-12">
+          <section id="risks" className="scroll-mt-28 rounded-[28px] bg-paper-2 p-8 md:p-12">
             <h2 className="t-h2">Risks and limitations</h2>
             <p className="mt-5 max-w-[60ch] text-ink-soft">Every medical treatment has risks and limits. Your doctor will discuss how they apply to you.</p>
             <ul className="mt-8 space-y-4">
               {t.risks.map((r) => (
                 <li key={r} className="flex max-w-[64ch] gap-4 leading-relaxed">
-                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-charcoal/50" aria-hidden="true" />
+                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ink/50" aria-hidden="true" />
                   {r}
                 </li>
               ))}
@@ -209,7 +209,7 @@ export default async function TreatmentPage({ params }: Params) {
         </article>
       </div>
 
-      <section className="section-tight bg-ivory-2" aria-labelledby="related-title">
+      <section className="section-tight bg-paper-2" aria-labelledby="related-title">
         <div className="wrap">
           <h2 id="related-title" className="t-h3">
             Related treatments
@@ -217,8 +217,8 @@ export default async function TreatmentPage({ params }: Params) {
           <ul className="mt-8 grid gap-5 md:grid-cols-3">
             {related.map((r) => (
               <li key={r.slug}>
-                <Link href={`/treatments/${r.slug}`} className="group flex h-full flex-col rounded-[24px] border border-[var(--color-hair)] bg-ivory p-7 transition-colors hover:border-charcoal/40">
-                  <TreatmentPlate slug={r.slug} className="h-20 w-20 text-gold-ink" />
+                <Link href={`/treatments/${r.slug}`} className="group flex h-full flex-col rounded-[24px] border border-[var(--color-hair)] bg-paper p-7 transition-colors hover:border-ink/40">
+                  <TreatmentPlate slug={r.slug} className="h-20 w-20 text-violet" />
                   <span className="t-roman mt-6 text-[14px]">Pl. {roman(r.n)}</span>
                   <span className="mt-1 font-serif text-[1.7rem] leading-tight">{r.name}</span>
                   <span className="mt-2 text-[14px] text-ink-soft">{r.short}</span>

@@ -1,8 +1,8 @@
 {
   "ch01-mother": {
-    "master": "2k",
-    "w": 2048,
-    "h": 1152,
+    "master": "4k",
+    "w": 4096,
+    "h": 2304,
     "sizes": {
       "1k": [
         1280,
@@ -11,9 +11,13 @@
       "2k": [
         2048,
         1152
+      ],
+      "4k": [
+        3840,
+        2160
       ]
     },
-    "blur": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQBACdASogABIAPslUoUunpSMhsAwA8BkJZQDFEUAABAI45w3u8dE0j8eUnoAAw/pQb35Tta50DlotQ5HjfKUD+wpruPhBUXdpgOi1/r25oNLAZKaDsDIhW66z/7e7+kvPQaDqoAA="
+    "blur": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAADQBACdASogABIAPs1aokunpaMhsBgMAPAZiWUAuDAuXsu4w/dj3tMQu1uyrszBpAD1/s3ylRaVxesAT5l6S6Ge1RRR/q4X/e4s8SNcaPft+4r1QQBvzI1c37cdFjfC7IRJkX2SaLVUTvMAAAA="
   },
   "ch06-hands": {
     "master": "2k",

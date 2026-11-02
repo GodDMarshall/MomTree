@@ -60,7 +60,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
   };
 
   const dark = tone === "dark";
-  const field = `field-line ${dark ? "text-ivory" : "text-charcoal"}`;
+  const field = `field-line ${dark ? "text-paper" : "text-ink"}`;
   const err = (k: keyof FieldErrors) => (errors[k] ? { "aria-invalid": true as const, "aria-describedby": `${id}-${k}-err` } : {});
 
   if (status === "done") {
@@ -85,7 +85,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
 
   return (
     <form onSubmit={submit} noValidate aria-describedby={`${id}-privacy`} className="max-w-[760px]">
-      <p className={`font-serif text-[clamp(1.6rem,2.9vw,2.6rem)] font-light leading-[1.75] ${dark ? "text-ivory" : "text-charcoal"}`}>
+      <p className={`font-serif text-[clamp(1.6rem,2.9vw,2.6rem)] font-light leading-[1.75] ${dark ? "text-paper" : "text-ink"}`}>
         <label htmlFor={`${id}-name`}>My name is</label>{" "}
         <input
           id={`${id}-name`}
@@ -108,7 +108,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
           placeholder="phone number"
           value={v.phone}
           onChange={(e) => set("phone", e.target.value)}
-          className={`${field} w-[min(11ch,100%)] min-w-[9ch]`}
+          className={`${field} w-[min(12.5ch,100%)] min-w-[11.5ch]`}
           {...err("phone")}
         />
         <span>, </span>
@@ -121,15 +121,15 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
           max={max}
           value={v.date}
           onChange={(e) => set("date", e.target.value)}
-          className={`${field} w-[min(9.5ch,100%)] min-w-[8.5ch] text-[0.8em]`}
+          className={`${field} w-[min(13ch,100%)] min-w-[12.5ch] text-[0.8em] [&::-webkit-calendar-picker-indicator]:ml-1 [&::-webkit-calendar-picker-indicator]:opacity-50`}
           {...err("date")}
         />
         <span>.</span>
       </p>
 
       <div className="mt-8">
-        <label htmlFor={`${id}-message`} className={`t-small block ${dark ? "text-on-plum-soft" : "text-ink-soft"}`}>
-          Anything you&apos;d like us to know? <span className="opacity-70">(optional · please don&apos;t include detailed medical information)</span>
+        <label htmlFor={`${id}-message`} className={`t-small block ${dark ? "text-on-night-soft" : "text-ink-soft"}`}>
+          Anything you&apos;d like us to know? <span className="italic">(optional · please don&apos;t include detailed medical information)</span>
         </label>
         <textarea
           id={`${id}-message`}
@@ -138,8 +138,8 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
           maxLength={MAX_MESSAGE}
           value={v.message}
           onChange={(e) => set("message", e.target.value)}
-          className={`mt-2 w-full resize-y rounded-2xl border bg-transparent p-4 text-[15px] leading-relaxed outline-none transition-colors focus:border-gold ${
-            dark ? "border-ivory/20 text-ivory" : "border-[var(--color-hair)] text-charcoal"
+          className={`mt-2 w-full resize-y rounded-2xl border bg-transparent p-4 text-[15px] leading-relaxed outline-none transition-colors focus:border-leaf ${
+            dark ? "border-paper/20 text-paper" : "border-[var(--color-hair)] text-ink"
           }`}
           {...err("message")}
         />
@@ -151,13 +151,13 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
         <input id={`${id}-company`} name="company" tabIndex={-1} autoComplete="off" value={v.company} onChange={(e) => set("company", e.target.value)} />
       </div>
 
-      <label className={`mt-6 flex cursor-pointer items-start gap-3 text-[14.5px] leading-relaxed ${dark ? "text-on-plum-soft" : "text-ink-soft"}`}>
+      <label className={`mt-6 flex cursor-pointer items-start gap-3 text-[14.5px] leading-relaxed ${dark ? "text-on-night-soft" : "text-ink-soft"}`}>
         <input
           id={`${id}-consent`}
           type="checkbox"
           checked={v.consent}
           onChange={(e) => set("consent", e.target.checked)}
-          className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-gold-ink)]"
+          className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-violet)]"
           {...err("consent")}
         />
         <span>
@@ -177,7 +177,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
       )}
 
       {status === "unavailable" && (
-        <div role="status" className={`mt-6 rounded-2xl border p-5 text-[15px] leading-relaxed ${dark ? "border-ivory/20" : "border-[var(--color-hair)] bg-white/60"}`}>
+        <div role="status" className={`mt-6 rounded-2xl border p-5 text-[15px] leading-relaxed ${dark ? "border-paper/20" : "border-[var(--color-hair)] bg-white/60"}`}>
           Online requests are not connected yet, so your details were not sent. Please call or WhatsApp us, and we will be glad to help.
           <div className="mt-4 flex flex-wrap gap-3">
             <a href={site.phone.href} className="btn btn-solid !min-h-[44px]">
@@ -196,10 +196,10 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
       )}
 
       <div className="mt-8 flex flex-wrap items-center gap-4">
-        <button type="submit" className={`btn ${dark ? "btn-gold" : "btn-solid"}`} disabled={status === "sending"}>
+        <button type="submit" className={`btn ${dark ? "btn-leaf" : "btn-solid"}`} disabled={status === "sending"}>
           {status === "sending" ? "Sending…" : "Request a consultation"} <ArrowRight />
         </button>
-        <p id={`${id}-privacy`} className={`text-[12.5px] ${dark ? "text-on-plum-soft" : "text-ink-soft"}`}>
+        <p id={`${id}-privacy`} className={`text-[12.5px] ${dark ? "text-on-night-soft" : "text-ink-soft"}`}>
           We will call to confirm a time. Your information is confidential.
         </p>
       </div>

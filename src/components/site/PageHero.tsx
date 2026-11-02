@@ -18,7 +18,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
                   {c.name}
                 </Link>
               ) : (
-                <span aria-current="page" className="text-gold-ink">
+                <span aria-current="page" className="text-violet">
                   {c.name}
                 </span>
               )}
@@ -44,7 +44,7 @@ type Props = {
 export function PageHero({ crumbs, label, title, lede, children, aside }: Props) {
   return (
     <header className="relative overflow-hidden pb-[clamp(56px,9vh,110px)] pt-[clamp(140px,22vh,220px)]">
-      <Rings className="pointer-events-none absolute -right-[22vw] -top-[18vw] w-[66vw] max-w-[900px] text-gold/40" count={9} />
+      <Rings className="pointer-events-none absolute -right-[22vw] -top-[6vw] w-[66vw] max-w-[900px] text-leaf/50 max-sm:-right-[40vw] max-sm:top-[96px]" count={9} />
       <div className="wrap relative">
         <Breadcrumbs items={crumbs} />
         <div className={`mt-12 grid gap-12 ${aside ? "lg:grid-cols-12" : ""}`}>

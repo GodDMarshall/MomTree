@@ -21,7 +21,7 @@ const sstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 const isPortrait = () => window.innerWidth / window.innerHeight < 0.85;
-const panelTone = (p: Panel) => (p.from > 11 && p.from < 85.5 ? "dark" : "light");
+const panelTone = (p: Panel) => toneAt(Math.max(0, p.from + 0.01));
 
 declare global {
   interface Window {
@@ -132,7 +132,9 @@ export function LifeUnfolds() {
       const el = labelEls.current.get(l.id);
       if (!el) return;
       seen.add(l.id);
-      el.style.transform = `translate3d(${l.x.toFixed(1)}px, ${l.y.toFixed(1)}px, 0)`;
+      // Keep labels on screen: one anchored near the right edge would otherwise run off it.
+      const x = Math.min(l.x, window.innerWidth - el.offsetWidth - 12);
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${l.y.toFixed(1)}px, 0)`;
       el.style.opacity = l.a.toFixed(3);
     });
     labelEls.current.forEach((el, id) => {
@@ -147,7 +149,7 @@ export function LifeUnfolds() {
       } else scaleEl.current.style.opacity = "0";
     }
 
-    if (skipEl.current) skipEl.current.style.opacity = (1 - sstep(88, 91, u)).toFixed(3);
+    if (skipEl.current) skipEl.current.style.opacity = (1 - sstep(94, 96.5, u)).toFixed(3);
   }, []);
 
   // ----------------------------------------------------------------------------- engine + scroll
@@ -159,6 +161,15 @@ export function LifeUnfolds() {
     let engine: LifeEngine | undefined;
     let disposed = false;
 
+    // Derived from progress rather than toggle events: GSAP fires no toggle when a jump (scrollbar
+    // drag, find in page, restored scroll) crosses the whole section, which used to leave it stuck.
+    const setActive = (on: boolean) => {
+      state.current.active = on;
+      html.dataset.immersive = String(on);
+      html.dataset.tone = on ? state.current.tone || "dark" : "light";
+      audio.current?.setPresence(on);
+      engine?.setVisible(on);
+    };
     const st = ScrollTrigger.create({
       trigger: section,
       start: "top top",
@@ -168,17 +179,13 @@ export function LifeUnfolds() {
         if (engine) engine.setProgress(u);
         else apply(u);
         audio.current?.setProgress(u);
+        const on = self.progress < 1;
+        if (on !== state.current.active) setActive(on);
       },
-      onToggle: (self) => {
-        state.current.active = self.isActive;
-        html.dataset.immersive = String(self.isActive);
-        html.dataset.tone = self.isActive ? state.current.tone || "light" : "light";
-        audio.current?.setPresence(self.isActive);
-        engine?.setVisible(self.isActive);
-      },
+      onLeave: () => setActive(false),
+      onEnterBack: () => setActive(true),
     });
-    state.current.active = st.isActive || st.progress === 0;
-    html.dataset.immersive = String(state.current.active);
+    setActive(st.progress < 1);
     apply(st.progress * 100);
 
     const boot = async () => {
@@ -264,7 +271,7 @@ export function LifeUnfolds() {
         </ol>
       </div>
 
-      <div ref={stageRef} className="life-stage" data-tone="light">
+      <div ref={stageRef} className="life-stage" data-tone={toneAt(0)}>
         {/* First paint: the opening plate as a real image, so the hero never waits for WebGL. */}
         <HeroPicture />
         <canvas ref={canvasRef} className={`life-canvas ${ready ? "is-ready" : ""}`} aria-hidden="true" />
@@ -322,20 +329,20 @@ export function LifeUnfolds() {
             ))}
             {p.cta === "hero" && (
               <div className="mt-9 flex flex-wrap gap-3">
-                <button type="button" className="btn btn-solid" onClick={() => scrollToUnit(14.5)}>
+                <button type="button" className="btn btn-leaf" onClick={() => scrollToUnit(chapters[1].anchor)}>
                   Begin the story <ArrowDown className="h-4 w-4" />
                 </button>
-                <Link href="/contact#appointment" className="btn">
+                <Link href="/contact#appointment" className="btn btn-light">
                   Book a consultation
                 </Link>
               </div>
             )}
             {p.cta === "final" && (
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link href="/contact#appointment" className="btn btn-solid">
+                <Link href="/contact#appointment" className="btn btn-leaf">
                   Begin your journey <ArrowRight />
                 </Link>
-                <a href={whatsappLink("Hello Momtree IVF, I would like to speak with your fertility specialist.")} target="_blank" rel="noopener noreferrer" className="btn">
+                <a href={whatsappLink("Hello Momtree IVF, I would like to speak with your fertility specialist.")} target="_blank" rel="noopener noreferrer" className="btn btn-light">
                   Talk to our fertility specialist
                 </a>
               </div>
@@ -395,7 +402,7 @@ export function LifeUnfolds() {
               {chapters.map((c) => (
                 <li key={c.id}>
                   <button type="button" onClick={() => scrollToUnit(c.anchor)} tabIndex={chaptersOpen ? 0 : -1}>
-                    <span className="font-serif italic text-gold-ink">{String(c.n).padStart(2, "0")}</span> {c.title}
+                    <span className="font-serif italic text-violet">{String(c.n).padStart(2, "0")}</span> {c.title}
                   </button>
                 </li>
               ))}
@@ -427,24 +434,21 @@ export function LifeUnfolds() {
 
 // =============================================================================================
 const HERO_ALT = "A pregnant woman in soft afternoon light, her hands resting on her belly";
+const SCULPTURE_ALT = "A porcelain sculpture of a woman, her hands resting over her abdomen, on a deep purple background";
 const pos = (f: [number, number]) => `${Math.round(f[0] * 100)}% ${Math.round(f[1] * 100)}%`;
 
 /**
- * The opening plate as a real, art-directed image so the hero never waits for WebGL: the portrait
- * version on tall screens when it exists, and up to 4K on large, dense displays.
+ * The opening frame of the 3D story, rendered ahead of time (scripts/capture-posters.mjs), so the
+ * hero shows the sculpture at once and never waits for WebGL: a portrait render on tall screens,
+ * and up to 4K on large, dense displays. The live canvas fades in over it.
  */
 function HeroPicture() {
-  const wide = plateBest(plates.mother.asset)!;
-  const tallPlate = plates.mother.tall ? plateBest(plates.mother.tall.asset) : null;
-  const common = { alt: HERO_ALT, sizes: "100vw", quality: 82, fetchPriority: "high", loading: "eager" } as const;
-  const w = getImageProps({ ...common, src: wide.url, width: wide.w, height: wide.h }).props;
-  const t = tallPlate ? getImageProps({ ...common, src: tallPlate.url, width: tallPlate.w, height: tallPlate.h }).props : null;
+  const common = { alt: SCULPTURE_ALT, sizes: "100vw", quality: 82, fetchPriority: "high", loading: "eager" } as const;
+  const w = getImageProps({ ...common, src: "/story/posters/hero.webp", width: 3840, height: 2160 }).props;
+  const t = getImageProps({ ...common, src: "/story/posters/hero-tall.webp", width: 1560, height: 3376 }).props;
   return (
-    <picture
-      className="life-hero-img absolute inset-0"
-      style={{ ["--pos-wide" as string]: pos(plates.mother.focus), ...(plates.mother.tall ? { ["--pos-tall" as string]: pos(plates.mother.tall.focus) } : {}) }}
-    >
-      {t && <source media="(max-aspect-ratio: 17/20)" srcSet={t.srcSet} sizes="100vw" />}
+    <picture className="life-hero-img absolute inset-0" style={{ ["--pos-wide" as string]: "50% 50%", ["--pos-tall" as string]: "50% 50%" }}>
+      <source media="(max-aspect-ratio: 17/20)" srcSet={t.srcSet} sizes="100vw" />
       {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
       <img {...w} className="h-full w-full object-cover" />
     </picture>
@@ -535,26 +539,33 @@ function SoundControl({ audio }: { audio: React.RefObject<StoryAudio | null> }) 
 
 // =============================================================================================
 // For reduced motion, Save-Data, or no WebGL2: the same story as an editorial sequence.
+// The three generated photographs open, carry the pregnancy and close it; the science chapters use
+// still frames of the 3D (scripts/capture-posters.mjs).
 const POSTERS: Record<number, { src: string; alt: string; pos?: string }> = {
   1: { src: plateBest(plates.mother.asset)!.url, alt: HERO_ALT, pos: pos(plates.mother.focus) },
   2: { src: "/story/posters/ch02.webp", alt: "Illustration of the female reproductive system: uterus, fallopian tubes and ovaries" },
-  3: { src: "/story/posters/ch03.webp", alt: "Illustration of an egg surrounded by corona cells as sperm approach" },
-  4: { src: "/story/posters/ch04.webp", alt: "Illustration of a blastocyst-stage embryo within its zona pellucida" },
-  5: { src: "/story/posters/ch05.webp", alt: "Illustration of an embryo transfer catheter passing through the cervix into the uterus" },
-  6: { src: plateBest(plates.hands.asset)!.url, alt: "A pregnant woman's hands gently cradling her belly", pos: pos(plates.hands.focus) },
-  7: { src: plateBest(plates.newborn.asset)!.url, alt: "A mother smiling down at her sleeping newborn, held securely in her arms", pos: pos(plates.newborn.focus) },
+  3: { src: "/story/posters/ch03.webp", alt: "Illustration of an ovary during stimulation, seen on ultrasound: several follicles show as dark circles" },
+  4: { src: "/story/posters/ch04.webp", alt: "Illustration of egg collection: a fine needle guided by ultrasound drains a follicle" },
+  5: { src: "/story/posters/ch05.webp", alt: "Illustration of an egg surrounded by corona cells as sperm approach" },
+  6: { src: "/story/posters/ch06.webp", alt: "Illustration of a blastocyst-stage embryo within its zona pellucida" },
+  7: { src: "/story/posters/ch07.webp", alt: "Illustration of an embryo transfer catheter passing through the cervix into the uterus" },
+  8: { src: "/story/posters/ch08.webp", alt: "Illustration of a blastocyst that has hatched from its zona, attaching to the lining of the uterus" },
+  9: { src: "/story/posters/ch09.webp", alt: "Illustration of an early pregnancy at about 7 weeks: gestational sac, yolk sac and embryo" },
+  10: { src: plateBest(plates.hands.asset)!.url, alt: "A pregnant woman's hands gently cradling her belly", pos: pos(plates.hands.focus) },
+  11: { src: plateBest(plates.newborn.asset)!.url, alt: "A mother smiling down at her sleeping newborn, held securely in her arms", pos: pos(plates.newborn.focus) },
 };
 
 function StaticStory() {
   const byChapter = (n: number) => panels.filter((p) => p.chapter === n);
   return (
-    <section id="life-unfolds" aria-labelledby="life-h1" className="bg-ivory">
+    <section id="life-unfolds" aria-labelledby="life-h1" className="bg-paper">
       {chapters.map((c) => {
         const ps = byChapter(c.n);
-        const dark = c.n >= 2 && c.n <= 5;
+        const dark = c.n >= 2 && c.n <= 9;
         const poster = POSTERS[c.n];
+        const photo = c.n === 1 || c.n >= 10;
         return (
-          <div key={c.id} className={`relative ${dark ? "on-plum plum-glow" : ""} ${c.n === 1 ? "min-h-[100svh]" : ""}`}>
+          <div key={c.id} className={`relative ${dark ? "on-night night-glow" : ""} ${c.n === 1 ? "min-h-[100svh]" : ""}`}>
             <div className={`grid items-center gap-10 ${c.n === 1 ? "min-h-[100svh]" : "section-tight"} wrap lg:grid-cols-12`}>
               <div className={`${c.n === 1 ? "relative z-10 pt-32 lg:col-span-6" : "lg:col-span-5"}`}>
                 {ps.map((p) => (
@@ -587,12 +598,13 @@ function StaticStory() {
               <figure className={`plate ${c.n === 1 ? "absolute inset-0 -z-0" : "lg:col-span-7"}`}>
                 <div className={`relative overflow-hidden ${c.n === 1 ? "h-full" : "ap-soft aspect-[16/10]"}`}>
                   <Image src={poster.src} alt={poster.alt} fill sizes={c.n === 1 ? "100vw" : "(max-width: 1024px) 100vw, 58vw"} className="object-cover" style={{ objectPosition: poster.pos ?? "60% 50%" }} priority={c.n === 1} />
-                  {c.n === 1 && <div className="absolute inset-0 bg-gradient-to-r from-ivory/90 via-ivory/55 to-transparent" />}
+                  {c.n === 1 && <div className="absolute inset-0 bg-gradient-to-r from-paper/90 via-paper/55 to-transparent" />}
+                  {c.n === 1 && <p className="absolute bottom-4 right-5 text-[11px] text-ink-soft">AI-generated image, not a patient</p>}
                 </div>
                 {c.n > 1 && (
                   <figcaption>
                     <span className="pl">Fig. {c.n}</span>
-                    <span>{c.title}. Illustrative visualisation, not an individual outcome.</span>
+                    <span>{c.title}. {photo ? "AI-generated image, not a patient." : "Illustrative visualisation, not to scale; not an individual outcome."}</span>
                   </figcaption>
                 )}
               </figure>

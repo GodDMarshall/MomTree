@@ -40,7 +40,7 @@ export function Plate({
   return (
     <figure className={`plate ${className}`}>
       <div
-        className={`relative overflow-hidden bg-blush ${shapeClass}`}
+        className={`relative overflow-hidden bg-lilac ${shapeClass}`}
         style={{ aspectRatio: aspect ?? `${width} / ${height}`, ["--ap-r" as string]: radius }}
         {...(open ? { "data-aperture": "" } : {})}
       >

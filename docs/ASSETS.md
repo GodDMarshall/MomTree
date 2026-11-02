@@ -1,16 +1,37 @@
 # Asset provenance
 
-## Generated photographic plates (Life Unfolds)
+## Brand
+
+The official logo comes from the clinic's own site (`public/legacy/2024/08/logo-1-01.png`, and the
+tree mark `BACKDROP-04-1.png`). `npm run assets` trims their transparent margins and writes
+`public/brand/logo.png` and `mark.png` unchanged, plus white versions of the same artwork for dark
+sections (as the official site uses on its hero). The favicon and app icon are the full-colour tree
+mark on white. Colours are taken from the logo: brand purple #5C2499 and leaf green #80C041.
+
+## The live story: all 3D
+
+Life Unfolds follows IVF in order, in eleven chapters, and every frame is rendered live in the
+browser with Three.js from code: no photographs, no third-party models. The mother and baby are a
+stylised porcelain figure (`src/lib/life/scenes/sculpture.ts`), raymarched from signed distance
+fields: faceless and draped, a likeness of no one. Her pregnancy grows by week with typical sizes
+(crown-rump length by week, the uterus rising from the pelvis to below the ribs, the baby turning
+head-down in the third trimester), seen through a glass window in the belly, and the story closes
+with the newborn in her arms under the leaves of the Momtree logo. Every scene is labelled as an
+illustration, not to scale and not an individual outcome.
+
+## Generated photographs (stills)
 
 Original images created for this project with **Seedream 5 Pro** (via ElevenLabs Creative,
-2026-11-02). They depict no real patient, doctor or clinic. Originals are in `assets-src/generated/`,
-web versions are in `public/story/` (built by `npm run assets`).
+2026-11-02). They depict no real patient, doctor or clinic, and are now used only in the
+reduced-motion version of the story and the share card, each marked "AI-generated image, not a
+patient". Originals are in `assets-src/generated/`, web versions in `public/story/` (built by
+`npm run assets`).
 
 | File | Used in | Prompt summary |
 | --- | --- | --- |
-| `ch01-mother-wide.png` | Chapter 01 and the share card | Pregnant Indian woman in three-quarter profile, hands on belly, sheer ivory chiffon, golden backlight, negative space left, 85 mm, Portra tones |
-| `ch06-hands-wide.png` | Chapter 06 bridge, static story | Close-up of hands cradling a pregnant belly, ivory knit, warm backlight, face out of frame |
-| `ch07-newborn-wide.png` | Chapter 07, static story | Indian mother looking down at a sleeping newborn held securely in both arms, morning light |
+| `ch01-mother-wide.png` | Reduced-motion chapter 1, share card | Pregnant Indian woman in three-quarter profile, hands on belly, sheer ivory chiffon, golden backlight, negative space left, 85 mm, Portra tones |
+| `ch06-hands-wide.png` | Reduced-motion chapter 10 | Close-up of hands cradling a pregnant belly, ivory knit, warm backlight, face out of frame |
+| `ch07-newborn-wide.png` | Reduced-motion chapter 11 | Indian mother looking down at a sleeping newborn held securely in both arms, morning light |
 
 An independent image review (clinical, artefact and adversarial passes) found the three plates
 clean apart from two spots:

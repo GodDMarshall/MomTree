@@ -57,7 +57,7 @@ export function ArticleFinder() {
             onClick={() => pick(c.id)}
             aria-pressed={cat === c.id}
             className={`rounded-full border px-4 py-2 text-[12.5px] font-semibold tracking-[0.04em] transition-colors ${
-              cat === c.id ? "border-charcoal bg-charcoal text-ivory" : "border-[var(--color-hair)] hover:border-charcoal/50"
+              cat === c.id ? "border-ink bg-ink text-paper" : "border-[var(--color-hair)] hover:border-ink/50"
             }`}
           >
             {c.label}

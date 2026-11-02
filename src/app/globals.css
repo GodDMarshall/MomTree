@@ -1,25 +1,29 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   Momtree design tokens
-   Gold (#C5A36A) is decorative only; text that needs to be gold uses
-   --color-gold-ink, which passes WCAG AA on ivory.
+   Momtree design tokens, taken from the official logo: brand purple (#5C2499)
+   and leaf green (#80C041) on white. Purple carries type accents, links and
+   buttons; leaf green is the accent on dark sections and a decorative colour on
+   light ones (green text on white uses --color-leaf-ink, which passes WCAG AA).
+   Night is a deep tone of the brand purple for the story and the footer.
    ========================================================================== */
 @theme {
-  --color-ivory: #faf7f2;
-  --color-ivory-2: #f5efe6;
-  --color-blush: #f2e5e2;
-  --color-rose: #d9b8b2;
-  --color-gold: #c5a36a;
-  --color-gold-ink: #7a5f31;
-  --color-charcoal: #292725;
-  --color-ink-soft: #5e5752;
-  --color-hair: rgb(41 39 37 / 0.14);
-  --color-plum: #2a1518;
-  --color-plum-2: #3a2021;
-  --color-mauve: #603441;
-  --color-glow: #e0a3b0;
-  --color-on-plum-soft: #cfaeb5;
+  --color-paper: #ffffff;
+  --color-paper-2: #f6f2fb;
+  --color-lilac: #efe8f8;
+  --color-lilac-2: #cdbbe6;
+  --color-leaf: #80c041;
+  --color-leaf-ink: #3d7a1f;
+  --color-violet: #5c2499;
+  --color-violet-deep: #3f1670;
+  --color-ink: #1d1a26;
+  --color-ink-soft: #5c5668;
+  --color-hair: rgb(29 26 38 / 0.14);
+  --color-night: #170c27;
+  --color-night-2: #241339;
+  --color-dusk: #46247a;
+  --color-glow: #c7a8f0;
+  --color-on-night-soft: #c6bbd8;
 
   --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-sans: var(--font-manrope), Manrope, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -53,8 +57,8 @@ html.lenis body {
 }
 
 body {
-  background: var(--color-ivory);
-  color: var(--color-charcoal);
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 17px;
   line-height: 1.7;
@@ -64,18 +68,18 @@ body {
 }
 
 ::selection {
-  background: rgb(197 163 106 / 0.35);
-  color: var(--color-charcoal);
+  background: rgb(92 36 153 / 0.2);
+  color: var(--color-ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-gold-ink);
+  outline: 2px solid var(--color-violet);
   outline-offset: 3px;
   border-radius: 4px;
 }
-.on-plum :focus-visible,
+.on-night :focus-visible,
 [data-tone="dark"] :focus-visible {
-  outline-color: var(--color-gold);
+  outline-color: var(--color-leaf);
 }
 
 h1,
@@ -86,6 +90,7 @@ h4 {
   font-weight: 300;
   letter-spacing: -0.015em;
   text-wrap: balance;
+  font-variant-numeric: lining-nums;
 }
 p {
   text-wrap: pretty;
@@ -104,8 +109,8 @@ svg {
   left: 16px;
   top: -80px;
   z-index: 100;
-  background: var(--color-charcoal);
-  color: var(--color-ivory);
+  background: var(--color-ink);
+  color: var(--color-paper);
   padding: 12px 18px;
   border-radius: 999px;
   font-size: 14px;
@@ -163,7 +168,7 @@ svg {
   letter-spacing: 0.24em;
   text-transform: uppercase;
   line-height: 1.4;
-  color: var(--color-gold-ink);
+  color: var(--color-violet);
 }
 .t-small {
   font-size: 14px;
@@ -176,13 +181,13 @@ svg {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
-  color: var(--color-gold-ink);
+  color: var(--color-violet);
 }
-.on-plum .t-label {
-  color: var(--color-gold);
+.on-night .t-label {
+  color: var(--color-leaf);
 }
-.on-plum .t-lede {
-  color: var(--color-on-plum-soft);
+.on-night .t-lede {
+  color: var(--color-on-night-soft);
 }
 
 /* -------------------------------------------------------------------------- layout */
@@ -211,26 +216,26 @@ svg {
   height: 1px;
   background: var(--color-hair);
 }
-.on-plum {
-  background: var(--color-plum);
-  color: var(--color-ivory);
+.on-night {
+  background: var(--color-night);
+  color: var(--color-paper);
 }
-.on-plum .rule,
-.on-plum .hairline {
-  border-color: rgb(250 247 242 / 0.12);
-  background-color: rgb(250 247 242 / 0.12);
+.on-night .rule,
+.on-night .hairline {
+  border-color: rgb(255 255 255 / 0.12);
+  background-color: rgb(255 255 255 / 0.12);
 }
-.plum-glow {
+.night-glow {
   background:
-    radial-gradient(90% 70% at 78% 12%, rgb(96 52 65 / 0.9), transparent 70%),
-    radial-gradient(70% 60% at 10% 100%, rgb(58 32 33 / 0.9), transparent 70%),
-    var(--color-plum);
+    radial-gradient(90% 70% at 78% 12%, rgb(70 36 122 / 0.9), transparent 70%),
+    radial-gradient(70% 60% at 10% 100%, rgb(36 19 57 / 0.9), transparent 70%),
+    var(--color-night);
 }
 
 /* -------------------------------------------------------------------------- buttons & links */
 .btn {
-  --btn-fg: var(--color-charcoal);
-  --btn-bd: rgb(41 39 37 / 0.28);
+  --btn-fg: var(--color-ink);
+  --btn-bd: rgb(29 26 38 / 0.28);
   --btn-bg: transparent;
   position: relative;
   display: inline-flex;
@@ -260,7 +265,7 @@ svg {
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: var(--color-charcoal);
+  background: var(--color-violet);
   transform: translateY(101%);
   transition: transform 0.6s var(--ease-silk);
 }
@@ -268,45 +273,45 @@ svg {
   transform: translateY(0);
 }
 .btn:hover {
-  color: var(--color-ivory);
-  border-color: var(--color-charcoal);
+  color: var(--color-paper);
+  border-color: var(--color-violet);
 }
 .btn:active {
   transform: scale(0.98);
 }
 .btn-solid {
-  --btn-fg: var(--color-ivory);
-  --btn-bg: var(--color-charcoal);
-  --btn-bd: var(--color-charcoal);
+  --btn-fg: var(--color-paper);
+  --btn-bg: var(--color-violet);
+  --btn-bd: var(--color-violet);
 }
 .btn-solid::before {
-  background: var(--color-gold-ink);
+  background: var(--color-violet-deep);
 }
 .btn-solid:hover {
-  border-color: var(--color-gold-ink);
+  border-color: var(--color-violet-deep);
 }
 .btn-light {
-  --btn-fg: var(--color-ivory);
-  --btn-bd: rgb(250 247 242 / 0.4);
+  --btn-fg: var(--color-paper);
+  --btn-bd: rgb(255 255 255 / 0.4);
 }
 .btn-light::before {
-  background: var(--color-ivory);
+  background: var(--color-paper);
 }
 .btn-light:hover {
-  color: var(--color-plum);
-  border-color: var(--color-ivory);
+  color: var(--color-violet);
+  border-color: var(--color-paper);
 }
-.btn-gold {
-  --btn-fg: var(--color-plum);
-  --btn-bg: var(--color-gold);
-  --btn-bd: var(--color-gold);
+.btn-leaf {
+  --btn-fg: var(--color-night);
+  --btn-bg: var(--color-leaf);
+  --btn-bd: var(--color-leaf);
 }
-.btn-gold::before {
-  background: var(--color-ivory);
+.btn-leaf::before {
+  background: var(--color-paper);
 }
-.btn-gold:hover {
-  color: var(--color-plum);
-  border-color: var(--color-ivory);
+.btn-leaf:hover {
+  color: var(--color-violet);
+  border-color: var(--color-paper);
 }
 .btn .btn-arrow {
   width: 16px;
@@ -333,11 +338,17 @@ svg {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  text-decoration-color: rgb(122 95 49 / 0.5);
+  text-decoration-color: rgb(92 36 153 / 0.5);
   transition: text-decoration-color 0.3s;
 }
 .link-under:hover {
   text-decoration-color: currentColor;
+}
+.on-night .link-under {
+  text-decoration-color: rgb(255 255 255 / 0.5);
+}
+.on-night .link-under:hover {
+  text-decoration-color: var(--color-leaf);
 }
 
 }
@@ -441,14 +452,14 @@ svg {
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 16px;
-  color: var(--color-gold-ink);
+  color: var(--color-violet);
   white-space: nowrap;
 }
-.on-plum .plate figcaption {
-  color: var(--color-on-plum-soft);
+.on-night .plate figcaption {
+  color: var(--color-on-night-soft);
 }
-.on-plum .plate figcaption .pl {
-  color: var(--color-gold);
+.on-night .plate figcaption .pl {
+  color: var(--color-leaf);
 }
 .ap-arch {
   border-radius: 999px 999px 18px 18px;
@@ -470,9 +481,9 @@ svg {
   gap: 8px;
   padding: 5px 11px 5px 9px;
   border-radius: 999px;
-  border: 1px dashed rgb(122 95 49 / 0.55);
-  background: rgb(255 248 236 / 0.85);
-  color: #6b5126;
+  border: 1px dashed rgb(92 36 153 / 0.42);
+  background: var(--color-lilac);
+  color: var(--color-violet-deep);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -485,14 +496,21 @@ svg {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #c98a2e;
-  box-shadow: 0 0 0 3px rgb(201 138 46 / 0.18);
+  background: var(--color-leaf);
+  box-shadow: 0 0 0 3px rgb(128 192 65 / 0.25);
   flex: none;
+}
+.on-night .pending,
+dialog .pending {
+  border-color: rgb(198 187 216 / 0.45);
+  background: rgb(255 255 255 / 0.07);
+  color: var(--color-on-night-soft);
 }
 
 /* -------------------------------------------------------------------------- page enter (template.tsx) */
 .page-enter {
-  animation: page-in 1s var(--ease-soft) both;
+  /* backwards, not both: a transform left on the wrapper would trap position:fixed pins. */
+  animation: page-in 1s var(--ease-soft) backwards;
 }
 @keyframes page-in {
   from {
@@ -510,7 +528,7 @@ svg {
   appearance: none;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgb(122 95 49 / 0.55);
+  border-bottom: 1px solid rgb(92 36 153 / 0.65);
   border-radius: 0;
   color: inherit;
   font: inherit;
@@ -521,14 +539,14 @@ svg {
 }
 .field-line:focus {
   outline: none;
-  border-bottom-color: var(--color-charcoal);
-  background: rgb(197 163 106 / 0.1);
+  border-bottom-color: var(--color-ink);
+  background: rgb(92 36 153 / 0.05);
 }
 .field-line[aria-invalid="true"] {
   border-bottom-color: #a1362b;
 }
 .field-line::placeholder {
-  color: rgb(94 87 82 / 0.55);
+  color: rgb(92 86 104 / 0.8);
   font-style: italic;
 }
 

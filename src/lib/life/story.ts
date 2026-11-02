@@ -1,8 +1,11 @@
 // The Life Unfolds timeline. One scroll axis, measured in "units" from 0 to 100, drives both the
-// WebGL scenes and the HTML captions, so text and image can never drift apart.
+// WebGL scenes and the HTML captions, so text and image can never drift apart. The chapters follow
+// IVF in the order a patient goes through it: assessment, ovarian stimulation, egg collection,
+// fertilisation, embryo culture, transfer, implantation and the pregnancy test, the early scan, the
+// pregnancy and birth.
 import plateManifest from "./plates.json";
 
-/** The ~20-week illustration in chapter 06 appears only once an approved image has been built. */
+/** An approved ~20-week illustration (a still image) is used only in the reduced-motion version. */
 export const HAS_ILLUSTRATION = "ch06-fetus" in plateManifest;
 
 export const TOTAL_UNITS = 100;
@@ -21,40 +24,73 @@ export type Chapter = {
 };
 
 export const chapters: Chapter[] = [
-  { n: 1, id: "beginning", title: "The beginning", from: 0, to: 11, anchor: 0 },
-  { n: 2, id: "fertility", title: "Understanding fertility", from: 11, to: 26, anchor: 14.5 },
-  { n: 3, id: "fertilisation", title: "Fertilisation", from: 26, to: 42.5, anchor: 29 },
-  { n: 4, id: "embryo", title: "Embryo development", from: 42.5, to: 62.5, anchor: 45 },
-  { n: 5, id: "transfer", title: "Embryo transfer", from: 62.5, to: 76.5, anchor: 65 },
-  { n: 6, id: "pregnancy", title: "The possibility of pregnancy", from: 76.5, to: 88.5, anchor: 78.5 },
-  { n: 7, id: "moment", title: "The moment that matters", from: 88.5, to: 100, anchor: 92 },
+  { n: 1, id: "beginning", title: "The beginning", from: 0, to: 8, anchor: 0 },
+  { n: 2, id: "fertility", title: "Understanding fertility", from: 8, to: 19, anchor: 9.8 },
+  { n: 3, id: "stimulation", title: "Ovarian stimulation", from: 19, to: 28, anchor: 20.4 },
+  { n: 4, id: "collection", title: "Egg collection", from: 28, to: 36, anchor: 29.4 },
+  { n: 5, id: "fertilisation", title: "Fertilisation", from: 36, to: 48, anchor: 37.6 },
+  { n: 6, id: "embryo", title: "Embryo development", from: 48, to: 62, anchor: 49.4 },
+  { n: 7, id: "transfer", title: "Embryo transfer", from: 62, to: 72, anchor: 63.6 },
+  { n: 8, id: "implantation", title: "Implantation and the pregnancy test", from: 72, to: 78, anchor: 73.4 },
+  { n: 9, id: "early-scan", title: "The early scan", from: 78, to: 85, anchor: 79.4 },
+  { n: 10, id: "pregnancy", title: "Pregnancy", from: 85, to: 94, anchor: 86.4 },
+  { n: 11, id: "moment", title: "The moment that matters", from: 94, to: 100, anchor: 96.2 },
 ];
 
 /** Which rendered scene is on screen for a given unit. Boundaries are hidden by a veil. */
-export type SceneId = "mother" | "anatomy" | "specimen" | "transfer" | "pregnancy" | "hands" | "newborn";
-export const sceneSchedule: { id: SceneId; from: number; to: number }[] = [
-  { id: "mother", from: 0, to: 11 },
-  { id: "anatomy", from: 11, to: 26 },
-  { id: "specimen", from: 26, to: 62.5 },
-  { id: "transfer", from: 62.5, to: 76.5 },
-  { id: "pregnancy", from: 76.5, to: 85.5 },
-  { id: "hands", from: 85.5, to: 88.5 },
-  { id: "newborn", from: 88.5, to: 100 },
-];
+export type SceneId = "mother" | "anatomy" | "specimen" | "transfer" | "pregnancy" | "hands" | "newborn" | "sculpture";
+type Slot = { id: SceneId; from: number; to: number; local?: readonly [number, number] };
+
+/** A stretch of the story mapped onto a scene's own timeline. */
+const slot = (id: SceneId, from: number, to: number, l0: number, l1: number): Slot => ({ id, from, to, local: [l0, l1] });
+const S = {
+  open: slot("sculpture", 0, 8, 0, 10),
+  assess: slot("anatomy", 8, 19, 0, 30),
+  stim: slot("anatomy", 19, 28, 30, 64),
+  collect: slot("anatomy", 28, 36, 64, 100),
+  lab: slot("specimen", 36, 62, 26, 62.5),
+  transfer: slot("transfer", 62, 72, 62.5, 76.5),
+  implant: slot("specimen", 72, 78, 62.5, 72),
+  scan: slot("pregnancy", 78, 85, 76.5, 85.5),
+  life: slot("sculpture", 85, 100, 10, 100),
+};
+export const sceneSchedule: Slot[] = [S.open, S.assess, S.stim, S.collect, S.lab, S.transfer, S.implant, S.scan, S.life];
+
+/** A scene's local unit, expressed as a story unit, for captions timed to the animation. */
+function story(s: Slot, l: number) {
+  const [l0, l1] = s.local!;
+  return +(s.from + ((l - l0) / (l1 - l0)) * (s.to - s.from)).toFixed(2);
+}
 
 export function sceneAt(u: number): SceneId {
-  for (const s of sceneSchedule) if (u < s.to) return s.id;
-  return "newborn";
+  return sceneSlot(u).id;
+}
+
+/** The schedule entry on screen at `u`. */
+export function sceneSlot(u: number) {
+  for (const s of sceneSchedule) if (u < s.to) return s;
+  return sceneSchedule[sceneSchedule.length - 1];
+}
+
+/**
+ * Scenes are choreographed on their own unit range (`local`); the schedule maps a stretch of the
+ * story onto it, so a scene can be reused or re-timed without rewriting its animation.
+ */
+export function localUnits(slot: { from: number; to: number; local?: readonly [number, number] }, u: number) {
+  if (!slot.local) return u;
+  const t = Math.min(1, Math.max(0, (u - slot.from) / (slot.to - slot.from)));
+  return slot.local[0] + (slot.local[1] - slot.local[0]) * t;
 }
 
 /** Colour washes that hide each cut. Opacity peaks at `at` and falls off over `w` units. */
+const NIGHT = [23, 12, 39] as const;
 export const veils = [
-  { at: 11, w: 2.4, color: [255, 247, 236] },
-  { at: 26, w: 1.5, color: [20, 8, 9] },
-  { at: 62.5, w: 1.5, color: [20, 8, 9] },
-  { at: 76.5, w: 1.5, color: [20, 8, 9] },
-  { at: 85.5, w: 1.9, color: [255, 247, 236] },
-  { at: 88.5, w: 1.3, color: [255, 247, 236] },
+  { at: 8, w: 1.6, color: NIGHT },
+  { at: 36, w: 1.4, color: NIGHT },
+  { at: 62, w: 1.3, color: NIGHT },
+  { at: 72, w: 1.2, color: NIGHT },
+  { at: 78, w: 1.2, color: NIGHT },
+  { at: 85, w: 1.5, color: NIGHT },
 ] as const;
 
 export function veilAt(u: number): { opacity: number; color: readonly number[] } {
@@ -67,11 +103,12 @@ export function veilAt(u: number): { opacity: number; color: readonly number[] }
   return { opacity: o * o * (3 - 2 * o), color: best.color };
 }
 
-export function toneAt(u: number): Tone {
-  return u >= 11 && u < 85.5 ? "dark" : "light";
+/** Every scene sits on the deep brand purple, so captions are always light on dark. */
+export function toneAt(_u: number): Tone {
+  return "dark";
 }
 
-// Embryo stage timings (units). Shared by the specimen scene and the HUD captions.
+// Embryo stage timings, in the specimen scene's own units. Shared by the scene and the captions.
 export const embryoStages = {
   pronuclei: [41, 43.5],
   cleave2: [45, 46.6],
@@ -82,20 +119,30 @@ export const embryoStages = {
 } as const;
 
 export type Caption = { from: number; to: number; fig: string; text: string; day?: string };
+const cap = (s: Slot, l0: number, l1: number, fig: string, text: string, day?: string): Caption => ({ from: story(s, l0), to: story(s, l1), fig, text, ...(day ? { day } : {}) });
 export const captions: Caption[] = [
-  { from: 11.6, to: 19.6, fig: "Fig. 2", text: "The female reproductive system, front view (schematic)" },
-  { from: 19.6, to: 25.6, fig: "Fig. 2a", text: "A maturing follicle releases an egg, gathered in by the fimbriae" },
-  { from: 26.6, to: 34.4, fig: "Fig. 3", text: "An egg within its corona cells, approached by sperm (conventional IVF)" },
-  { from: 34.4, to: 41.2, fig: "Fig. 3a", text: "ICSI: a holding pipette and an injection needle" },
-  { from: 41.2, to: 45.8, fig: "Fig. 4", text: "Zygote with two pronuclei", day: "about day 1" },
-  { from: 45.8, to: 49.2, fig: "Fig. 4a", text: "Two-cell embryo", day: "about day 2" },
-  { from: 49.2, to: 52.4, fig: "Fig. 4b", text: "Four-cell embryo", day: "about day 2" },
-  { from: 52.4, to: 55.6, fig: "Fig. 4c", text: "Eight-cell embryo", day: "about day 3" },
-  { from: 55.6, to: 58.9, fig: "Fig. 4d", text: "Morula: the cells draw together", day: "about day 4" },
-  { from: 58.9, to: 62.2, fig: "Fig. 4e", text: "Blastocyst: inner cell mass, outer layer and cavity", day: "about days 5–6" },
-  { from: 63.2, to: 76.2, fig: "Fig. 5", text: "Embryo transfer through the cervix, side view (embryo shown enlarged)" },
-  { from: 77.2, to: HAS_ILLUSTRATION ? 82.3 : 85.2, fig: "Fig. 6", text: "Early pregnancy at about 7 weeks: gestational sac, yolk sac and a 1 cm embryo" },
-  ...(HAS_ILLUSTRATION ? [{ from: 82.5, to: 85.3, fig: "Fig. 6a", text: "A developing pregnancy at about 20 weeks (illustration)" }] : []),
+  cap(S.assess, 3, 21, "Fig. 2", "The female reproductive system, front view (schematic)"),
+  cap(S.assess, 21.5, 30, "Fig. 2a", "Small resting (antral) follicles, counted by ultrasound early in the cycle"),
+  cap(S.stim, 31, 43.6, "Fig. 3", "Ovarian stimulation: several follicles grow in each ovary at once", "typically 8–14 days"),
+  cap(S.stim, 44, 56.4, "Fig. 3a", "Monitoring scan: on ultrasound, fluid-filled follicles show dark"),
+  cap(S.stim, 57.4, 64, "Fig. 3b", "The trigger injection completes the eggs' maturation", "about 36 hours before collection"),
+  cap(S.collect, 65, 99.6, "Fig. 4", "Egg collection: a fine needle, guided by ultrasound, drains each follicle (schematic)"),
+  cap(S.lab, 26.6, 34.4, "Fig. 5", "An egg within its corona cells, approached by prepared sperm (conventional IVF)"),
+  cap(S.lab, 34.4, 41.2, "Fig. 5a", "ICSI: a holding pipette and an injection needle"),
+  cap(S.lab, 41.2, 45.8, "Fig. 6", "Zygote with two pronuclei", "about day 1"),
+  cap(S.lab, 45.8, 49.2, "Fig. 6a", "Two-cell embryo", "about day 1–2"),
+  cap(S.lab, 49.2, 52.4, "Fig. 6b", "Four-cell embryo", "about day 2"),
+  cap(S.lab, 52.4, 55.6, "Fig. 6c", "Eight-cell embryo", "about day 3"),
+  cap(S.lab, 55.6, 58.9, "Fig. 6d", "Morula: the cells draw together", "about day 4"),
+  cap(S.lab, 58.9, 62.3, "Fig. 6e", "Blastocyst: inner cell mass, outer layer and cavity", "about days 5–6"),
+  cap(S.transfer, 63.2, 76.2, "Fig. 7", "Embryo transfer through the cervix, side view (embryo shown enlarged)"),
+  cap(S.implant, 63.2, 67.2, "Fig. 8", "The blastocyst hatches from its shell, the zona", "about day 6"),
+  cap(S.implant, 67.2, 71.8, "Fig. 8a", "Implantation: the blastocyst begins to attach to the lining of the uterus (illustration)", "about days 6–10 after fertilisation"),
+  cap(S.scan, 77.2, 85.2, "Fig. 9", "Early pregnancy at about 7 weeks: gestational sac, yolk sac and a 1 cm embryo"),
+  cap(S.life, 13, 23, "Fig. 10", "About 12 weeks: around 6 cm from head to bottom (illustration)"),
+  cap(S.life, 23.5, 37, "Fig. 10a", "About 20 weeks: around 25 cm from head to heel"),
+  cap(S.life, 37.5, 51, "Fig. 10b", "About 28 weeks: many babies begin to turn head-down"),
+  cap(S.life, 51.5, 63, "Fig. 10c", "About 36 weeks: most babies have settled head-down"),
 ];
 
 export type Panel = {
@@ -116,7 +163,7 @@ export const panels: Panel[] = [
     id: "c1",
     chapter: 1,
     from: -1,
-    to: 7.5,
+    to: 6.2,
     label: "Momtree IVF & Genetics · Mysuru",
     heading: "Every beautiful story *begins* with hope.",
     level: 1,
@@ -126,43 +173,75 @@ export const panels: Panel[] = [
   {
     id: "c2a",
     chapter: 2,
-    from: 13,
-    to: 19.8,
+    from: 9.2,
+    to: 14,
     label: "Understanding fertility",
     heading: "Understanding your fertility is the *first step.*",
     level: 2,
-    body: [
-      "Every person's fertility is different. That's why each journey at Momtree begins with an individual assessment of both partners, before any treatment is suggested.",
-    ],
+    body: ["Every person's fertility is different. That's why each journey at Momtree begins with an individual assessment of both partners, before any treatment is suggested."],
   },
   {
     id: "c2b",
     chapter: 2,
-    from: 20.4,
-    to: 25.4,
-    heading: "Each cycle, a beginning.",
+    from: 14.5,
+    to: 18.4,
+    heading: "What the first tests look at",
     level: 3,
-    body: [
-      "In most cycles, one follicle in the ovary matures and releases an egg. The fimbriae at the end of the fallopian tube gather it in, and it begins to travel towards the uterus. When something interrupts this, there is usually a way to find out why.",
-    ],
+    body: ["Blood tests such as AMH, and an ultrasound count of the small resting follicles in each ovary, help estimate the egg supply. A semen analysis looks at sperm count, movement and shape."],
   },
   {
     id: "c3a",
     chapter: 3,
-    from: 27.4,
-    to: 34,
-    label: "Fertilisation",
-    heading: "Where science meets the *possibility* of life.",
+    from: 19.8,
+    to: 24.4,
+    label: "Ovarian stimulation",
+    heading: "Growing *several eggs*, carefully.",
     level: 2,
-    body: [
-      "In conventional IVF, each egg is placed with thousands of prepared sperm in a culture dish, and fertilisation is left to happen on its own.",
-    ],
+    body: ["For about 8 to 14 days, daily hormone injections encourage several follicles to grow at once. Regular ultrasound scans and blood tests follow their progress and keep the treatment safe."],
   },
   {
     id: "c3b",
     chapter: 3,
-    from: 34.6,
-    to: 41.6,
+    from: 24.8,
+    to: 27.6,
+    heading: "The trigger",
+    level: 3,
+    body: ["When the follicles are ready, a final trigger injection completes the eggs' maturation. Egg collection is timed for about 36 hours later."],
+  },
+  {
+    id: "c4a",
+    chapter: 4,
+    from: 28.8,
+    to: 32.4,
+    label: "Egg collection",
+    heading: "A short, *gentle* procedure.",
+    level: 2,
+    body: ["Under sedation, a fine needle guided by ultrasound passes through the vaginal wall into each follicle and draws off the fluid. It usually takes 15 to 30 minutes."],
+  },
+  {
+    id: "c4b",
+    chapter: 4,
+    from: 32.8,
+    to: 35.6,
+    heading: "Into the laboratory",
+    level: 3,
+    body: ["An embryologist looks through the fluid for eggs under a microscope. Not every follicle holds an egg, and not every egg is mature."],
+  },
+  {
+    id: "c5a",
+    chapter: 5,
+    from: 37,
+    to: 42.2,
+    label: "Fertilisation",
+    heading: "Where science meets the *possibility* of life.",
+    level: 2,
+    body: ["The same day, the semen sample is washed and the most active sperm are selected. In conventional IVF, each egg is then placed with thousands of these sperm, and fertilisation is left to happen on its own."],
+  },
+  {
+    id: "c5b",
+    chapter: 5,
+    from: 42.6,
+    to: 47.6,
     heading: "ICSI: one sperm, one egg.",
     level: 3,
     body: [
@@ -171,78 +250,91 @@ export const panels: Panel[] = [
     ],
   },
   {
-    id: "c4a",
-    chapter: 4,
-    from: 43.4,
-    to: 52,
+    id: "c6a",
+    chapter: 6,
+    from: 48.8,
+    to: 54.8,
     label: "Embryo development",
     heading: "A remarkable journey, measured in the *smallest beginnings.*",
     level: 2,
-    body: [
-      "About a day after fertilisation, two pronuclei appear. Then the cell divides: two cells, four, eight. By day four, the cells draw tightly together into a morula.",
-    ],
-  },
-  {
-    id: "c4b",
-    chapter: 4,
-    from: 52.6,
-    to: 61.8,
-    heading: "Blastocyst culture",
-    level: 3,
-    body: [
-      "By day five or six, some embryos become blastocysts, with an inner cell mass and an outer layer that may form the placenta. Our embryologists assess each embryo at set times, while incubators hold temperature and gases steady.",
-      "Not every embryo reaches this stage, and that is part of normal biology.",
-    ],
-  },
-  {
-    id: "c5a",
-    chapter: 5,
-    from: 63.6,
-    to: 70,
-    label: "Embryo transfer",
-    heading: "A carefully guided step in your *fertility journey.*",
-    level: 2,
-    body: [
-      "A soft, fine catheter carries the embryo through the cervix into the uterus, guided by ultrasound. It takes only a few minutes and usually needs no anaesthesia.",
-    ],
-  },
-  {
-    id: "c5b",
-    chapter: 5,
-    from: 70.6,
-    to: 76,
-    heading: "What happens next",
-    level: 3,
-    body: [
-      "After transfer, the embryo has to implant in the lining of the uterus. That step happens on its own and cannot be guaranteed, which is why the next two weeks call for patience and care.",
-    ],
-  },
-  {
-    id: "c6a",
-    chapter: 6,
-    from: 77.4,
-    to: 82.2,
-    label: "The possibility of pregnancy",
-    heading: "Hope takes a *new shape.*",
-    level: 2,
-    body: [
-      "A blood test about two weeks after transfer shows whether implantation has happened. An early scan, often at six to seven weeks, then checks that the pregnancy is in the uterus and looks for a heartbeat.",
-    ],
+    body: ["About a day after fertilisation, two pronuclei appear. Then the cell divides: two cells, four, eight. By day four, the cells draw tightly together into a morula."],
   },
   {
     id: "c6b",
     chapter: 6,
-    from: 82.6,
-    to: 85.3,
+    from: 55.2,
+    to: 61.6,
+    heading: "Blastocyst culture",
     level: 3,
     body: [
-      "These are separate steps, each confirmed in its own time. Outcomes vary from person to person, and not every transfer results in pregnancy. Whatever each step brings, we are with you.",
+      "By day five or six, some embryos become blastocysts, with an inner cell mass and an outer layer that may form the placenta. Suitable embryos that are not transferred can be frozen for later.",
+      "Not every embryo reaches this stage, and that is part of normal biology.",
     ],
   },
   {
-    id: "c7",
+    id: "c7a",
     chapter: 7,
+    from: 63,
+    to: 67.4,
+    label: "Embryo transfer",
+    heading: "A carefully guided step in your *fertility journey.*",
+    level: 2,
+    body: ["A soft, fine catheter carries the embryo through the cervix into the uterus, guided by ultrasound. It takes only a few minutes and usually needs no anaesthesia."],
+  },
+  {
+    id: "c7b",
+    chapter: 7,
+    from: 67.8,
+    to: 71.6,
+    heading: "After the transfer",
+    level: 3,
+    body: ["Hormone support, usually progesterone, helps prepare the lining of the uterus. Whether the embryo implants happens on its own and cannot be guaranteed."],
+  },
+  {
+    id: "c8",
+    chapter: 8,
+    from: 72.8,
+    to: 77.6,
+    label: "Implantation and the pregnancy test",
+    heading: "The *two-week* wait.",
+    level: 2,
+    body: [
+      "If an embryo implants, it hatches from its shell and settles into the lining of the uterus, usually within a few days of a blastocyst transfer. About two weeks after transfer, a blood test for the pregnancy hormone hCG shows whether this has happened.",
+      "Not every transfer leads to a pregnancy. Whatever the result, we talk it through with you and plan the next step together.",
+    ],
+  },
+  {
+    id: "c9",
+    chapter: 9,
+    from: 78.8,
+    to: 84.6,
+    label: "The early scan",
+    heading: "Hope takes a *new shape.*",
+    level: 2,
+    body: ["An early ultrasound scan, often at six to seven weeks, checks that the pregnancy is in the uterus and looks for a heartbeat."],
+  },
+  {
+    id: "c10a",
+    chapter: 10,
+    from: 85.8,
+    to: 89.8,
+    label: "Pregnancy",
+    heading: "Week by week, *a new life grows.*",
+    level: 2,
+    body: ["From here, care continues as for any pregnancy, with regular check-ups and scans. At about 12 weeks the baby is around 6 cm long; by 20 weeks, around 25 cm from head to heel."],
+  },
+  {
+    id: "c10b",
+    chapter: 10,
     from: 90.2,
+    to: 93.6,
+    level: 3,
+    body: ["In the last weeks, most babies settle head-down, ready to be born at around 40 weeks."],
+  },
+  {
+    id: "c11",
+    chapter: 11,
+    from: 95.6,
     to: 101,
     heading: "Every journey is different. *Every hope matters.*",
     level: 2,
@@ -254,10 +346,14 @@ export const panels: Panel[] = [
 /** On-screen anatomical labels. Positions come from the engine every frame. */
 export const labelText: Record<string, string> = {
   uterus: "Uterus",
-  endometrium: "Endometrium",
+  endometrium: "Endometrium (lining of the uterus)",
   tube: "Fallopian tube",
   ovary: "Ovary",
   cervix: "Cervix",
+  antral: "Resting (antral) follicles",
+  follicles: "Growing follicles",
+  needleR: "Collection needle, guided by ultrasound",
+  eggC: "Follicle fluid, checked for eggs in the laboratory",
   follicle: "Maturing follicle",
   egg: "Egg",
   corona: "Corona cells",
@@ -269,12 +365,14 @@ export const labelText: Record<string, string> = {
   icm: "Inner cell mass",
   te: "Outer layer (trophectoderm)",
   cavity: "Cavity (blastocoel)",
+  hatch: "Blastocyst hatching",
   bladder: "Bladder",
   catheter: "Transfer catheter",
   embryoT: "Embryo (enlarged)",
   sac: "Gestational sac",
   yolk: "Yolk sac",
   embryo7: "Embryo, about 1 cm",
+  fetusW: "Baby (illustration)",
 };
 
 // ------------------------------------------------------------------------------------ plates

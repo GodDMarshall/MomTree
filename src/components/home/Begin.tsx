@@ -8,8 +8,8 @@ import { Mail, Phone, WhatsApp } from "@/components/ui/Icons";
 
 export function Begin({ id = "begin", heading = "Your questions *matter.* Let's talk." }: { id?: string; heading?: string }) {
   return (
-    <section data-rail="Begin" id={id} className="section relative overflow-hidden bg-blush/60 scroll-mt-24" aria-labelledby={`${id}-title`}>
-      <Rings className="pointer-events-none absolute -left-[20vw] -top-[18vw] w-[60vw] max-w-[860px] text-gold/40" count={9} />
+    <section data-rail="Begin" id={id} className="section relative overflow-hidden bg-lilac/60 scroll-mt-24" aria-labelledby={`${id}-title`}>
+      <Rings className="pointer-events-none absolute -left-[20vw] -top-[18vw] w-[60vw] max-w-[860px] text-violet/15" count={9} />
       <div className="wrap relative grid gap-16 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <p className="t-label" data-reveal="">

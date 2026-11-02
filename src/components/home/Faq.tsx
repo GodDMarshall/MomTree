@@ -24,7 +24,7 @@ export function Faq({ items, defaultOpen = 0 }: { items: QA[]; defaultOpen?: num
                 className="flex w-full items-center justify-between gap-6 py-6 text-left"
               >
                 <span className="font-serif text-[clamp(1.3rem,2vw,1.7rem)] font-normal leading-snug">{it.q}</span>
-                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--color-hair)] transition-transform duration-500 ${expanded ? "rotate-45 border-charcoal" : ""}`}>
+                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--color-hair)] transition-transform duration-500 ${expanded ? "rotate-45 border-ink" : ""}`}>
                   <Plus className="h-3.5 w-3.5" />
                 </span>
               </button>

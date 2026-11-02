@@ -474,7 +474,9 @@ uniform float uCore;
 varying vec2 vUv;
 void main(){
   float d = length(vUv - 0.5) * 2.0;
-  float a = pow(clamp(1.0 - d, 0.0, 1.0), 2.4) + smoothstep(uCore, 0.0, d) * 0.9;
+  // smoothstep with equal edges is undefined in GLSL, so a zero core is handled explicitly.
+  float core = uCore > 0.0 ? 1.0 - smoothstep(0.0, uCore, d) : 0.0;
+  float a = pow(clamp(1.0 - d, 0.0, 1.0), 2.4) + core * 0.9;
   gl_FragColor = vec4(uColor, a * uOpacity);
 }`;
 

@@ -9,7 +9,7 @@ export function clinicJsonLd() {
     alternateName: "Momtree IVF",
     url: site.url,
     image: `${site.url}/og.jpg`,
-    logo: `${site.url}/brand/mark-gold-on-plum.png`,
+    logo: `${site.url}/brand/logo.png`,
     telephone: site.phone.href.replace("tel:", ""),
     email: site.email,
     medicalSpecialty: ["Gynecologic", "Obstetric", "Urologic"],

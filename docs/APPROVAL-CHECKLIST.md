@@ -9,7 +9,7 @@ Mark each line ✅ approved, ✏️ approved with changes (attach them), or ❌ 
 
 ## 1. Brand and claims
 
-- [ ] **Logo treatment.** The original purple and green tree is rendered in a single tone (charcoal on ivory, gold on plum) from the original artwork. Approve, or supply a preferred monochrome version.
+- [ ] **Logo usage.** The official full-colour logo is used on white, and a white version of the same artwork on dark sections (story, footer, mobile menu), as the official site does on its hero. Approve, or supply the clinic's own reversed logo and vector (SVG or PDF) artwork.
 - [ ] **Old claims not used:** "Mysore's first AI powered / AI enabled fertility center", "Mysore's leading fertility clinic", "proven success rates". Supply evidence for any that should return.
 - [ ] **Statistics:** none are shown (the old site displayed "0+" counters). Supply verified figures only if wanted, with their definitions.
 - [ ] **"AI-enabled andrology laboratory":** name the system and what it measures, or remove the phrase.
@@ -58,10 +58,14 @@ Knowledge Centre:
 
 ## 4. Life Unfolds (home page story)
 
-- [ ] Medical review of every visualisation: anatomy (front view), follicle maturation and ovulation, fertilisation by IVF, ICSI, pronuclei, cleavage stages with day labels, morula, blastocyst, transcervical embryo transfer under ultrasound, early pregnancy at about 7 weeks.
+The story now follows IVF in order, in eleven chapters, all in 3D: the beginning; understanding fertility; ovarian stimulation; egg collection; fertilisation; embryo development; embryo transfer; implantation and the pregnancy test; the early scan; pregnancy; the moment that matters.
+
+- [ ] Medical review of every visualisation: anatomy (front view) and resting (antral) follicles; stimulation with several follicles growing in both ovaries; the monitoring scan; the trigger; egg collection (schematic: a transvaginal needle under ultrasound draining follicles, fluid to the laboratory); fertilisation by IVF and ICSI; pronuclei; cleavage stages with day labels; morula; blastocyst; transcervical transfer under ultrasound; hatching and the start of implantation; early pregnancy at about 7 weeks (heart at about 135 beats a minute); the sculptural pregnancy at about 12, 20, 28 and 36 weeks (sizes by week, the baby turning head-down, one continuous cord to a placenta on the uterine wall); and the newborn in her arms.
+- [ ] Timings in the captions against Momtree's own practice: length of stimulation, trigger-to-collection interval, day of transfer, day of the pregnancy test, timing of the early scan, progesterone support and embryo-number policy.
 - [ ] Caption and chapter wording, including the statements that fertilisation, implantation and pregnancy are not guaranteed.
-- [ ] Use of the three original generated photographs (mother, hands, newborn). They depict no real patients.
-- [ ] **20-week illustration (optional, not yet shown).** An AI-generated illustration of a pregnancy at about 20 weeks can follow the 7-week scene in chapter 06, captioned as an illustration. It appears only after the image is added. A first version was rejected internally (cord drawn in two pieces, floating placenta). Approve the new render, or leave it out.
+- [ ] The sculptural mother and baby: a stylised porcelain figure built in code, faceless, draped, not a likeness of anyone.
+- [ ] Use of the three generated photographs (mother, hands, newborn), now only in the reduced-motion version and the share card, each marked "AI-generated image, not a patient".
+- [ ] **20-week illustration (optional, still image only).** The live story shows the pregnancy in 3D. A reviewed AI illustration could also appear in the reduced-motion version; a first version was rejected internally (cord drawn in two pieces, floating placenta). Approve a new render, or leave it out.
 - [ ] Sound: an original synthesised score. Optional: supply a licensed baby-coo recording.
 
 ## 5. Photographs and reviews
@@ -71,6 +75,7 @@ Knowledge Centre:
 - [ ] Camera originals of the clinic photographs, and of Dr. Navyashri's portrait. The old site only holds them at 1600×900. Faithful AI upscales (face enhancement off) can stand in for the clinic photographs until then; approve that, or wait for the originals. The portrait is not AI-upscaled.
 - [ ] Event photographs (baby shower, celebration): written consent from everyone identifiable, or remove. These are shown only in review mode.
 - [ ] Google reviews quoted by name (5, verbatim): confirm the selection and permission.
+- [ ] Legal review of testimonials, quoted reviews and patient stories against current medical advertising rules (the National Medical Commission's guidelines on advertising and public communication), which may not permit promotional patient stories or testimonials even with consent.
 - [ ] Google rating "4.8 from 170 reviews" (from the old site): confirm current figures, or leave them out.
 - [ ] Gallery selection.
 

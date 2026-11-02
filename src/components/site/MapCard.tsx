@@ -12,7 +12,7 @@ import { Pin } from "@/components/ui/Icons";
 export function MapCard({ className = "" }: { className?: string }) {
   const [load, setLoad] = useState(false);
   return (
-    <div className={`relative overflow-hidden rounded-[28px] bg-blush ${className}`}>
+    <div className={`relative overflow-hidden rounded-[28px] bg-lilac ${className}`}>
       {load ? (
         <iframe
           title="Map showing Momtree IVF, Vijayanagar, Mysuru"
@@ -23,9 +23,9 @@ export function MapCard({ className = "" }: { className?: string }) {
         />
       ) : (
         <div className="absolute inset-0 grid place-items-center">
-          <Rings className="absolute h-[140%] w-[140%] text-gold/40" count={9} />
+          <Rings className="absolute h-[140%] w-[140%] text-violet/12" count={9} />
           <div className="relative flex flex-col items-center px-6 text-center">
-            <span className="grid h-14 w-14 place-items-center rounded-full bg-ivory text-gold-ink shadow-[0_10px_30px_-12px_rgb(41_39_37/0.4)]">
+            <span className="grid h-14 w-14 place-items-center rounded-full bg-paper text-violet shadow-[0_10px_30px_-12px_rgb(29_26_38/0.4)]">
               <Pin className="h-6 w-6" />
             </span>
             <p className="mt-4 max-w-[30ch] text-[14px] leading-relaxed text-ink-soft">{addressOneLine}</p>
@@ -37,7 +37,7 @@ export function MapCard({ className = "" }: { className?: string }) {
                 Show map
               </button>
             </div>
-            <p className="mt-3 text-[11.5px] text-ink-soft/80">Showing the map loads Google Maps.</p>
+            <p className="mt-3 text-[11.5px] text-ink-soft">Showing the map loads Google Maps.</p>
           </div>
         </div>
       )}

@@ -1,7 +1,9 @@
 # Momtree IVF & Genetics: website
 
-The new website for **Momtree IVF & Genetics**, Vijayanagar, Mysuru. It opens with **Life Unfolds**, a
-scroll-driven WebGL story from the beginning of hope to a newborn, followed by an editorial site
+The new website for **Momtree IVF & Genetics**, Vijayanagar, Mysuru, in the clinic's own brand:
+the official logo and its purple (#5C2499) and leaf green (#80C041). It opens with **Life Unfolds**,
+a scroll-driven story that follows IVF step by step, entirely in real-time 3D, from the beginning of
+hope to a newborn in her mother's arms, followed by an editorial site
 covering 14 treatments, the Medical Director, facilities, patient reviews, a Knowledge Centre and a
 conversational appointment request.
 
@@ -33,7 +35,7 @@ Checks (run against a production server on port 3100: `npx next start -p 3100`):
 npm run check                           # every page × phone / tablet / desktop, links, reduced motion
 node scripts/perf-check.mjs             # LCP and transfer sizes
 npm run posters                         # re-render the static story posters
-npm run assets                          # rebuild plates, brand marks, favicons and the share card
+npm run assets                          # rebuild plates, logo files, favicons and the share card
 ```
 
 The checks use the locally installed Microsoft Edge or Chrome through `playwright-core`; nothing extra is downloaded.
@@ -70,14 +72,14 @@ src/
   components/
     life/                  Life Unfolds UI (sticky stage, captions, HUD, sound, static fallback)
     home/                  home sections (welcome, principles, director, index, lab, voices…)
-    plates/                bespoke gold line plates for each treatment
+    plates/                bespoke fine-line plates for each treatment
     site/ ui/ forms/       navigation, footer, hero, map, form, reveal system, rings…
   content/                 treatments, doctor, clinic (facilities, photos, reviews, FAQs), articles
   lib/life/                the WebGL engine, scenes, shaders, story timeline and audio
 public/
   legacy/                  every image from the old site, with manifest.json (classification, usage)
-  story/                   generated plates (WebP) and poster frames
-  brand/, media/           tinted brand marks; the Medical Director's video
+  story/                   generated photographs (WebP stills) and rendered story frames
+  brand/, media/           the official logo (full colour and white); the Medical Director's video
 assets-src/generated/      full-resolution originals of the generated plates
 scripts/                   asset pipeline, poster capture, site and performance checks
 docs/                      audit, approval checklist, asset provenance, design direction
@@ -89,25 +91,34 @@ docs/                      audit, approval checklist, asset provenance, design d
 HTML captions, so words and images cannot drift apart. Each chapter is a scene module in
 `src/lib/life/scenes/`:
 
+Scenes have their own timelines, and the schedule in `story.ts` maps stretches of the story onto
+them, so a scene can be reused or re-timed without rewriting its animation.
+
 | Chapter | Scene | What is real-time 3D |
 | --- | --- | --- |
-| 01 The beginning | `plate.ts` | Generated photograph as a depth-parallax plate, a real 3D chiffon layer, motes, push-in and bloom |
-| 02 Understanding fertility | `anatomy.ts` | Uterus (lathed from a measured profile), cavity, tapered tubes with fimbriae, ovaries, follicle maturation and ovulation |
-| 03 Fertilisation | `specimen.ts` | Oocyte, zona, corona cells, instanced sperm at true scale; ICSI with holding pipette, needle and membrane dimple |
-| 04 Embryo development | `specimen.ts` | Pronuclei → 2 → 4 → 8 cells → compacting morula → blastocyst (trophectoderm, inner cell mass, cavity) |
-| 05 Embryo transfer | `transfer.ts` | Sagittal cutaway, transcervical catheter path, ultrasound sector re-shading tissue by echogenicity |
-| 06 Possibility of pregnancy | `pregnancy.ts`, `plate.ts` | Gestational sac, yolk sac and a ~1 cm embryo with a 150 bpm heart; then a photographic bridge |
-| 07 The moment that matters | `plate.ts` | Generated photograph with light sweep, motes and slow push-in |
+| 01 The beginning | `sculpture.ts` | A faceless porcelain mother, raymarched from signed distance fields in a fullscreen shader (writes depth, so motes and leaves sit in front of or behind her) |
+| 02 Understanding fertility | `anatomy.ts` | Uterus (lathed from a measured profile), cavity, tubes with fimbriae, ovaries and their resting (antral) follicles |
+| 03 Ovarian stimulation | `anatomy.ts` | Several follicles growing in both ovaries; a monitoring scan in which follicles show dark; the trigger |
+| 04 Egg collection | `anatomy.ts` | An ultrasound-guided needle through the vaginal wall draining follicles (schematic) |
+| 05 Fertilisation | `specimen.ts` | Oocyte, zona, corona cells, instanced sperm at true scale; ICSI with holding pipette, needle and membrane dimple |
+| 06 Embryo development | `specimen.ts` | Pronuclei → 2 → 4 → 8 cells → compacting morula → blastocyst (trophectoderm, inner cell mass, cavity) |
+| 07 Embryo transfer | `transfer.ts` | Sagittal cutaway, transcervical catheter path, ultrasound sector re-shading tissue by echogenicity |
+| 08 Implantation and the pregnancy test | `specimen.ts` | The blastocyst hatching from its zona and settling into the lining of the uterus |
+| 09 The early scan | `pregnancy.ts` | Gestational sac, yolk sac and a ~1 cm embryo with a heart at about 135 beats a minute |
+| 10 Pregnancy | `sculpture.ts` | The bump and uterus growing by week, the baby (true size for 12, 20, 28, 36 weeks) seen through a glass window, turning head-down, one continuous cord to the placenta |
+| 11 The moment that matters | `sculpture.ts` | A soft light for the birth, the newborn in her arms, the leaves of the Momtree logo gathering above |
 
 Labels and the true-to-scale bar are projected from the 3D camera into HTML every frame.
 Adaptive quality: GPU tier detection, a frame-time governor that adjusts resolution, rendering
-paused off screen. **Reduced motion, Save-Data or no WebGL2** get a static editorial version of
-the same story with rendered poster frames (`public/story/posters`).
+paused off screen. The hero shows a pre-rendered frame of the sculpture until WebGL is ready.
+**Reduced motion, Save-Data or no WebGL2** get a static editorial version of the same story, with
+rendered 4K frames of the science chapters (`public/story/posters`, `npm run posters`) and the three
+generated photographs, each marked as AI-generated.
 
 ### Accessibility & privacy
 
 Semantic landmarks and headings, a skip link, visible focus, keyboard-operable menus, dialogs and
-accordions, AA colour contrast (gold text uses a darker `gold-ink`), labelled form fields, a text
+accordions, AA colour contrast (green text on white uses a darker `leaf-ink`), labelled form fields, a text
 transcript of the story for screen readers, sound off by default with a calm mode. No analytics
 or tracking. Google Maps loads only on request. Patient details never appear in URLs or logs.
 

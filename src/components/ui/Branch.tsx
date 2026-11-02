@@ -33,7 +33,7 @@ export function Branch({ className = "", nodes = 0, orientation = "vertical" }: 
           cx={vertical ? 10 : p}
           cy={vertical ? p : 10}
           r="3.2"
-          fill="var(--color-ivory)"
+          fill="var(--color-paper)"
           stroke="currentColor"
           strokeWidth="1"
           vectorEffect="non-scaling-stroke"

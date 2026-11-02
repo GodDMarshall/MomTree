@@ -84,14 +84,15 @@ export class Rig {
     this.pos = new Track(keys.map((k) => ({ u: k.u, v: k.pos })));
     this.target = new Track(keys.map((k) => ({ u: k.u, v: k.target })));
   }
-  apply(camera: THREE.PerspectiveCamera, u: number, ctx: Ctx, sway = 0) {
+  /** `tall` subjects (a standing figure) already suit portrait screens, so they need less pull-back. */
+  apply(camera: THREE.PerspectiveCamera, u: number, ctx: Ctx, sway = 0, tall = false) {
     const t = this.target.at(u);
     const p = this.pos.at(u);
     this.tmpT.set(t[0], t[1], t[2]);
     this.tmpP.set(p[0], p[1], p[2]);
     // Framing is authored for 16:9. Narrower screens pull the camera back so the subject still fits.
     const aspect = ctx.width / ctx.height;
-    const k = ctx.portrait ? Math.min(2.3, Math.max(1, 1.05 / aspect)) : Math.max(1, 1.72 / aspect);
+    const k = ctx.portrait ? (tall ? Math.min(1.35, Math.max(1, 0.62 / aspect)) : Math.min(2.3, Math.max(1, 1.05 / aspect))) : Math.max(1, 1.72 / aspect);
     if (k !== 1) this.tmpP.sub(this.tmpT).multiplyScalar(k).add(this.tmpT);
     // Pointer parallax: a few degrees of gentle orbit.
     if (sway) {

@@ -3,12 +3,12 @@
    ========================================================================== */
 .life {
   position: relative;
-  height: 1000vh;
-  background: var(--color-ivory);
+  height: 1600vh;
+  background: var(--color-paper);
 }
 @media (max-width: 767px) {
   .life {
-    height: 720vh;
+    height: 1150vh;
   }
 }
 .life-stage {
@@ -17,12 +17,12 @@
   top: 0;
   height: 100lvh;
   overflow: hidden;
-  color: var(--color-charcoal);
-  background: var(--color-ivory);
+  color: var(--color-ink);
+  background: var(--color-paper);
   isolation: isolate;
 }
 .life-stage[data-tone="dark"] {
-  color: var(--color-ivory);
+  color: var(--color-paper);
 }
 .life-hero-img {
   z-index: 0;
@@ -61,11 +61,11 @@
   height: 34%;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(to top, rgb(250 247 242 / 0.55), transparent);
+  background: linear-gradient(to top, rgb(255 255 255 / 0.55), transparent);
   transition: background 0.9s var(--ease-soft);
 }
 .life-stage[data-tone="dark"] .life-scrim {
-  background: linear-gradient(to top, rgb(20 8 10 / 0.6), transparent);
+  background: linear-gradient(to top, rgb(14 7 25 / 0.6), transparent);
 }
 .life-grain {
   position: absolute;
@@ -84,28 +84,28 @@
   width: min(500px, 36vw);
   transform: translate3d(0, calc(-50% + var(--py)), 0);
   will-change: opacity, transform;
-  color: var(--color-charcoal);
+  color: var(--color-ink);
 }
 .life-panel[data-ptone="dark"] {
-  color: var(--color-ivory);
+  color: var(--color-paper);
 }
-/* Light chapters: a warm ivory pool behind the words, for screens where the photograph reaches them. */
+/* Light chapters: a soft white pool behind the words, for screens where the photograph reaches them. */
 .life-panel[data-ptone="light"]::before {
   content: "";
   position: absolute;
   z-index: -1;
   inset: -26% -24% -26% -40%;
-  background: radial-gradient(closest-side, rgb(250 247 242 / 0.82), rgb(250 247 242 / 0.45) 55%, transparent);
+  background: radial-gradient(closest-side, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.45) 55%, transparent);
   filter: blur(8px);
   pointer-events: none;
 }
-/* A soft plum pool behind dark-chapter captions keeps them legible over any frame of the 3D. */
+/* A deep-violet pool behind dark-chapter captions keeps them legible over any frame of the 3D. */
 .life-panel[data-ptone="dark"]::before {
   content: "";
   position: absolute;
   z-index: -1;
   inset: -22% -30% -22% -40%;
-  background: radial-gradient(closest-side, rgb(26 11 14 / 0.72), rgb(26 11 14 / 0.38) 55%, transparent);
+  background: radial-gradient(closest-side, rgb(18 9 31 / 0.72), rgb(18 9 31 / 0.38) 55%, transparent);
   filter: blur(6px);
   pointer-events: none;
 }
@@ -121,10 +121,10 @@
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--color-gold-ink);
+  color: var(--color-violet);
 }
 .life-panel[data-ptone="dark"] .life-eyebrow {
-  color: var(--color-gold);
+  color: var(--color-leaf);
 }
 .life-h2 {
   font-family: var(--font-serif);
@@ -154,6 +154,10 @@
 
 /* ---------------------------------------------------------------- labels */
 .life-label {
+  text-shadow:
+    0 0 2px rgb(14 7 25 / 0.95),
+    0 0 6px rgb(14 7 25 / 0.8),
+    0 1px 12px rgb(14 7 25 / 0.65);
   position: absolute;
   left: 0;
   top: 0;
@@ -164,8 +168,8 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgb(250 247 242 / 0.92);
-  text-shadow: 0 1px 12px rgb(20 8 10 / 0.65);
+  color: rgb(255 255 255 / 0.92);
+  text-shadow: 0 1px 12px rgb(14 7 25 / 0.65);
   pointer-events: none;
   will-change: transform, opacity;
   transition: opacity 0.25s linear;
@@ -177,8 +181,8 @@
   margin-left: -3.5px;
   margin-right: 34px;
   border-radius: 50%;
-  border: 1px solid var(--color-gold);
-  background: rgb(197 163 106 / 0.35);
+  border: 1px solid var(--color-leaf);
+  background: rgb(128 192 65 / 0.35);
   flex: none;
 }
 .life-label i::after {
@@ -188,7 +192,7 @@
   top: 2.5px;
   width: 24px;
   height: 1px;
-  background: rgb(197 163 106 / 0.75);
+  background: rgb(128 192 65 / 0.75);
 }
 
 /* ---------------------------------------------------------------- figure caption */
@@ -204,13 +208,13 @@
   text-align: right;
   align-items: flex-end;
   pointer-events: none;
-  color: rgb(250 247 242 / 0.85);
+  color: rgb(255 255 255 / 0.85);
 }
 .life-fig {
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 1.25rem;
-  color: var(--color-gold);
+  color: var(--color-leaf);
 }
 .life-captext {
   font-size: 12.5px;
@@ -235,7 +239,7 @@
 .life-scale-bar {
   display: block;
   height: 6px;
-  border: 1px solid var(--color-gold);
+  border: 1px solid var(--color-leaf);
   border-top: 0;
   max-width: 240px;
 }
@@ -283,7 +287,7 @@
 }
 .life-ring {
   fill: none;
-  stroke: var(--color-gold);
+  stroke: var(--color-leaf);
   stroke-width: 1.2;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
@@ -296,10 +300,10 @@
   width: 290px;
   padding: 10px;
   border-radius: 20px;
-  background: rgb(250 247 242 / 0.95);
-  color: var(--color-charcoal);
+  background: rgb(255 255 255 / 0.95);
+  color: var(--color-ink);
   border: 1px solid var(--color-hair);
-  box-shadow: 0 30px 70px -40px rgb(20 8 10 / 0.6);
+  box-shadow: 0 30px 70px -40px rgb(14 7 25 / 0.6);
   backdrop-filter: blur(12px);
   opacity: 0;
   visibility: hidden;
@@ -326,7 +330,7 @@
 }
 .life-chapters button:hover,
 .life-chapters button:focus-visible {
-  background: var(--color-blush);
+  background: var(--color-lilac);
 }
 .life-skip {
   display: inline-flex;
@@ -364,10 +368,10 @@
 }
 .life-sound-panel input[type="range"] {
   width: 84px;
-  accent-color: var(--color-gold);
+  accent-color: var(--color-leaf);
 }
 .life-sound-panel input[type="checkbox"] {
-  accent-color: var(--color-gold);
+  accent-color: var(--color-leaf);
 }
 
 @media (max-width: 767px) {
@@ -383,10 +387,10 @@
   }
   .life-scrim {
     height: 66%;
-    background: linear-gradient(to top, rgb(250 247 242 / 0.94) 38%, transparent);
+    background: linear-gradient(to top, rgb(255 255 255 / 0.94) 38%, transparent);
   }
   .life-stage[data-tone="dark"] .life-scrim {
-    background: linear-gradient(to top, rgb(24 10 13 / 0.9) 40%, transparent);
+    background: linear-gradient(to top, rgb(16 8 28 / 0.9) 40%, transparent);
   }
   .life-caption {
     top: calc(var(--nav-h) + 8px);

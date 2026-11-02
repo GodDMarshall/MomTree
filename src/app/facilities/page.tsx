@@ -61,7 +61,7 @@ export default function FacilitiesPage() {
                   })}
                 </div>
               ) : (
-                <div className="grid aspect-[16/10] place-items-center rounded-[18px] border border-dashed border-gold/60 bg-ivory-2 p-8 text-center">
+                <div className="grid aspect-[16/10] place-items-center rounded-[18px] border border-dashed border-leaf/60 bg-paper-2 p-8 text-center">
                   <p className="max-w-[34ch] text-[14.5px] text-ink-soft">A photograph of this facility will be added once supplied by the clinic.</p>
                 </div>
               )}
@@ -70,7 +70,7 @@ export default function FacilitiesPage() {
         ))}
       </div>
 
-      <section className="section-tight bg-ivory-2" aria-labelledby="tour-title">
+      <section className="section-tight bg-paper-2" aria-labelledby="tour-title">
         <div className="wrap">
           <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
             <h2 id="tour-title" className="t-h2">

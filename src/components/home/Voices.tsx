@@ -48,12 +48,12 @@ export function Voices() {
               <span className="t-num text-[13px] text-ink-soft">
                 {String(i + 1).padStart(2, "0")} / {String(reviews.length).padStart(2, "0")}
               </span>
-              <button type="button" onClick={() => go(-1)} className="grid h-11 w-11 place-items-center rounded-full border border-[var(--color-hair)] hover:border-charcoal" aria-label="Previous review">
+              <button type="button" onClick={() => go(-1)} className="grid h-11 w-11 place-items-center rounded-full border border-[var(--color-hair)] hover:border-ink" aria-label="Previous review">
                 <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
                   <path d="M15 8H2M6.5 3.5 2 8l4.5 4.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              <button type="button" onClick={() => go(1)} className="grid h-11 w-11 place-items-center rounded-full border border-[var(--color-hair)] hover:border-charcoal" aria-label="Next review">
+              <button type="button" onClick={() => go(1)} className="grid h-11 w-11 place-items-center rounded-full border border-[var(--color-hair)] hover:border-ink" aria-label="Next review">
                 <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
                   <path d="M1 8h13M9.5 3.5 14 8l-4.5 4.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>

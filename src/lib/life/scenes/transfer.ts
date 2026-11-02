@@ -48,7 +48,7 @@ export class TransferScene implements StoryScene {
 
   constructor() {
     const s = this.scene;
-    s.add(fullscreenQuad(backdropMaterial({ inner: "#4d2530", outer: "#1c0d10", glow: "#e0a3b0", center: [0.58, 0.52] })));
+    s.add(fullscreenQuad(backdropMaterial({ inner: "#381e63", outer: "#100a1d", glow: "#c9a6ee", center: [0.58, 0.52] })));
 
     const uterus = new THREE.Group();
     uterus.rotation.z = Math.atan2(AXIS.y, AXIS.x);
@@ -129,7 +129,7 @@ export class TransferScene implements StoryScene {
       s.add(b);
     }
 
-    s.add(motes({ count: 140, box: [26, 18, 16], color: "#e9b8a8", size: 2.4, opacity: 0.4, center: [0, -1, -3] }));
+    s.add(motes({ count: 140, box: [26, 18, 16], color: "#d9c8f2", size: 2.4, opacity: 0.4, center: [0, -1, -3] }));
 
     const tgt = (v: THREE.Vector3) => [v.x, v.y, v.z];
     const at = (u: number, v: number) => local(u, v);

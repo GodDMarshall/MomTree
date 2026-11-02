@@ -1,34 +1,43 @@
+import Image from "next/image";
+import brand from "@/lib/brand.json";
+
+const [LW, LH] = brand.logo;
+
 /**
- * The Momtree tree, rendered from the clinic's original artwork used as an alpha mask, so it takes
- * the current text colour (charcoal on ivory, gold or ivory on plum) without being redrawn.
+ * The clinic's official logo, used as supplied: full colour on light backgrounds, and a white
+ * version of the same artwork on dark ones, as the official site does on its hero.
  */
-export function BrandMark({ className = "w-8 h-10" }: { className?: string }) {
+export function Logo({
+  tone = "color",
+  className = "h-14",
+  alt = "",
+  priority = false,
+}: {
+  tone?: "color" | "white";
+  className?: string;
+  alt?: string;
+  priority?: boolean;
+}) {
   return (
-    <span
-      aria-hidden="true"
-      className={`inline-block bg-current ${className}`}
-      style={{
-        WebkitMaskImage: "url(/brand/mark-mask.png)",
-        maskImage: "url(/brand/mark-mask.png)",
-        WebkitMaskSize: "contain",
-        maskSize: "contain",
-        WebkitMaskRepeat: "no-repeat",
-        maskRepeat: "no-repeat",
-        WebkitMaskPosition: "center",
-        maskPosition: "center",
-      }}
+    <Image
+      src={tone === "white" ? "/brand/logo-white.png" : "/brand/logo.png"}
+      width={LW}
+      height={LH}
+      alt={alt}
+      priority={priority}
+      sizes="160px"
+      className={`w-auto ${className}`}
     />
   );
 }
 
-export function Wordmark({ compact = false }: { compact?: boolean }) {
+/** Both versions stacked, cross-fading with the surface underneath (the floating navigation). */
+export function LogoSwap({ dark, className = "h-14" }: { dark: boolean; className?: string }) {
+  const layer = "absolute inset-0 h-full w-full transition-opacity duration-500";
   return (
-    <span className="flex items-center gap-3">
-      <BrandMark className={compact ? "h-8 w-7" : "h-10 w-8"} />
-      <span className="flex flex-col leading-none">
-        <span className="font-serif text-[1.55rem] font-normal tracking-[-0.01em]">Momtree</span>
-        <span className="mt-1 text-[9.5px] font-semibold tracking-[0.3em] uppercase opacity-80">IVF &amp; Genetics</span>
-      </span>
+    <span className={`relative block ${className}`} style={{ aspectRatio: `${LW} / ${LH}` }}>
+      <Image src="/brand/logo.png" width={LW} height={LH} alt="" priority sizes="160px" className={`${layer} ${dark ? "opacity-0" : "opacity-100"}`} />
+      <Image src="/brand/logo-white.png" width={LW} height={LH} alt="" priority sizes="160px" className={`${layer} ${dark ? "opacity-100" : "opacity-0"}`} />
     </span>
   );
 }

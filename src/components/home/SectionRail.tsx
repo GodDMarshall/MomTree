@@ -45,7 +45,7 @@ export function SectionRail() {
               >
                 {it.label}
               </span>
-              <span className={`block h-px transition-all duration-500 ${active === it.id ? "w-8 bg-gold-ink" : "w-4 bg-charcoal/30 group-hover:w-6"}`} />
+              <span className={`block h-px transition-all duration-500 ${active === it.id ? "w-8 bg-violet" : "w-4 bg-ink/30 group-hover:w-6"}`} />
             </a>
           </li>
         ))}

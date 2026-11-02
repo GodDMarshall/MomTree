@@ -31,11 +31,11 @@ export default function DoctorsPage() {
         <div className="wrap">
           <Link
             href={`/doctors/${director.slug}`}
-            className="group grid items-center gap-10 rounded-[32px] border border-[var(--color-hair)] bg-ivory-2 p-8 transition-colors hover:border-charcoal/30 md:p-12 lg:grid-cols-12"
+            className="group grid items-center gap-10 rounded-[32px] border border-[var(--color-hair)] bg-paper-2 p-8 transition-colors hover:border-ink/30 md:p-12 lg:grid-cols-12"
           >
             <div className="relative mx-auto w-full max-w-[360px] lg:col-span-4">
-              <Rings className="absolute -inset-[14%] text-gold/50" count={6} />
-              <div className="relative aspect-square overflow-hidden rounded-full bg-blush">
+              <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[128%] w-[128%] max-w-none -translate-x-1/2 -translate-y-1/2 text-leaf/50" count={6} />
+              <div className="relative aspect-square overflow-hidden rounded-full bg-lilac">
                 <Image src={director.portrait.src} alt={director.portrait.alt} fill sizes="360px" className="object-cover transition-transform duration-[1.4s] group-hover:scale-[1.03]" />
               </div>
             </div>

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { embryoStages as ES } from "../story";
-import { backdropMaterial, cellMaterial, fullscreenQuad, glassMaterial, motes, spermMaterial } from "../materials";
+import { backdropMaterial, cellMaterial, fullscreenQuad, glassMaterial, glow, motes, spermMaterial, tissueMaterial } from "../materials";
 import {
   Rig,
   clamp01,
@@ -88,10 +88,15 @@ export class SpecimenScene implements StoryScene {
   private stages: Stage[] = [];
   private tmp = new THREE.Matrix4();
   private icmCentre = new THREE.Vector3();
+  /** The embryo itself (cells, outer layer, cavity), which hatches out of the zona before implanting. */
+  private body = new THREE.Group();
+  private zonaMats: THREE.ShaderMaterial[] = [];
+  private wall: THREE.Mesh;
+  private contact: THREE.Mesh;
 
   constructor() {
     const s = this.scene;
-    s.add(fullscreenQuad(backdropMaterial({ inner: "#552a36", outer: "#1c0d10", glow: "#e7aab7", center: [0.6, 0.5] })));
+    s.add(fullscreenQuad(backdropMaterial({ inner: "#3d2169", outer: "#100a1d", glow: "#cfaaf0", center: [0.6, 0.5] })));
     const r = rng(11);
 
     // ------------------------------------------------------------------ the IVF egg, its zona and corona
@@ -173,6 +178,7 @@ export class SpecimenScene implements StoryScene {
     this.zonaOuter.renderOrder = 7;
     this.zonaInner.renderOrder = 6;
     icsi.add(this.zonaOuter, this.zonaInner);
+    this.zonaMats = [zm1, zm2];
 
     const pbMat = cellMaterial({ color: "#efb9bd", deep: "#9a5260", rim: "#ffe6e8", granule: 14 });
     const pb1 = new THREE.Mesh(new THREE.SphereGeometry(0.062, 24, 18), pbMat);
@@ -241,10 +247,25 @@ export class SpecimenScene implements StoryScene {
     );
     this.cavity.renderOrder = 3;
     icsi.add(this.cavity);
+    icsi.add(this.body);
+    this.body.add(this.cells, this.te, this.cavity);
+
+    // Implantation: the lining of the uterus (endometrium), which the hatched blastocyst reaches.
+    this.wall = new THREE.Mesh(
+      new THREE.SphereGeometry(9, 128, 96),
+      tissueMaterial({ color: "#b46a7f", deep: "#45192f", rim: "#d59cb0", glow: 0.08, fibre: 3.4 }),
+    );
+    this.wall.position.set(0.2, 0, -16);
+    this.wall.visible = false;
+    this.wall.renderOrder = 2;
+    icsi.add(this.wall);
+    this.contact = glow("#ffd9e0", 0.9, 0.1);
+    this.contact.renderOrder = 10;
+    icsi.add(this.contact);
 
     this.buildStages(r);
 
-    s.add(motes({ count: 120, box: [10, 6, 8], color: "#f0c1b5", size: 1.6, opacity: 0.35, center: [1.8, 0, -1] }));
+    s.add(motes({ count: 120, box: [10, 6, 8], color: "#dccbf3", size: 1.6, opacity: 0.35, center: [1.8, 0, -1] }));
 
     // Distances follow from the 30° field of view: ~4.3 units frames the 150 µm zona at about
     // two-thirds of the screen height.
@@ -262,7 +283,11 @@ export class SpecimenScene implements StoryScene {
       { u: 56.0, target: [x, 0, 0], pos: [x - 1.0, 1.4, 4.0] },
       { u: 60.6, target: [x, 0.05, 0], pos: [x + 0.7, 1.5, 4.4] },
       { u: 61.9, target: [x, 0.05, 0], pos: [x + 0.4, 1.1, 4.3] },
-      { u: 62.8, target: [x, 0.05, 0], pos: [x + 0.05, 0.4, 1.0] },
+      // After the transfer: the blastocyst hatches and settles into the lining behind it.
+      { u: 63.2, target: [x + 0.1, 0, 0], pos: [x + 0.45, 0.85, 5.0] },
+      { u: 66.6, target: [x + 0.2, -0.02, -0.4], pos: [x + 0.7, 0.75, 4.5] },
+      { u: 70, target: [x + 0.22, -0.04, -0.6], pos: [x + 0.6, 0.6, 3.8] },
+      { u: 72, target: [x + 0.22, -0.04, -0.65], pos: [x + 0.55, 0.55, 3.5] },
     ]);
   }
 
@@ -405,6 +430,23 @@ export class SpecimenScene implements StoryScene {
     const expand = span(u, 59.2, 62);
     this.zonaInner.scale.setScalar(THREE.MathUtils.lerp(0.62, 0.735, expand));
     this.zonaOuter.scale.setScalar(THREE.MathUtils.lerp(0.75, 0.79, expand));
+
+    // -------------------------------------------------------------- hatching and implantation
+    // The blastocyst slips out of the zona, turning its inner cell mass toward the lining, and
+    // settles into it. Illustrative: in life this takes place over several days after transfer.
+    // The inner cell mass (at the top pole) turns to face the lining as the blastocyst leaves its shell.
+    const hatch = span(u, 63.4, 66.6);
+    this.body.position.set(hatch * 0.2, -hatch * 0.05, -hatch * 0.55);
+    this.body.rotation.x = -hatch * Math.PI * 0.5;
+    const zf = 1 - span(u, 63.8, 66.8) * 0.92;
+    this.zonaMats.forEach((m) => (m.uniforms.uFade.value = zf));
+    this.zonaOuter.position.set(-hatch * 0.12, hatch * 0.4, hatch * 0.6);
+    this.zonaInner.position.copy(this.zonaOuter.position);
+    this.wall.visible = u > 64;
+    // Sphere radius 9: its front surface comes to rest at z = -1.2, just behind the blastocyst.
+    this.wall.position.set(0.2, 0, THREE.MathUtils.lerp(-16, -10.2, span(u, 64.5, 67.4)));
+    this.contact.position.set(0.2, -0.05, -1.12);
+    (this.contact.material as THREE.ShaderMaterial).uniforms.uOpacity.value = windowed(u, 67.2, 72.5, 1.4) * 0.5;
   }
 
   private layoutEmbryo(u: number, time: number) {
@@ -502,14 +544,16 @@ export class SpecimenScene implements StoryScene {
         { id: "holding", pos: w(new THREE.Vector3(-1.4, 0.45, 0)), a: windowed(u, 35.8, 39.6) },
         { id: "needle", pos: w(new THREE.Vector3(1.55, 0.25, 0)), a: windowed(u, 35.8, 38.4) },
         { id: "pronuclei", pos: w(new THREE.Vector3(0.12, 0.13, 0.05)), a: windowed(u, 41.8, 44.4) },
-        { id: "icm", pos: w(this.icmCentre.clone().add(new THREE.Vector3(0, 0.05, 0))), a: windowed(u, 59.4, 62.2) },
+        { id: "icm", pos: this.body.localToWorld(this.icmCentre.clone().add(new THREE.Vector3(0, 0.05, 0))), a: windowed(u, 59.4, 62.2) },
+        { id: "hatch", pos: this.body.localToWorld(new THREE.Vector3(0, 0, 0)).add(new THREE.Vector3(0, 0.78, 0.2)), a: windowed(u, 64, 67.2) },
+        { id: "endometrium", pos: w(new THREE.Vector3(1.05, 0.95, -1.15)), a: windowed(u, 67.4, 71.8) },
         { id: "te", pos: w(new THREE.Vector3(0.62, -0.25, 0.1)), a: windowed(u, 59.8, 62.2) },
         { id: "cavity", pos: w(new THREE.Vector3(-0.05, -0.18, 0.1)), a: windowed(u, 60.2, 62.2) },
       ],
       scale:
         u < 35
           ? { from: new THREE.Vector3(-1.25, -1.05, 0), to: new THREE.Vector3(-0.75, -1.05, 0), label: "50 µm", a: windowed(u, 27.8, 34.4) }
-          : { from: w(new THREE.Vector3(-1.0, -0.85, 0)), to: w(new THREE.Vector3(-0.5, -0.85, 0)), label: "50 µm", a: windowed(u, 36.4, 62.2) },
+          : { from: w(new THREE.Vector3(-1.0, -0.85, 0)), to: w(new THREE.Vector3(-0.5, -0.85, 0)), label: "50 µm", a: windowed(u, 36.4, 71.8) },
     };
   }
 

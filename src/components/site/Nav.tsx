@@ -6,14 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { nav, site, whatsappLink } from "@/lib/site";
 import { treatmentsByGroup } from "@/content/treatments";
 import { roman } from "@/lib/format";
-import { Wordmark } from "./BrandMark";
+import { Logo, LogoSwap } from "./BrandMark";
 import { ArrowRight, Close, Phone, WhatsApp } from "@/components/ui/Icons";
 
 type Tone = "light" | "dark";
 
 /**
  * Floating navigation. Over the Life Unfolds story it stays transparent and follows the story's
- * light/dark tone (html[data-immersive], html[data-tone]). Elsewhere it becomes an ivory capsule
+ * light/dark tone (html[data-immersive], html[data-tone]). Elsewhere it becomes a white capsule
  * once the page scrolls.
  */
 export function Nav() {
@@ -112,12 +112,12 @@ export function Nav() {
       <div
         className={`mx-auto flex items-center justify-between transition-all duration-700 ease-[var(--ease-soft)] ${
           floating
-            ? "max-w-[1400px] w-[calc(100%-24px)] rounded-full border border-[var(--color-hair)] bg-[rgb(250_247_242/0.86)] px-4 py-2 shadow-[0_18px_50px_-30px_rgb(41_39_37/0.45)] backdrop-blur-xl md:px-6"
+            ? "max-w-[1400px] w-[calc(100%-24px)] rounded-full border border-[var(--color-hair)] bg-paper px-4 py-1.5 shadow-[0_18px_50px_-30px_rgb(29_26_38/0.45)] md:px-6"
             : "max-w-[1480px] px-[var(--gutter)] py-5"
-        } ${onDark ? "text-ivory" : "text-charcoal"}`}
+        } ${onDark ? "text-paper" : "text-ink"}`}
       >
         <Link href="/" className="relative z-10 shrink-0" aria-label="Momtree IVF & Genetics, home">
-          <Wordmark compact={floating} />
+          <LogoSwap dark={onDark} className={`transition-[height] duration-700 ${floating ? "h-[58px]" : "h-[64px] md:h-[84px]"}`} />
         </Link>
 
         <nav aria-label="Main" className="hidden xl:block">
@@ -170,10 +170,10 @@ export function Nav() {
                       onFocus={() => enter(item.label)}
                       onBlur={leave}
                     >
-                      <ul className="w-[300px] rounded-[22px] border border-[var(--color-hair)] bg-ivory p-3 text-charcoal shadow-[0_30px_80px_-40px_rgb(41_39_37/0.5)]">
+                      <ul className="w-[300px] rounded-[22px] border border-[var(--color-hair)] bg-paper p-3 text-ink shadow-[0_30px_80px_-40px_rgb(29_26_38/0.5)]">
                         {item.children.map((c) => (
                           <li key={c.href}>
-                            <Link href={c.href} className="group block rounded-2xl px-4 py-3 transition-colors hover:bg-blush">
+                            <Link href={c.href} className="group block rounded-2xl px-4 py-3 transition-colors hover:bg-lilac">
                               <span className="block font-serif text-[1.2rem] leading-tight">{c.label}</span>
                               {c.note && <span className="mt-0.5 block text-[12.5px] text-ink-soft">{c.note}</span>}
                             </Link>
@@ -192,7 +192,7 @@ export function Nav() {
                       onFocus={() => enter(item.label)}
                       onBlur={leave}
                     >
-                      <div className="grid grid-cols-[1fr_1fr_1fr_280px] gap-x-8 gap-y-6 rounded-[28px] border border-[var(--color-hair)] bg-ivory p-8 text-charcoal shadow-[0_40px_100px_-50px_rgb(41_39_37/0.55)]">
+                      <div className="grid grid-cols-[1fr_1fr_1fr_280px] gap-x-8 gap-y-6 rounded-[28px] border border-[var(--color-hair)] bg-paper p-8 text-ink shadow-[0_40px_100px_-50px_rgb(29_26_38/0.55)]">
                         {groups.map((g) => (
                           <div key={g.id}>
                             <p className="t-label mb-3">{g.label}</p>
@@ -208,14 +208,14 @@ export function Nav() {
                             </ul>
                           </div>
                         ))}
-                        <div className="row-span-2 col-start-4 row-start-1 flex flex-col justify-between rounded-[22px] bg-plum p-6 text-ivory">
+                        <div className="row-span-2 col-start-4 row-start-1 flex flex-col justify-between rounded-[22px] bg-night p-6 text-paper">
                           <div>
-                            <p className="t-label !text-gold">Not sure where to begin?</p>
+                            <p className="t-label !text-leaf">Not sure where to begin?</p>
                             <p className="mt-3 font-serif text-[1.65rem] leading-[1.1] font-light">
                               Every journey starts with <em>understanding.</em>
                             </p>
                           </div>
-                          <Link href="/treatments/fertility-evaluation" className="mt-6 inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.12em] uppercase text-gold">
+                          <Link href="/treatments/fertility-evaluation" className="mt-6 inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.12em] uppercase text-leaf">
                             Fertility evaluation <ArrowRight className="h-4 w-4" />
                           </Link>
                         </div>
@@ -244,7 +244,7 @@ export function Nav() {
           <button
             ref={menuButton}
             type="button"
-            className="relative grid h-11 w-11 place-items-center rounded-full border border-current/25 xl:hidden"
+            className={`relative grid h-11 w-11 place-items-center rounded-full border border-current/25 xl:hidden ${onDark ? "bg-night/40" : "bg-paper/90"}`}
             aria-label="Open menu"
             aria-expanded={drawer}
             aria-controls="mobile-drawer"
@@ -266,17 +266,17 @@ export function Nav() {
         aria-modal="true"
         aria-label="Site menu"
         onKeyDown={trapFocus}
-        className={`fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-plum text-ivory transition-[clip-path,visibility] duration-700 ease-[var(--ease-silk)] xl:hidden ${
+        className={`fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-night text-paper transition-[clip-path,visibility] duration-700 ease-[var(--ease-silk)] xl:hidden ${
           drawer ? "visible [clip-path:circle(150%_at_calc(100%-44px)_44px)]" : "invisible [clip-path:circle(0%_at_calc(100%-44px)_44px)]"
         }`}
       >
         <div className="flex items-center justify-between px-[var(--gutter)] py-5">
-          <Link href="/" aria-label="Momtree IVF & Genetics, home" className="text-ivory">
-            <Wordmark />
+          <Link href="/" aria-label="Momtree IVF & Genetics, home">
+            <Logo tone="white" className="h-[54px]" />
           </Link>
           <button
             type="button"
-            className="grid h-11 w-11 place-items-center rounded-full border border-ivory/30"
+            className="grid h-11 w-11 place-items-center rounded-full border border-paper/30"
             onClick={() => {
               setDrawer(false);
               menuButton.current?.focus();
@@ -287,28 +287,28 @@ export function Nav() {
           </button>
         </div>
         <nav aria-label="Mobile" className="flex-1 px-[var(--gutter)] pb-10 pt-4">
-          <ul className="divide-y divide-ivory/10 border-y border-ivory/10">
+          <ul className="divide-y divide-paper/10 border-y border-paper/10">
             {nav.map((item, i) => (
               <li key={item.label}>
                 {item.mega ? (
                   <details className="group">
                     <summary className="flex cursor-pointer list-none items-center justify-between py-4 font-serif text-[2rem] font-light leading-none">
                       <span>
-                        <span className="mr-3 align-middle font-sans text-[11px] tracking-[0.2em] text-gold">{String(i + 1).padStart(2, "0")}</span>
+                        <span className="mr-3 align-middle font-sans text-[11px] tracking-[0.2em] text-leaf">{String(i + 1).padStart(2, "0")}</span>
                         {item.label}
                       </span>
-                      <span className="text-gold transition-transform group-open:rotate-45" aria-hidden="true">
+                      <span className="text-leaf transition-transform group-open:rotate-45" aria-hidden="true">
                         +
                       </span>
                     </summary>
                     <div className="grid gap-5 pb-6 pl-8 pt-1">
                       {groups.map((g) => (
                         <div key={g.id}>
-                          <p className="t-label !text-gold mb-2">{g.label}</p>
+                          <p className="t-label !text-leaf mb-2">{g.label}</p>
                           <ul className="space-y-1.5">
                             {g.items.map((t) => (
                               <li key={t.slug}>
-                                <Link href={`/treatments/${t.slug}`} className="text-[15px] text-ivory/85">
+                                <Link href={`/treatments/${t.slug}`} className="text-[15px] text-paper/85">
                                   {t.name}
                                 </Link>
                               </li>
@@ -316,14 +316,14 @@ export function Nav() {
                           </ul>
                         </div>
                       ))}
-                      <Link href="/treatments" className="text-[13px] font-semibold uppercase tracking-[0.14em] text-gold">
+                      <Link href="/treatments" className="text-[13px] font-semibold uppercase tracking-[0.14em] text-leaf">
                         All treatments →
                       </Link>
                     </div>
                   </details>
                 ) : (
-                  <Link href={item.href} className="flex items-center py-4 font-serif text-[2rem] font-light leading-none" aria-current={isActive(item.href) ? "page" : undefined}>
-                    <span className="mr-3 font-sans text-[11px] tracking-[0.2em] text-gold">{String(i + 1).padStart(2, "0")}</span>
+                  <Link href={item.href} className="flex items-center py-4 font-serif text-[2rem] font-light leading-none aria-[current=page]:text-leaf" aria-current={isActive(item.href) ? "page" : undefined}>
+                    <span className="mr-3 font-sans text-[11px] tracking-[0.2em] text-leaf">{String(i + 1).padStart(2, "0")}</span>
                     {item.label}
                   </Link>
                 )}
@@ -331,7 +331,7 @@ export function Nav() {
             ))}
           </ul>
           <div className="mt-8 grid gap-3">
-            <Link href="/contact#appointment" className="btn btn-gold justify-center">
+            <Link href="/contact#appointment" className="btn btn-leaf justify-center">
               Book a consultation
             </Link>
             <div className="grid grid-cols-2 gap-3">

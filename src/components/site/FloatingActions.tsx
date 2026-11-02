@@ -53,11 +53,11 @@ export function FloatingActions() {
         onClick={() => (window.__lenis ? window.__lenis.scrollTo(0, { duration: 2 }) : window.scrollTo({ top: 0, behavior: "smooth" }))}
         className={`fixed bottom-5 left-5 z-40 hidden h-12 w-12 place-items-center rounded-full transition-all duration-500 md:grid ${
           immersive || progress < 0.04 ? "pointer-events-none translate-y-3 opacity-0" : "opacity-100"
-        } ${onDark ? "text-ivory" : "text-charcoal"}`}
+        } ${onDark ? "text-paper" : "text-ink"}`}
       >
         <svg viewBox="0 0 48 48" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
-          <circle cx="24" cy="24" r="21" fill="rgb(250 247 242 / 0.8)" stroke="var(--color-hair)" strokeWidth="1" />
-          <circle cx="24" cy="24" r="21" fill="none" stroke="var(--color-gold)" strokeWidth="1.4" strokeDasharray={C} strokeDashoffset={C * (1 - progress)} strokeLinecap="round" />
+          <circle cx="24" cy="24" r="21" fill="rgb(255 255 255 / 0.8)" stroke="var(--color-hair)" strokeWidth="1" />
+          <circle cx="24" cy="24" r="21" fill="none" stroke="var(--color-leaf)" strokeWidth="1.4" strokeDasharray={C} strokeDashoffset={C * (1 - progress)} strokeLinecap="round" />
         </svg>
         <svg viewBox="0 0 16 16" className="relative h-3.5 w-3.5" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.3">
           <path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -69,8 +69,8 @@ export function FloatingActions() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with Momtree IVF on WhatsApp"
-        className={`group fixed bottom-5 right-5 z-40 flex h-14 items-center gap-0 overflow-hidden rounded-full border pl-[17px] pr-[17px] shadow-[0_20px_50px_-24px_rgb(41_39_37/0.6)] backdrop-blur-md transition-all duration-500 hover:gap-3 hover:pr-6 ${
-          onDark ? "border-ivory/25 bg-plum/60 text-ivory" : "border-[var(--color-hair)] bg-ivory/90 text-charcoal"
+        className={`group fixed bottom-5 right-5 z-40 flex h-14 items-center gap-0 overflow-hidden rounded-full border pl-[17px] pr-[17px] shadow-[0_20px_50px_-24px_rgb(29_26_38/0.6)] backdrop-blur-md transition-all duration-500 hover:gap-3 hover:pr-6 ${
+          onDark ? "border-paper/25 bg-night/60 text-paper" : "border-[var(--color-hair)] bg-paper text-ink"
         }`}
       >
         <WhatsApp className="h-5 w-5 shrink-0" />

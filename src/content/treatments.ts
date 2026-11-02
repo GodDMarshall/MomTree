@@ -98,7 +98,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "ovulation-induction",
-    n: 2,
+    n: 3,
     name: "Ovulation induction & cycle monitoring",
     group: "assist",
     short: "Medicines and careful scans to support regular, well-timed ovulation.",
@@ -145,7 +145,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "iui",
-    n: 3,
+    n: 4,
     name: "IUI",
     longName: "Intrauterine insemination",
     group: "assist",
@@ -196,7 +196,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "ivf",
-    n: 4,
+    n: 5,
     name: "IVF",
     longName: "In vitro fertilisation",
     group: "laboratory",
@@ -249,12 +249,12 @@ export const treatments: Treatment[] = [
       { q: "How many embryos will be transferred?", a: "Usually one. Transferring a single embryo greatly reduces the risk of twins or triplets for mother and babies. Your doctor will discuss this with you, within the limits set by Indian law." },
     ],
     related: ["icsi", "blastocyst-culture", "laser-assisted-hatching"],
-    photo: { src: `${L}/02.jpg`, alt: "An embryologist working at a micromanipulation microscope in the Momtree embryology laboratory", caption: "Embryology laboratory, Momtree", width: 1600, height: 900 },
+    photo: { src: "/clinic/02-lab.jpg", alt: "An embryologist working at a micromanipulation microscope in the Momtree embryology laboratory", caption: "Embryology laboratory, Momtree", width: 1600, height: 755 },
     review: "pending",
   },
   {
     slug: "icsi",
-    n: 5,
+    n: 6,
     name: "ICSI",
     longName: "Intracytoplasmic sperm injection",
     group: "laboratory",
@@ -304,7 +304,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "blastocyst-culture",
-    n: 6,
+    n: 7,
     name: "Blastocyst culture",
     group: "laboratory",
     short: "Embryos cultured to day five or six, their most developed stage before transfer.",
@@ -350,7 +350,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "laser-assisted-hatching",
-    n: 7,
+    n: 8,
     name: "Laser-assisted hatching",
     group: "laboratory",
     short: "A precise opening in the embryo's outer shell, considered in selected cases.",
@@ -393,7 +393,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "laparoscopy",
-    n: 8,
+    n: 9,
     name: "Laparoscopy",
     group: "surgery",
     short: "Keyhole surgery to look at, and treat, the pelvic organs.",
@@ -441,7 +441,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "hysteroscopy",
-    n: 9,
+    n: 10,
     name: "Hysteroscopy",
     group: "surgery",
     short: "A slim camera through the cervix to examine and treat the inside of the uterus.",
@@ -486,7 +486,7 @@ export const treatments: Treatment[] = [
   },
   {
     slug: "ultrasound",
-    n: 10,
+    n: 2,
     name: "Ultrasound",
     group: "understand",
     short: "Real-time images of the uterus and ovaries, at every stage of care.",

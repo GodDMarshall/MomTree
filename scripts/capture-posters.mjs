@@ -9,10 +9,15 @@ import { chromium } from "playwright-core";
 const BASE = process.argv[2] ?? "http://localhost:3100";
 const OUT = path.resolve(import.meta.dirname, "../public/story/posters");
 const FRAMES = [
-  ["ch02", 17.2],
-  ["ch03", 29.8],
-  ["ch04", 60.6],
-  ["ch05", 73.6],
+  ["hero", 0.3],
+  ["ch02", 13],
+  ["ch03", 23.1],
+  ["ch04", 30.2],
+  ["ch05", 38.7],
+  ["ch06", 60.6],
+  ["ch07", 69.9],
+  ["ch08", 76.2],
+  ["ch09", 80.7],
 ];
 
 let browser;
@@ -43,5 +48,23 @@ for (const [name, u] of FRAMES) {
   const meta = await sharp(buf).metadata();
   await sharp(buf).resize({ width: 3840, withoutEnlargement: true }).webp({ quality: 84, effort: 6 }).toFile(path.join(OUT, `${name}.webp`));
   console.log(`poster ${name} @ ${u}: ${meta.width}x${meta.height}`);
+}
+await page.close();
+
+// The hero again, rendered on a portrait screen for phones (390 x 844 at 4x: 1560 x 3376).
+const tall = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 4, isMobile: true, hasTouch: true });
+await tall.goto(`${BASE}/?posters=1`, { waitUntil: "networkidle" });
+await tall.waitForFunction(() => Boolean(window.__life), null, { timeout: 60000 });
+{
+  const data = await tall.evaluate(() => {
+    const e = window.__life;
+    e.renderAt(0.3);
+    e.renderAt(0.3);
+    return document.querySelector(".life-canvas").toDataURL("image/png");
+  });
+  const buf = Buffer.from(data.split(",")[1], "base64");
+  const meta = await sharp(buf).metadata();
+  await sharp(buf).webp({ quality: 84, effort: 6 }).toFile(path.join(OUT, "hero-tall.webp"));
+  console.log(`poster hero-tall: ${meta.width}x${meta.height}`);
 }
 await browser.close();

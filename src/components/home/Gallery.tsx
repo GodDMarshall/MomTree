@@ -55,10 +55,10 @@ export function Gallery({ photos, startAt = 1, title = "Plates from the clinic" 
       <ul className="grid auto-rows-[minmax(180px,22vw)] grid-cols-2 gap-3 md:grid-cols-12 md:gap-5 lg:auto-rows-[minmax(200px,17vw)]">
         {photos.map((p, i) => (
           <li key={p.src} className={`${SPANS[i % SPANS.length]} ${i === 0 ? "col-span-2 row-span-2" : ""}`}>
-            <button type="button" onClick={() => show(i)} className="group relative block h-full w-full overflow-hidden rounded-[18px] bg-blush text-left" aria-label={`Open plate ${roman(i + startAt)}: ${p.caption}`}>
+            <button type="button" onClick={() => show(i)} className="group relative block h-full w-full overflow-hidden rounded-[18px] bg-lilac text-left" aria-label={`Open plate ${roman(i + startAt)}: ${p.caption}`}>
               <Image src={p.src} alt={p.alt} fill sizes="(max-width: 768px) 50vw, 40vw" className="object-cover transition-transform duration-[1.6s] ease-[var(--ease-soft)] group-hover:scale-[1.04]" />
-              <span className="absolute inset-x-0 bottom-0 flex items-baseline gap-2 bg-gradient-to-t from-charcoal/60 to-transparent p-4 pt-10 text-ivory opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100">
-                <span className="font-serif italic text-gold">Pl. {roman(i + startAt)}</span>
+              <span className="absolute inset-x-0 bottom-0 flex items-baseline gap-2 bg-gradient-to-t from-ink/60 to-transparent p-4 pt-10 text-paper opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100">
+                <span className="font-serif italic text-leaf">Pl. {roman(i + startAt)}</span>
                 <span className="text-[13px]">{p.caption}</span>
               </span>
             </button>
@@ -72,17 +72,17 @@ export function Gallery({ photos, startAt = 1, title = "Plates from the clinic" 
         onClick={(e) => {
           if (e.target === dialogRef.current) close();
         }}
-        className="m-auto max-h-[92vh] w-[min(1200px,94vw)] overflow-visible bg-transparent p-0 text-ivory backdrop:bg-plum/90 backdrop:backdrop-blur-sm"
+        className="m-auto max-h-[92vh] w-[min(1200px,94vw)] overflow-visible bg-transparent p-0 text-paper backdrop:bg-night/90 backdrop:backdrop-blur-sm"
         aria-label={cur ? cur.caption : "Photograph"}
       >
         {cur && (
           <figure className="relative">
-            <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[18px] bg-plum">
+            <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[18px] bg-night">
               <Image src={cur.src} alt={cur.alt} fill sizes="94vw" className="object-contain" />
             </div>
             <figcaption className="mt-4 flex flex-wrap items-center justify-between gap-4 text-[14px]">
               <span className="flex flex-wrap items-baseline gap-3">
-                <span className="font-serif text-[1.2rem] italic text-gold">Pl. {roman(open! + startAt)}</span>
+                <span className="font-serif text-[1.2rem] italic text-leaf">Pl. {roman(open! + startAt)}</span>
                 {cur.caption}
                 {cur.note && <Pending>{cur.note}</Pending>}
               </span>

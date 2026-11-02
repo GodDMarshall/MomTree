@@ -37,9 +37,9 @@ export default function ContactPage() {
               <a
                 href={w.href}
                 {...(w.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className="group flex h-full flex-col rounded-[22px] border border-[var(--color-hair)] bg-ivory p-6 transition-colors hover:border-charcoal/40"
+                className="group flex h-full flex-col rounded-[22px] border border-[var(--color-hair)] bg-paper p-6 transition-colors hover:border-ink/40"
               >
-                <w.icon className="h-5 w-5 text-gold-ink" />
+                <w.icon className="h-5 w-5 text-violet" />
                 <span className="t-label mt-5">{w.label}</span>
                 <span className="mt-2 break-words font-serif text-[1.35rem] leading-tight">{w.value}</span>
                 <span className="mt-2 text-[13px] text-ink-soft">{w.note}</span>

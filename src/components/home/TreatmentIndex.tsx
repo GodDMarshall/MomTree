@@ -83,17 +83,17 @@ export function TreatmentIndex({ compact = false }: { compact?: boolean }) {
                       onPointerLeave={() => setActive((a) => (a === t.slug ? null : a))}
                       onFocus={() => setActive(t.slug)}
                       onBlur={() => setActive(null)}
-                      className="group grid grid-cols-[48px_1fr_auto] items-center gap-4 py-6 md:grid-cols-[72px_minmax(0,1.1fr)_minmax(0,1fr)_auto] md:gap-8"
+                      className="group grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-4 py-6 md:grid-cols-[72px_minmax(0,1.1fr)_minmax(0,1fr)_auto] md:gap-8"
                     >
                       <span className="t-roman text-[1.25rem]">{roman(t.n)}</span>
                       <span className="font-serif text-[clamp(1.55rem,2.6vw,2.3rem)] font-light leading-[1.05] transition-transform duration-700 ease-[var(--ease-soft)] group-hover:translate-x-2">
                         {t.name}
-                        {t.longName && <span className="ml-3 align-middle font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-soft">{t.longName}</span>}
+                        {t.longName && <span className="mt-1 block font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-soft md:ml-3 md:mt-0 md:inline md:align-middle">{t.longName}</span>}
                       </span>
                       <span className="hidden text-[14.5px] leading-relaxed text-ink-soft md:block">{t.short}</span>
                       <span className="flex items-center gap-3">
-                        <TreatmentPlate slug={t.slug} className="h-11 w-11 text-gold-ink md:hidden" />
-                        <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-hair)] transition-colors duration-500 group-hover:border-charcoal group-hover:bg-charcoal group-hover:text-ivory">
+                        <TreatmentPlate slug={t.slug} className="h-11 w-11 shrink-0 text-violet md:hidden [&_text]:hidden" />
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--color-hair)] transition-colors duration-500 group-hover:border-ink group-hover:bg-ink group-hover:text-paper">
                           <ArrowRight className="h-4 w-4" />
                         </span>
                       </span>
@@ -110,12 +110,12 @@ export function TreatmentIndex({ compact = false }: { compact?: boolean }) {
       <div
         ref={lensRef}
         aria-hidden="true"
-        className={`pointer-events-none absolute left-0 top-0 z-10 hidden h-[240px] w-[240px] rounded-full border border-gold/60 bg-ivory/95 shadow-[0_40px_80px_-40px_rgb(41_39_37/0.5)] backdrop-blur-sm transition-[opacity,scale] duration-500 ease-[var(--ease-soft)] [@media(pointer:fine)]:block ${
+        className={`pointer-events-none absolute left-0 top-0 z-10 hidden h-[240px] w-[240px] rounded-full border border-leaf/60 bg-paper/95 shadow-[0_40px_80px_-40px_rgb(29_26_38/0.5)] backdrop-blur-sm transition-[opacity,scale] duration-500 ease-[var(--ease-soft)] [@media(pointer:fine)]:block ${
           active ? "scale-100 opacity-100" : "scale-75 opacity-0"
         }`}
       >
         {groups.flatMap((g) => g.items).map((t) => (
-          <div key={t.slug} className={`absolute inset-6 text-gold-ink transition-opacity duration-300 ${active === t.slug ? "opacity-100" : "opacity-0"}`}>
+          <div key={t.slug} className={`absolute inset-6 text-violet transition-opacity duration-300 ${active === t.slug ? "opacity-100" : "opacity-0"}`}>
             <TreatmentPlate slug={t.slug} className="h-full w-full" />
           </div>
         ))}

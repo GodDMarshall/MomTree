@@ -2,32 +2,39 @@
 // Nothing is pre-recorded, so there is no licensing to manage. Sound is always off until the visitor
 // turns it on; a "calm" mode removes the heartbeat and textures and keeps only soft harmony.
 
+import { chapters } from "./story";
+
 type Layer = "pad" | "piano" | "heart" | "micro" | "pulse" | "strings";
 
 const NOTE = (n: number) => 440 * Math.pow(2, (n - 69) / 12); // MIDI → Hz
 
 // One chord per chapter (MIDI notes), D major world with gentle colour changes.
 const CHORDS: number[][] = [
-  [50, 57, 62, 66, 69], // 1  D maj9-ish
-  [47, 54, 59, 62, 66], // 2  B minor
-  [43, 50, 55, 59, 62], // 3  G major 7
-  [40, 47, 52, 55, 59], // 4  E minor 9
-  [43, 50, 54, 59, 62], // 5  G maj7
-  [45, 52, 57, 61, 64], // 6  A
-  [50, 57, 62, 66, 69], // 7  D, home
+  [50, 57, 62, 66, 69], // 1  the beginning: D maj9-ish
+  [47, 54, 59, 62, 66], // 2  understanding: B minor
+  [43, 50, 55, 59, 62], // 3  stimulation: G major 7
+  [40, 47, 52, 55, 59], // 4  egg collection: E minor 9
+  [43, 50, 54, 59, 62], // 5  fertilisation: G maj7
+  [40, 47, 52, 55, 62], // 6  embryo: E minor 11
+  [43, 50, 54, 59, 66], // 7  transfer: G maj9
+  [47, 54, 57, 62, 66], // 8  implantation: B minor 7
+  [45, 52, 57, 61, 64], // 9  the early scan: A
+  [43, 50, 55, 59, 66], // 10 pregnancy: G add9
+  [50, 57, 62, 66, 69], // 11 D, home
 ];
 const SCALE = [62, 64, 66, 69, 71, 74, 76, 78, 81]; // D major pentatonic, two octaves
 
-// Layer weights per chapter (1–7), interpolated by scroll position.
+// Layer weights per chapter (1–11), interpolated by scroll position.
 const WEIGHTS: Record<Layer, number[]> = {
-  pad: [0.55, 0.5, 0.38, 0.38, 0.42, 0.5, 0.55],
-  piano: [0.8, 0.45, 0.28, 0.42, 0.35, 0.6, 0.9],
-  heart: [0.55, 0, 0, 0, 0, 0.5, 0],
-  micro: [0, 0.15, 0.75, 0.55, 0.2, 0, 0],
-  pulse: [0, 0.2, 0.45, 0.4, 0.45, 0.1, 0],
-  strings: [0, 0, 0, 0, 0.1, 0.6, 0.85],
+  pad: [0.55, 0.5, 0.42, 0.38, 0.38, 0.38, 0.42, 0.46, 0.5, 0.52, 0.55],
+  piano: [0.8, 0.45, 0.35, 0.28, 0.32, 0.42, 0.35, 0.4, 0.6, 0.7, 0.9],
+  heart: [0.55, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.45, 0],
+  micro: [0, 0.15, 0.3, 0.45, 0.75, 0.55, 0.2, 0.25, 0, 0, 0],
+  pulse: [0, 0.2, 0.35, 0.45, 0.45, 0.4, 0.45, 0.3, 0.1, 0.05, 0],
+  strings: [0, 0, 0, 0, 0, 0, 0.1, 0.25, 0.6, 0.7, 0.85],
 };
-const CHAPTER_STARTS = [0, 11, 26, 42.5, 62.5, 76.5, 88.5];
+const CHAPTER_STARTS = chapters.map((c) => c.from);
+const LAST = chapters[chapters.length - 1];
 
 function chapterPosition(u: number) {
   let i = 0;
@@ -223,11 +230,11 @@ export class StoryAudio {
       this.retune(i);
     }
     this.applyWeights();
-    if (!this.resolved && u >= 91 && this.enabled) {
+    if (!this.resolved && u >= LAST.anchor && this.enabled) {
       this.resolved = true;
       this.resolve();
     }
-    if (u < 85) this.resolved = false;
+    if (u < LAST.from - 4) this.resolved = false;
   }
 
   dispose() {
@@ -284,10 +291,10 @@ export class StoryAudio {
       this.nextPiano = t + (3.4 - this.weights.piano * 2) * (0.7 + Math.random() * 0.6);
     }
 
-    // Heartbeat: the mother's at rest in chapter 1; a faster, lighter rhythm in chapter 6.
+    // Heartbeat: the mother's at rest in chapter 1; the baby's faster, lighter rhythm from the early scan.
     if (this.weights.heart > 0.05 && this.nextBeat < ahead) {
       const t = Math.max(now + 0.02, this.nextBeat);
-      const fast = this.chapter >= 5;
+      const fast = this.chapter >= 8;
       this.thump(t, fast ? 0.35 : 0.6, fast ? 92 : 58);
       this.thump(t + (fast ? 0.12 : 0.2), fast ? 0.22 : 0.42, fast ? 84 : 52);
       this.nextBeat = t + (fast ? 60 / 150 : 60 / 68);

@@ -1,7 +1,7 @@
 type Props = {
   className?: string;
   count?: number;
-  /** Draw the rings in when they scroll into view. */
+  /** Draw the rings in when they scroll into view (small sizes only: see below). */
   draw?: boolean;
   stroke?: string;
   strokeWidth?: number;
@@ -9,9 +9,10 @@ type Props = {
 
 /**
  * Concentric growth rings, the site's recurring ornament. Each ring is offset slightly from the
- * centre, the way real growth rings are, so the figure never looks mechanical.
+ * centre, the way real growth rings are, so the figure never looks mechanical. The hairlines use a
+ * non-scaling stroke, so the dashed draw-in only suits rings shown near their 400px viewBox size.
  */
-export function Rings({ className = "", count = 8, draw = true, stroke = "currentColor", strokeWidth = 0.6 }: Props) {
+export function Rings({ className = "", count = 8, draw = false, stroke = "currentColor", strokeWidth = 0.6 }: Props) {
   const rings = Array.from({ length: count }, (_, i) => {
     // Rounded so server and browser render identical numbers (no hydration mismatch).
     const rd = (n: number) => Math.round(n * 100) / 100;

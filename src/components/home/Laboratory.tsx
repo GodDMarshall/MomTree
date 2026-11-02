@@ -14,7 +14,7 @@ import { rich } from "@/components/life/rich";
 const reel = [photos.icsiStation, photos.micromanipulator, photos.embryologist, photos.procedureRoom, photos.microscope];
 
 /**
- * Inside the laboratory: a plum section where a reel of genuine clinic photographs travels
+ * Inside the laboratory: a deep-violet section where a reel of genuine clinic photographs travels
  * sideways as you scroll (pinned on large screens; a swipeable strip on phones and for
  * reduced motion).
  */
@@ -48,11 +48,11 @@ export function Laboratory() {
   }, []);
 
   return (
-    <section ref={sectionRef} data-rail="Laboratory" id="laboratory" className="on-plum plum-glow relative overflow-hidden" aria-labelledby="lab-title">
-      <div className="flex min-h-[100svh] flex-col justify-center py-[clamp(72px,12vh,140px)]">
+    <section ref={sectionRef} data-rail="Laboratory" id="laboratory" className="on-night night-glow relative overflow-hidden" aria-labelledby="lab-title">
+      <div className="flex flex-col justify-center py-[clamp(72px,12vh,140px)] lg:min-h-[100svh]">
         <div
           ref={trackRef}
-          className="no-scrollbar flex snap-x snap-mandatory items-stretch gap-6 overflow-x-auto px-[var(--gutter)] lg:snap-none lg:overflow-visible"
+          className="no-scrollbar flex snap-x snap-mandatory scroll-pl-[var(--gutter)] scroll-pr-[var(--gutter)] items-start gap-6 overflow-x-auto px-[var(--gutter)] lg:snap-none lg:items-stretch lg:overflow-visible"
         >
           <div className="flex w-[min(86vw,520px)] shrink-0 snap-start flex-col justify-center lg:w-[520px] lg:pr-10">
             <p className="t-label">Inside the laboratory</p>
@@ -78,12 +78,12 @@ export function Laboratory() {
 
           <div className="flex w-[min(86vw,560px)] shrink-0 snap-start flex-col justify-center lg:w-[560px] lg:pl-6">
             <p className="t-label">Facilities</p>
-            <ul className="mt-6 divide-y divide-ivory/10 border-y border-ivory/10">
+            <ul className="mt-6 divide-y divide-paper/10 border-y border-paper/10">
               {facilities.map((f) => (
                 <li key={f.id} className="py-4">
                   <p className="font-serif text-[1.45rem] leading-tight">{f.name}</p>
                   {f.claim && (
-                    <p className="mt-2 text-[12.5px] text-on-plum-soft">
+                    <p className="mt-2 text-[12.5px] text-on-night-soft">
                       <Pending>{f.claim}</Pending>
                     </p>
                   )}
