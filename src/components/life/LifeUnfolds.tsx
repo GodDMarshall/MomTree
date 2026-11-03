@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { captions, chapters, labelText, panels, plateBest, plates, toneAt, veilAt, type Panel } from "@/lib/life/story";
+import { captions, chapters, labelText, panels, plateBest, plates, toneAt, veilAt, type Panel, type PlateFraming } from "@/lib/life/story";
 import type { FrameInfo, LifeEngine } from "@/lib/life/engine";
 import type { StoryAudio } from "@/lib/life/audio";
 import { whatsappLink } from "@/lib/site";
@@ -575,9 +575,15 @@ function SoundControl({ audio }: { audio: React.RefObject<StoryAudio | null> }) 
 // =============================================================================================
 // For reduced motion, Save-Data, or no WebGL2: the same story as an editorial sequence.
 // The three generated photographs open, carry the pregnancy and close it; the science chapters use
-// still frames of the 3D (scripts/capture-posters.mjs).
-const POSTERS: Record<number, { src: string; alt: string; pos?: string }> = {
-  1: { src: plateBest(plates.mother.asset)!.url, alt: HERO_ALT, pos: pos(plates.mother.focus) },
+// still frames of the 3D (scripts/capture-posters.mjs). Where a photograph has a portrait version
+// (generated separately, see docs/ASSETS.md), portrait screens get that instead.
+type Poster = { src: string; alt: string; pos?: string; tall?: { src: string; pos: string } };
+const tallOf = (t?: PlateFraming) => {
+  const best = t && plateBest(t.asset);
+  return t && best ? { src: best.url, pos: pos(t.focus) } : undefined;
+};
+const POSTERS: Record<number, Poster> = {
+  1: { src: plateBest(plates.mother.asset)!.url, alt: HERO_ALT, pos: pos(plates.mother.focus), tall: tallOf(plates.mother.tall) },
   2: { src: "/story/posters/ch02.webp", alt: "Illustration of the female reproductive system: uterus, fallopian tubes and ovaries" },
   3: { src: "/story/posters/ch03.webp", alt: "Illustration of an ovary during stimulation, seen on ultrasound: several follicles show as dark circles" },
   4: { src: "/story/posters/ch04.webp", alt: "Illustration of egg collection: a fine needle guided by ultrasound drains a follicle" },
@@ -587,8 +593,44 @@ const POSTERS: Record<number, { src: string; alt: string; pos?: string }> = {
   8: { src: "/story/posters/ch08.webp", alt: "Illustration of a blastocyst that has hatched from its zona, attaching to the lining of the uterus" },
   9: { src: "/story/posters/ch09.webp", alt: "Illustration of an early pregnancy at about 7 weeks: gestational sac, yolk sac and embryo" },
   10: { src: plateBest(plates.hands.asset)!.url, alt: "A pregnant woman's hands gently cradling her belly", pos: pos(plates.hands.focus) },
-  11: { src: plateBest(plates.newborn.asset)!.url, alt: "A mother smiling down at her sleeping newborn, held securely in her arms", pos: pos(plates.newborn.focus) },
+  11: {
+    src: plateBest(plates.newborn.asset)!.url,
+    alt: "A mother smiling down at her sleeping newborn, held securely in her arms",
+    pos: pos(plates.newborn.focus),
+    tall: tallOf(plates.newborn.tall),
+  },
 };
+
+/** A plate of the static story: the wide image, or with a portrait version a picture that switches on portrait screens. */
+function StaticPlate({ poster, hero }: { poster: Poster; hero: boolean }) {
+  const sizes = hero ? "100vw" : "(max-width: 1024px) 100vw, 58vw";
+  const wide = poster.pos ?? "60% 50%";
+  if (!poster.tall)
+    return <Image src={poster.src} alt={poster.alt} fill sizes={sizes} className="object-cover" style={{ objectPosition: wide }} priority={hero} />;
+  // Lazy even for the opening plate: React builds this picture after mount, and an eager <img> can start
+  // on its own (wide) candidate before the portrait <source> is attached (WebKit). fetchPriority keeps the
+  // opening plate first in line.
+  const common = { alt: poster.alt, fill: true, sizes, loading: "lazy", fetchPriority: hero ? "high" : "auto" } as const;
+  const w = getImageProps({ ...common, src: poster.src }).props;
+  const t = getImageProps({ ...common, src: poster.tall.src }).props;
+  return (
+    <picture className="life-plate-art" style={{ ["--pos-wide" as string]: wide, ["--pos-tall" as string]: poster.tall.pos }}>
+      <source media="(max-aspect-ratio: 17/20)" srcSet={t.srcSet} sizes={sizes} />
+      {/* Framed on the image actually shown (after a rotation the other one may still be loading); like next/image,
+          the alt text shows if it fails. */}
+      {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
+      <img
+        {...w}
+        className="object-cover"
+        onLoad={(e) => {
+          const p = e.currentTarget.parentElement;
+          if (p) p.dataset.shown = e.currentTarget.currentSrc.includes("-tall-") ? "tall" : "wide";
+        }}
+        onError={(e) => e.currentTarget.style.removeProperty("color")}
+      />
+    </picture>
+  );
+}
 
 function StaticStory() {
   const byChapter = (n: number) => panels.filter((p) => p.chapter === n);
@@ -631,8 +673,11 @@ function StaticStory() {
                 ))}
               </div>
               <figure className={`plate ${c.n === 1 ? "absolute inset-0 -z-0" : "lg:col-span-7"}`}>
-                <div className={`relative overflow-hidden ${c.n === 1 ? "h-full" : "ap-soft aspect-[16/10]"}`}>
-                  <Image src={poster.src} alt={poster.alt} fill sizes={c.n === 1 ? "100vw" : "(max-width: 1024px) 100vw, 58vw"} className="object-cover" style={{ objectPosition: poster.pos ?? "60% 50%" }} priority={c.n === 1} />
+                <div
+                  className={`relative overflow-hidden ${c.n === 1 ? "h-full" : "life-plate-box ap-soft aspect-[16/10]"}`}
+                  data-tall={poster.tall ? "" : undefined}
+                >
+                  <StaticPlate poster={poster} hero={c.n === 1} />
                   {c.n === 1 && <div className="absolute inset-0 bg-gradient-to-r from-paper/90 via-paper/55 to-transparent" />}
                   {c.n === 1 && <p className="absolute bottom-4 right-5 text-[11px] text-ink-soft">AI-generated image, not a patient</p>}
                 </div>

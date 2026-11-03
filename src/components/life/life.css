@@ -36,6 +36,26 @@
     object-position: var(--pos-tall, var(--pos-wide, 80% 52%));
   }
 }
+/* Plates of the static story with a portrait version: each image keeps its own focal point, and on portrait
+   screens a boxed plate turns portrait too (the full-bleed opening fills the screen either way). */
+.life-plate-art img {
+  object-position: var(--pos-wide);
+}
+@media (max-aspect-ratio: 17/20) {
+  .life-plate-art img {
+    object-position: var(--pos-tall);
+  }
+  .life-plate-box[data-tall] {
+    aspect-ratio: 4 / 5;
+  }
+}
+/* Once an image has loaded (set by LifeUnfolds), frame on the one actually shown. */
+.life-plate-art[data-shown="wide"] img {
+  object-position: var(--pos-wide);
+}
+.life-plate-art[data-shown="tall"] img {
+  object-position: var(--pos-tall);
+}
 .life-canvas {
   position: absolute;
   inset: 0;

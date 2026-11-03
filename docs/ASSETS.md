@@ -41,8 +41,10 @@ clean apart from two spots:
   script at scale 2 on the 4K upscale, because the upscale starts from the original render.
 - **Hands:** the far hand's fingers, along the left edge of the belly, blend into one shape. A 4K
   retouch of that hand is prepared (see below). Only the far hand is composited back onto the
-  upscale, so the near hand is never touched. If two tries fail, remove the far hand instead and
-  change the plate's alt text to describe a single hand.
+  upscale (`scripts/retouch/composite-ch06-farhand.py`); the near hand, whose fingertips reach into
+  that area, is cut out of the blend and keeps every one of its own pixels. If two tries fail, the
+  plate stays as it is; removing the far hand (and describing one hand in the alt text) remains an
+  option to decide with the clinic.
 
 ### Resolution (4K)
 
@@ -56,11 +58,18 @@ at 3840×2160.
 Done (2026-11-02): the mother, hands and newborn plates are 4K masters (Topaz Image Upscale, High
 Fidelity V3, 2×, no creative face changes), and clinic photograph 01 is served at 3840×2160
 (`public/clinic/01.jpg`; Topaz, 2.4×, **face enhancement off** so the real person is not altered).
-Each upscale was checked against its original: shrunk back to the original's size it differs by 1–2.4
-levels in 255 on average and by at most 4.4 in any 32 px block, so nothing was invented; faces and
-hands were also checked at 100%. Every Topaz upscale came back with a 9 px dark band on each edge.
-`scripts/retouch/fix-upscale-border.mjs` refills it from the original (no crop or rescale); run it on
-each new upscale before anything else.
+Each upscale was compared with its original: shrunk back to the original's size it differs by 1–2.4
+levels in 255 on average, and in no area by more than plain resampling of the image would; faces and
+hands were also compared at 100%. Every Topaz upscale came back with a 9 px dark band on each edge.
+`scripts/retouch/fix-upscale-border.mjs` measures it and refills it from the original (no crop or
+rescale); run it on each new upscale before anything else.
+
+The clinic photographs are placed with `scripts/retouch/place-clinic-4k.mjs` (`--check` first). It
+measures how far an upscale strays from its original beyond what plain resampling would (today's real
+upscales 0.5–1.2; eyes enlarged by 12% 2.8; one letter removed 8.6; it refuses above 2.5), and it
+writes side-by-side crops of every face and every piece of text to `.review/clinic-NN/`. No measure
+can prove a face unchanged (a removed bindi scored 1.9), so the crops are checked by eye before a
+photograph is placed.
 
 Still to run (flow and node IDs in `assets-src/generated/4k-jobs.json`): the provider's free plan hit
 its daily image limit after the fourth job. Run every job with **one generation each**: left unset,

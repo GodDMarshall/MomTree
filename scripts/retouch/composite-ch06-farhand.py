@@ -8,7 +8,9 @@ feathered mask, leaving every other pixel of the upscale untouched.
 usage: python -P composite-ch06-farhand.py <upscale.png> <edit.png> <out.png> [preview.png]
 
 The mask polygon is in 2048x1152 master coordinates and scaled to the upscale's size. It covers
-the far hand along the left edge of the belly and stops short of the near hand's fingertips.
+the far hand along the left edge of the belly. The near hand (in front, with the ring) reaches into
+that region with its fingertips, so it is cut out of the mask along a traced outline, widened and
+lightly feathered, and keeps every one of its own pixels.
 """
 import sys
 
@@ -20,6 +22,11 @@ preview_path = sys.argv[4] if len(sys.argv) > 4 else None
 
 # Far hand, in master (2048x1152) pixels: thumb over the top of the belly down to the last finger.
 POLY_2K = [(1012, 440), (1150, 430), (1182, 520), (1150, 640), (1112, 780), (1110, 900), (1160, 975), (1120, 1000), (1030, 990), (1000, 880), (998, 640)]
+# Near hand, in master pixels: along the top of its index finger, then just left of each fingertip
+# (index ~x1088 y745-778, middle ~x1097 y815-860, ring ~x1138 y895-935, little ~x1222 y955-990),
+# traced on a sharpness map (the near hand is in focus, the far hand is not).
+NEAR_2K = [(1500, 600), (1300, 640), (1180, 668), (1140, 692), (1110, 718), (1086, 738), (1084, 760), (1086, 782), (1104, 798),
+           (1093, 815), (1092, 862), (1120, 872), (1134, 893), (1133, 938), (1180, 948), (1218, 952), (1218, 1000), (1230, 1152), (1500, 1152)]
 
 base = cv2.imread(base_path, cv2.IMREAD_COLOR)
 edit = cv2.imread(edit_path, cv2.IMREAD_COLOR)
@@ -32,6 +39,9 @@ edit = cv2.resize(edit, (W, H), interpolation=cv2.INTER_AREA if edit.shape[1] > 
 poly = (np.array(POLY_2K, np.float64) * s).round().astype(np.int32)
 hand = np.zeros((H, W), np.uint8)
 cv2.fillPoly(hand, [poly], 255)
+near_poly = (np.array(NEAR_2K, np.float64) * s).round().astype(np.int32)
+near = np.zeros((H, W), np.uint8)
+cv2.fillPoly(near, [near_poly], 255)
 
 # 1. Align the edit to the upscale (affine, ECC) using everything except the repaired region.
 k = 0.25
@@ -60,9 +70,15 @@ for c in range(3):
     lab_e[..., c] = (lab_e[..., c] - me) * (sb / se) + mb
 matched = cv2.cvtColor(np.clip(lab_e, 0, 255).astype(np.uint8), cv2.COLOR_LAB2BGR)
 
-# 3. Blend through a feathered mask.
+# 3. Blend through a feathered mask, with the near hand cut out: widened by twice its own feather, so
+# its outline keeps full weight, then feathered lightly.
 feather = max(3, int(round(14 * s)))
 alpha = cv2.GaussianBlur(hand.astype(np.float32) / 255.0, (0, 0), feather)[..., None]
+kf = max(1.0, 3 * s)
+grow = int(round(2 * kf))
+keep = cv2.GaussianBlur(cv2.dilate(near, np.ones((2 * grow + 1, 2 * grow + 1), np.uint8)).astype(np.float32) / 255.0, (0, 0), kf)[..., None]
+alpha = alpha * (1 - keep)
+print("near hand: largest weight of the edit on it", round(float((alpha[..., 0] * (near > 0)).max()), 4))
 out = base.astype(np.float32) * (1 - alpha) + matched.astype(np.float32) * alpha
 out = np.clip(out.round(), 0, 255).astype(np.uint8)
 cv2.imwrite(out_path, out)
@@ -72,6 +88,7 @@ if preview_path:
     tiles = [base[y0:y1, x0:x1], matched[y0:y1, x0:x1], out[y0:y1, x0:x1]]
     outline = out[y0:y1, x0:x1].copy()
     cv2.polylines(outline, [poly - [x0, y0]], True, (0, 200, 255), max(1, int(2 * s)))
+    cv2.polylines(outline, [near_poly - [x0, y0]], True, (255, 0, 255), max(1, int(2 * s)))
     tiles.append(outline)
     row = np.hstack([np.pad(t, ((0, 0), (0, 6), (0, 0)), constant_values=255) for t in tiles])
     scale = 1400.0 / row.shape[1]
