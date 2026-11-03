@@ -113,11 +113,11 @@ export function Nav() {
         className={`mx-auto flex items-center justify-between transition-all duration-700 ease-[var(--ease-soft)] ${
           floating
             ? "max-w-[1400px] w-[calc(100%-24px)] rounded-full border border-[var(--color-hair)] bg-paper px-4 py-1.5 shadow-[0_18px_50px_-30px_rgb(29_26_38/0.45)] md:px-6"
-            : "max-w-[1480px] px-[var(--gutter)] py-5"
+            : "max-w-[1480px] px-[var(--gutter)] py-5 short:py-2"
         } ${onDark ? "text-paper" : "text-ink"}`}
       >
         <Link href="/" className="relative z-10 shrink-0" aria-label="Momtree IVF & Genetics, home">
-          <LogoSwap dark={onDark} className={`transition-[height] duration-700 ${floating ? "h-[58px]" : "h-[64px] md:h-[84px]"}`} />
+          <LogoSwap dark={onDark} className={`transition-[height] duration-700 ${floating ? "h-[58px] short:h-[44px]" : "h-[64px] md:h-[84px] short:h-[44px]"}`} />
         </Link>
 
         <nav aria-label="Main" className="hidden xl:block">

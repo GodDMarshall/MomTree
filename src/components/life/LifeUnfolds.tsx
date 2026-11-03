@@ -51,6 +51,7 @@ export function LifeUnfolds() {
   const capFig = useRef<HTMLSpanElement>(null);
   const capText = useRef<HTMLSpanElement>(null);
   const capDay = useRef<HTMLSpanElement>(null);
+  const illusEl = useRef<HTMLSpanElement>(null);
   const scaleEl = useRef<HTMLDivElement>(null);
   const scaleBar = useRef<HTMLSpanElement>(null);
   const scaleLabel = useRef<HTMLSpanElement>(null);
@@ -135,11 +136,34 @@ export function LifeUnfolds() {
     // Labels and the true-to-scale bar come from the 3D camera.
     const seen = new Set<string>();
     const vw = stage.clientWidth; // the canvas width, without the page scrollbar
-    // On phones only the caption body is at the top right (the notice sits above the HUD); on desktop the notice is under it.
-    const capEl = window.innerWidth < 768 ? capWrap.current : capWrap.current?.parentElement;
-    const capBox = capEl ? capEl.getBoundingClientRect() : null;
-    // On phones the words sit across the lower part of the stage, and labels that would cover them are hidden.
-    const panelTop = window.innerWidth < 768 && panelEl ? panelEl.getBoundingClientRect().top - stage.getBoundingClientRect().top : Infinity;
+    // The phone arrangement (the words across the lower part of the stage) is for narrow screens that are not short;
+    // a phone held sideways keeps the desktop one, as in life.css.
+    const phone = window.innerWidth < 768 && window.innerHeight > 500;
+    // The caption's lines are right-aligned in a wider box, so what shows of it is the union of its lines' boxes.
+    const linesBox = (el: Element | null | undefined) => {
+      let [left, top, right, bottom] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const c of el?.children ?? []) {
+        const r = c.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) continue;
+        [left, top, right, bottom] = [Math.min(left, r.left), Math.min(top, r.top), Math.max(right, r.right), Math.max(bottom, r.bottom)];
+      }
+      return left < right ? { left, top, right, bottom, height: bottom - top } : null;
+    };
+    // On phones only the caption body is at the top right (the notice sits above the HUD); elsewhere the notice is under it.
+    const capBox = linesBox(phone ? capWrap.current : capWrap.current?.parentElement);
+    // Labels never cover the words: on phones a label reaching below their top is hidden, elsewhere one that would run
+    // into their block. A label that would cross one already placed runs out the other way if that is clear, or waits.
+    const st = stage.getBoundingClientRect();
+    const pb = panelEl ? panelEl.getBoundingClientRect() : null;
+    const panelTop = phone && pb ? pb.top - st.top : Infinity;
+    type Box = { l: number; t: number; r: number; b: number };
+    const words: Box | null = !phone && pb && pb.width > 0 ? { l: pb.left - st.left - 8, t: pb.top - st.top - 6, r: pb.right - st.left + 8, b: pb.bottom - st.top + 6 } : null;
+    const placed: Box[] = [];
+    // The illustration notice, and the figure caption while it shows, are in the way too.
+    const notice = illusEl.current?.getBoundingClientRect();
+    for (const r of [notice && notice.width > 0 ? notice : null, Number(capWrap.current?.style.opacity) > 0.05 ? linesBox(capWrap.current) : null])
+      if (r) placed.push({ l: r.left - st.left - 6, t: r.top - st.top - 4, r: r.right - st.left + 6, b: r.bottom - st.top + 4 });
+    const meets = (x: number, y: number, w: number, h: number, o: Box) => x < o.r && x + w > o.l && y < o.b && y + h > o.t;
     frame?.labels.forEach((l) => {
       const el = labelEls.current.get(l.id);
       if (!el) return;
@@ -164,10 +188,25 @@ export function LifeUnfolds() {
         text.style.maxWidth = `${Math.max(72, room - (w - text.offsetWidth)).toFixed(0)}px`;
         w = el.offsetWidth;
       }
+      let x = flip ? l.x - w : l.x;
+      const h = el.offsetHeight;
+      let crossed = placed.some((o) => meets(x, l.y, w, h, o));
+      if (crossed) {
+        // The other side, unless that runs off the screen or (to the right) across the figure caption.
+        const alt = flip ? l.x : l.x - w;
+        if (alt >= 6 && alt + w <= vw - 6 && !(flip && overCaption) && !placed.some((o) => meets(alt, l.y, w, h, o))) {
+          flip = !flip;
+          x = alt;
+          crossed = false;
+        }
+      }
       el.classList.toggle("is-flip", flip);
-      el.style.transform = `translate3d(${(flip ? l.x - w : l.x).toFixed(1)}px, ${l.y.toFixed(1)}px, 0)`;
-      const clear = l.y + el.offsetHeight < panelTop - 4;
-      el.style.opacity = (l.x > 6 && l.x < vw - 6 && clear ? l.a : 0).toFixed(3);
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${l.y.toFixed(1)}px, 0)`;
+      // A label that cannot fit on the screen on either side waits too.
+      const clear = !crossed && x >= 2 && x + w <= vw - 2 && l.y + h < panelTop - 4 && !(words && meets(x, l.y, w, h, words));
+      const a = l.x > 6 && l.x < vw - 6 && clear ? l.a : 0;
+      el.style.opacity = a.toFixed(3);
+      if (a > 0.05) placed.push({ l: x - 6, t: l.y - 2, r: x + w + 6, b: l.y + h + 2 });
     });
     labelEls.current.forEach((el, id) => {
       if (!seen.has(id)) el.style.opacity = "0";
@@ -394,7 +433,9 @@ export function LifeUnfolds() {
               <span ref={scaleLabel} className="life-scale-label" />
             </div>
           </div>
-          <span className="life-illus">{"Illustration, not to scale · not a patient's treatment or result"}</span>
+          <span ref={illusEl} className="life-illus">
+            {"Illustration, not to scale · not a patient's treatment or result"}
+          </span>
         </div>
 
         {/* Bottom HUD: growth rings + chapter, skip, sound */}

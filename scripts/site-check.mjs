@@ -127,6 +127,73 @@ for (const [vpName, vp] of Object.entries(VIEWPORTS)) {
   await rm.close();
 }
 
+// Short and sideways screens: the story's opening and closing words, and its labels, must stay clear of the header
+// (logo, links, buttons), of the story's controls and illustration notice, and of each other.
+{
+  const collisions = () => {
+    const shown = (el) => {
+      const b = el.getBoundingClientRect();
+      if (b.width < 1 || b.height < 1 || b.bottom <= 0 || b.top >= innerHeight) return false;
+      for (let e = el; e && e !== document.body; e = e.parentElement) {
+        const s = getComputedStyle(e);
+        if (s.display === "none" || s.visibility === "hidden" || Number(s.opacity) < 0.35) return false;
+      }
+      return true;
+    };
+    const box = (el, name) => {
+      const b = el.getBoundingClientRect();
+      return { name, x: b.left, y: b.top, r: b.right, b: b.bottom };
+    };
+    const said = (el, n) => `"${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, n)}"`;
+    const fixed = [];
+    for (const el of document.querySelectorAll("header[data-nav] a, header[data-nav] button")) if (shown(el)) fixed.push(box(el, `header ${said(el, 24)}`));
+    for (const el of document.querySelectorAll(".life-hud a, .life-hud button")) if (shown(el)) fixed.push(box(el, `story control ${said(el, 20)}`));
+    for (const el of document.querySelectorAll(".life-illus")) if (shown(el)) fixed.push(box(el, "the illustration notice"));
+    const words = [...document.querySelectorAll(".life-panel")].filter(shown).flatMap((p) => [...p.children].filter(shown).map((c) => box(c, said(c, 24))));
+    const labels = [...document.querySelectorAll(".life-label")]
+      .filter((el) => Number(el.style.opacity) >= 0.35)
+      .map((el) => el.querySelector(".life-label-text"))
+      .filter((el) => el && shown(el))
+      .map((el) => box(el, `label ${said(el, 30)}`));
+    const meet = (a, b) => a.x < b.r && a.r > b.x && a.y < b.b && a.b > b.y;
+    const out = [];
+    for (const w of words) {
+      if (w.y < 0 || w.b > innerHeight) out.push(`${w.name} runs off the screen`);
+      for (const f of fixed) if (meet(w, f)) out.push(`${w.name} overlaps ${f.name}`);
+    }
+    labels.forEach((l, i) => {
+      for (const o of [...labels.slice(i + 1), ...words, ...fixed]) if (meet(l, o)) out.push(`${l.name} overlaps ${o.name}`);
+    });
+    return out;
+  };
+  const SCREENS = {
+    "laptop 1366x657": { width: 1366, height: 657 },
+    "laptop 1280x600": { width: 1280, height: 600 },
+    "phone 360x640": { width: 360, height: 640, isMobile: true, hasTouch: true },
+    "phone sideways 844x390": { width: 844, height: 390, isMobile: true, hasTouch: true },
+    "phone sideways 667x375": { width: 667, height: 375, isMobile: true, hasTouch: true },
+  };
+  for (const [name, s] of Object.entries(SCREENS)) {
+    const c = await browser.newContext({ viewport: { width: s.width, height: s.height }, isMobile: s.isMobile, hasTouch: s.hasTouch });
+    const page = await c.newPage();
+    await page.goto(BASE + "/", { waitUntil: "networkidle", timeout: 60000 });
+    const errors = [];
+    for (const end of [false, true]) {
+      if (end)
+        await page.evaluate(() => {
+          const story = document.querySelector(".life");
+          const top = story.getBoundingClientRect().top + scrollY;
+          window.scrollTo({ top: top + story.offsetHeight - innerHeight - 2, behavior: "instant" });
+        });
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(1800);
+      for (const e of await page.evaluate(collisions)) errors.push(`${end ? "closing" : "opening"} screen: ${e}`);
+    }
+    if (errors.length) problems.push({ vp: name, route: "/", errors });
+    await c.close();
+  }
+}
+
 // Internal links resolve?
 const ctx = await browser.newContext();
 const req = ctx.request;

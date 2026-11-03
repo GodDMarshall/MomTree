@@ -32,7 +32,7 @@ npm run start        # http://localhost:3000
 Checks (run against a production server on port 3100: `npx next start -p 3100`):
 
 ```powershell
-npm run check                           # every page × phone / tablet / desktop, links, reduced motion
+npm run check                           # every page × phone / tablet / desktop, links, reduced motion, the story on short and sideways screens
 node scripts/perf-check.mjs             # LCP and transfer sizes
 npm run posters                         # re-render the static story posters
 npm run assets                          # rebuild plates, logo files, favicons and the share card

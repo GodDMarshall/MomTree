@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Short screens, such as a phone held sideways: a slimmer header and a compact story. */
+@custom-variant short (@media (max-height: 500px));
+
 /* ==========================================================================
    Momtree design tokens, taken from the official logo: brand purple (#5C2499)
    and leaf green (#80C041) on white. Purple carries type accents, links and
