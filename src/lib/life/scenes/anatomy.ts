@@ -165,23 +165,30 @@ export class AnatomyScene implements StoryScene {
       tube.renderOrder = 2;
       this.root.add(tube);
 
-      // Fimbriae: finger-like fronds around the opening, reaching toward the ovary.
+      // Fimbriae: soft, finger-like fronds around the opening, curling a little and drooping toward the ovary, with a
+      // slight frill. They have their own random sequence; the shared one is advanced as before, so the follicles laid
+      // out after them keep their places.
       const end = curve.getPointAt(1);
       const tan = curve.getTangentAt(1);
       const fr = new THREE.Group();
       fr.position.copy(end);
       const basisA = new THREE.Vector3().crossVectors(tan, new THREE.Vector3(0, 0, 1)).normalize();
       const basisB = new THREE.Vector3().crossVectors(tan, basisA).normalize();
-      for (let k = 0; k < 11; k++) {
-        const a = (k / 11) * Math.PI * 2 + r() * 0.3;
+      for (let k = 0; k < 33; k++) r();
+      const rf = rng(side === 1 ? 31 : 37);
+      for (let k = 0; k < 16; k++) {
+        const a = (k / 16) * Math.PI * 2 + rf() * 0.3;
         const radial = basisA.clone().multiplyScalar(Math.cos(a)).add(basisB.clone().multiplyScalar(Math.sin(a)));
-        const len = 0.55 + r() * 0.45;
+        const side2 = new THREE.Vector3().crossVectors(tan, radial).normalize();
+        const len = 0.42 + rf() * 0.5;
+        const curl = (rf() - 0.5) * 0.5;
         const c = new THREE.CatmullRomCurve3([
-          radial.clone().multiplyScalar(0.42),
-          tan.clone().multiplyScalar(len * 0.45).add(radial.clone().multiplyScalar(0.62)),
-          tan.clone().multiplyScalar(len).add(radial.clone().multiplyScalar(0.78 + r() * 0.3)).add(new THREE.Vector3(0, -0.25, 0)),
+          radial.clone().multiplyScalar(0.4),
+          tan.clone().multiplyScalar(len * 0.3).add(radial.clone().multiplyScalar(0.56)),
+          tan.clone().multiplyScalar(len * 0.68).add(radial.clone().multiplyScalar(0.7)).addScaledVector(side2, curl * 0.5).add(new THREE.Vector3(0, -0.1, 0)),
+          tan.clone().multiplyScalar(len).add(radial.clone().multiplyScalar(0.78 + rf() * 0.25)).addScaledVector(side2, curl).add(new THREE.Vector3(0, -0.26, 0)),
         ]);
-        fr.add(new THREE.Mesh(taperedTube(c, 24, 6, (u) => 0.075 * (1 - u * 0.75)), tubeMat));
+        fr.add(new THREE.Mesh(taperedTube(c, 32, 8, (u) => 0.068 * (1 - u * 0.68) * (1 + 0.16 * Math.sin(u * 20 + k * 1.7))), tubeMat));
       }
       this.fimbriae.push(fr);
       this.root.add(fr);
