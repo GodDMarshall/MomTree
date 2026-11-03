@@ -210,12 +210,19 @@ void main(){
   vec3 v = normalize(vV);
   vec3 l = normalize(uLight);
   float wrap = clamp((dot(n, l) + 0.6) / 1.6, 0.0, 1.0);
-  float fres = pow(1.0 - clamp(abs(dot(n, v)), 0.0, 1.0), 2.0);
+  float nv = clamp(abs(dot(n, v)), 0.0, 1.0);
+  float fres = pow(1.0 - nv, 2.0);
   float fib = snoise(vObj * vec3(1.6, 5.5, 1.6) * uFibre + vec3(uTime * 0.03)) * 0.5 + 0.5;
   float vel = snoise(vObj * 14.0) * 0.5 + 0.5;
+  // Fine vessels: the thin ridges of a slow noise, sparse, faint and deep in colour.
+  float ves = pow(1.0 - abs(snoise(vObj * 1.3 + 7.0)), 34.0);
   vec3 base = mix(uDeep, uColor, wrap) * vTint;
   base *= 0.84 + 0.2 * fib + 0.06 * vel;
-  vec3 c = base + uRim * fres * (0.9 + uGlow);
+  base = mix(base, uDeep * 1.2, ves * 0.2);
+  // Moist living tissue: a soft wet highlight, and light carried through the thin edges.
+  float nh = clamp(dot(n, normalize(l + v)), 0.0, 1.0);
+  float wet = pow(nh, 60.0) * 0.3 + pow(nh, 8.0) * 0.05;
+  vec3 c = base + uRim * fres * (0.9 + uGlow) + vec3(1.0, 0.93, 0.97) * wet + uColor * pow(1.0 - nv, 1.3) * 0.1;
   c = usShade(c, uEcho, uTime);
   float a = clamp(uOpacity + fres * 0.5, 0.0, 1.0);
   gl_FragColor = vec4(c, a * uFade);

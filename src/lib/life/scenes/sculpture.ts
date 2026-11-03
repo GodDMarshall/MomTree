@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { SceneId } from "../story";
 import { motes, shared } from "../materials";
+import type { AnatomyScene } from "./anatomy";
 import { clamp01, frameForCaptions, lerp, Rig, rng, smooth, type Ctx, type Hud, type StoryScene } from "./common";
 
 /**
@@ -33,7 +34,20 @@ export type SculptureBeats = {
   camera: { u: number; pos: number[]; target: number[] }[];
   /** Caption framing: how far the subject sits right of centre on wide screens. */
   shift?: number;
+  /** The opening (local units below 10): the camera's way in to her pelvis, before it lands on the anatomy's first view. */
+  opening?: { u: number; pos: number[]; target: number[] }[];
+  /** How far the x-ray window over the pelvis is open, 0..1, in the opening. */
+  xray?: Key[];
+  /** The figure dissolving into the anatomy seen through her, 0..1, at the end of the opening. */
+  reveal?: Key[];
 };
+
+/**
+ * Where the anatomy scene's origin (the centre of the uterus) sits inside the figure, and its scale: the anatomy is
+ * modelled in centimetres at true size, the figure in metres. Low in the pelvis, behind the pubic bone.
+ */
+const PELVIS = new THREE.Vector3(0, 0.925, 0.035);
+const CM = 0.01;
 
 function keyAt(keys: Key[], u: number) {
   if (!keys.length) return 0;
@@ -101,6 +115,11 @@ uniform vec3 uPlacC; uniform vec3 uPlacR; uniform vec3 uUterC; uniform vec3 uUte
 uniform float uFetusOn;
 uniform float uBloom;
 uniform float uPix;
+uniform sampler2D uInner;
+uniform float uXray;
+uniform float uReveal;
+uniform vec3 uXrayC;
+uniform float uXrayR;
 
 float sdEllipsoid(vec3 p, vec3 r){ float k0 = length(p / r); float k1 = length(p / (r * r)); return k0 * (k0 - 1.0) / max(k1, 1e-6); }
 float sdCapsule(vec3 p, vec3 a, vec3 b, float r){ vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - r; }
@@ -291,6 +310,12 @@ vec2 cylinder(vec3 ro, vec3 rd, float r){
 }
 
 void main(){
+  // The end of the opening: she has dissolved into the anatomy rendered through her (no need to march the figure).
+  if (uReveal > 0.999) {
+    gl_FragColor = vec4(texture2D(uInner, vUv).rgb, 1.0);
+    gl_FragDepth = 1.0;
+    return;
+  }
   vec2 ndc = vUv * 2.0 - 1.0;
   vec4 v = uInvProj * vec4(ndc, -1.0, 1.0);
   v /= v.w;
@@ -360,6 +385,21 @@ void main(){
       }
       // A faint glass rim, so it reads as a window (not on the arms).
       col += vec3(0.95, 0.92, 1.0) * uGlass * smoothstep(0.93, 0.99, wd) * smoothstep(1.05, 0.99, wd) * facing * smoothstep(0.78, 0.98, res.y) * step(res.y, 1.1) * 0.3;
+      // The opening's x-ray: within a soft circle around her pelvis (as seen from the camera) the skin turns to glass
+      // and the anatomy shows through, rendered from this same camera at true size and place; not on the arms.
+      if (uXray > 0.001) {
+        vec3 xo = P - uXrayC;
+        float xd = length(xo - rd * dot(xo, rd)) / uXrayR;
+        float onBody = smoothstep(0.78, 0.98, res.y) * step(res.y, 1.1);
+        float xw = uXray * smoothstep(1.0, 0.45, xd) * onBody;
+        vec3 inside = texture2D(uInner, vUv).rgb;
+        float fr = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 2.5);
+        // Glass, not a hole: a little of the porcelain stays in it, most at the grazing edges.
+        vec3 glassSkin = mix(inside, body, 0.16 + 0.3 * fr) + vec3(0.86, 0.8, 1.0) * fr * 0.22;
+        col = mix(col, glassSkin, xw);
+        // A faint glow where porcelain becomes glass.
+        col += vec3(0.92, 0.88, 1.0) * uXray * onBody * smoothstep(0.55, 0.85, xd) * smoothstep(1.1, 0.88, xd) * 0.14;
+      }
       col = mix(bg, col, cover);
       if (cover > 0.5) {
         vec4 clip = uViewProj * vec4(P, 1.0);
@@ -373,6 +413,8 @@ void main(){
   col = mix(col, vec3(0.97, 0.93, 1.0), uBloom * 0.9 * exp(-dot(g, g) * 1.4));
   float grain = fract(sin(dot(gl_FragCoord.xy + uTime, vec2(12.9898, 78.233))) * 43758.5453);
   col += (grain - 0.5) * 0.014;
+  // The figure dissolving into the anatomy seen through her, at the end of the opening.
+  if (uReveal > 0.001) col = mix(col, texture2D(uInner, vUv).rgb, uReveal);
   gl_FragColor = vec4(col, 1.0);
   gl_FragDepth = depth;
 }`;
@@ -446,11 +488,21 @@ export class SculptureScene implements StoryScene {
   private m4 = new THREE.Matrix4();
   private fetusWorld = new THREE.Vector3();
   private glassNow = 0;
+  // The opening: the anatomy scene, rendered offscreen from this camera (mapped into centimetres) and seen through her.
+  private interior?: AnatomyScene;
+  private interiorLaidOut = false;
+  private innerTarget = new THREE.WebGLRenderTarget(1, 1, { samples: 4 });
+  private innerCam = new THREE.PerspectiveCamera(32, 1, 0.05, 2000);
+  private landCam = new THREE.PerspectiveCamera(32, 1, 0.05, 200);
+  private openRig?: Rig;
+  private xrayNow = 0;
+  private revealNow = 0;
 
   constructor(beats: SculptureBeats, tier: "high" | "mid" | "low" = "high") {
     this.id = beats.id;
     this.beats = beats;
     this.rig = new Rig(beats.camera);
+    if (beats.opening) this.openRig = new Rig(beats.opening);
     // Raymarch budgets by GPU tier: the figure, the view through the belly window, and occlusion.
     const steps = tier === "high" ? 110 : tier === "mid" ? 84 : 64;
     const fsteps = tier === "low" ? 44 : 56;
@@ -497,6 +549,11 @@ export class SculptureScene implements StoryScene {
         uFetusOn: { value: 0 },
         uBloom: { value: 0 },
         uPix: { value: 0.001 },
+        uInner: { value: this.innerTarget.texture },
+        uXray: { value: 0 },
+        uReveal: { value: 0 },
+        uXrayC: { value: PELVIS.clone().add(v3(0, 0.008, 0)) },
+        uXrayR: { value: 0.1 },
       },
     });
     const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.mat);
@@ -547,8 +604,41 @@ export class SculptureScene implements StoryScene {
 
   async load() {}
 
+  /** The anatomy scene the opening zooms into: seen through her pelvis, then on screen without a cut. */
+  setInterior(scene: AnatomyScene) {
+    this.interior = scene;
+  }
+
   layout(ctx: Ctx) {
     (this.dust.material as THREE.ShaderMaterial).uniforms.uPixelRatio.value = ctx.dpr;
+    this.innerTarget.setSize(Math.max(1, Math.round(ctx.width * ctx.dpr)), Math.max(1, Math.round(ctx.height * ctx.dpr)));
+    this.interiorLaidOut = false;
+  }
+
+  beforeRender(renderer: THREE.WebGLRenderer, ctx: Ctx) {
+    const a = this.interior;
+    if (!a || (this.xrayNow < 0.002 && this.revealNow < 0.002)) return;
+    if (!this.interiorLaidOut) {
+      a.layout(ctx);
+      this.interiorLaidOut = true;
+    }
+    // The anatomy as it is at its first frame, seen from this camera: same lens and framing, position in centimetres.
+    a.update(0, 0, ctx);
+    const c = this.camera;
+    const ic = this.innerCam;
+    ic.fov = c.fov;
+    ic.aspect = c.aspect;
+    if (c.view?.enabled) ic.setViewOffset(c.view.fullWidth, c.view.fullHeight, c.view.offsetX, c.view.offsetY, c.view.width, c.view.height);
+    else ic.clearViewOffset();
+    ic.updateProjectionMatrix();
+    ic.position.copy(c.position).sub(PELVIS).divideScalar(CM);
+    ic.quaternion.copy(c.quaternion);
+    ic.updateMatrixWorld();
+    const prev = renderer.getRenderTarget();
+    renderer.setRenderTarget(this.innerTarget);
+    renderer.clear();
+    renderer.render(a.scene, ic);
+    renderer.setRenderTarget(prev);
   }
 
   update(u: number, _dt: number, ctx: Ctx) {
@@ -561,6 +651,15 @@ export class SculptureScene implements StoryScene {
     U.uGlass.value = this.glassNow;
     U.uBloom.value = keyAt(b.bloom, u);
     this.leafMat.uniforms.uLeaves.value = keyAt(b.leaves, u);
+    // The opening (below local unit 10; the story never reaches 10 in that slot, and the pregnancy starts at 10).
+    const opening = u < 10;
+    this.xrayNow = opening && b.xray ? keyAt(b.xray, u) : 0;
+    this.revealNow = opening && b.reveal ? keyAt(b.reveal, u) : 0;
+    U.uXray.value = this.xrayNow;
+    U.uReveal.value = this.revealNow;
+    // The glass spreads from her pelvis, then over her whole body as she dissolves.
+    U.uXrayR.value = lerp(0.085, 0.2, smooth(5.0, 7.4, u)) + 0.55 * smooth(7.4, 9.0, u);
+    (this.dust.material as THREE.ShaderMaterial).uniforms.uOpacity.value = 0.35 * (1 - this.revealNow);
 
     // Belly and uterus by week (the uterus rises from the pelvis to just below the ribs).
     const g = smooth(12, 38, week);
@@ -606,7 +705,8 @@ export class SculptureScene implements StoryScene {
     // Arms: blend three poses. Pose 1 follows the belly so the hands rest on it.
     const sh = { r: v3(-0.162, 1.352, -0.012), l: v3(0.162, 1.352, -0.012) };
     const poses = [
-      { el: [v3(-0.215, 1.08, 0.025), v3(0.215, 1.06, 0.025)], wr: [v3(-0.06, 0.965, 0.118), v3(0.055, 0.935, 0.112)], tip: [v3(0.02, 0.95, 0.13), v3(-0.025, 0.92, 0.125)] },
+      // Hands resting together at the waist, clear of the pelvis the opening zooms into.
+      { el: [v3(-0.215, 1.12, 0.02), v3(0.215, 1.1, 0.02)], wr: [v3(-0.06, 1.035, 0.112), v3(0.055, 1.015, 0.108)], tip: [v3(0.02, 1.02, 0.124), v3(-0.025, 1.0, 0.12)] },
       {
         el: [v3(-0.225, 1.12, 0.05 + 0.25 * bellyR.z), v3(0.225, 0.99, 0.03 + 0.2 * bellyR.z)],
         wr: [bellyC.clone().add(v3(-0.08, bellyR.y * 0.42, bellyR.z * 0.97 + 0.03)), bellyC.clone().add(v3(0.09, -bellyR.y * 0.6, bellyR.z * 0.9 + 0.028))],
@@ -645,9 +745,29 @@ export class SculptureScene implements StoryScene {
     this.m4.makeBasis(ax, ay, az).invert();
     U.uBabyRot.value.setFromMatrix4(this.m4);
 
-    // Camera.
-    this.rig.apply(this.camera, u, ctx, 0.03, true);
-    frameForCaptions(this.camera, ctx, b.shift ?? 0.14);
+    // Camera. In the opening it moves in to her pelvis and lands on exactly the anatomy scene's first view (its lens,
+    // framing and position, mapped into metres), so the story can change scene there without a cut.
+    const shift = b.shift ?? 0.14;
+    if (opening && this.openRig && this.interior) {
+      const ease = smooth(6.4, 10, u);
+      this.camera.fov = lerp(30, this.interior.camera.fov, ease);
+      frameForCaptions(this.camera, ctx, lerp(shift, 0.23, ease));
+      this.openRig.apply(this.camera, Math.min(u, 8.2), ctx, 0.03, true);
+      const land = smooth(8.2, 10, u);
+      if (land > 0) {
+        this.interior.openingCamera(ctx, this.landCam);
+        const from = this.camera.position.clone();
+        const fromT = this.tmp.fromArray(this.openRig.target.at(8.2));
+        const toT = this.interior.openingTarget().multiplyScalar(CM).add(PELVIS);
+        const to = this.landCam.position.clone().multiplyScalar(CM).add(PELVIS);
+        this.camera.position.copy(from.lerp(to, land));
+        this.camera.lookAt(fromT.lerp(toT, land));
+      }
+    } else {
+      this.camera.fov = 30;
+      this.rig.apply(this.camera, u, ctx, 0.03, true);
+      frameForCaptions(this.camera, ctx, shift);
+    }
     this.camera.updateMatrixWorld();
     U.uInvProj.value.copy(this.camera.projectionMatrixInverse);
     U.uCamWorld.value.copy(this.camera.matrixWorld);
@@ -668,5 +788,6 @@ export class SculptureScene implements StoryScene {
       m.geometry?.dispose();
       (m.material as THREE.Material | undefined)?.dispose?.();
     });
+    this.innerTarget.dispose();
   }
 }

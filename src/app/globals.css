@@ -48,6 +48,12 @@ html {
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
 }
+/* No single word stranded on a paragraph's last line, where the browser supports it. */
+p,
+li,
+figcaption {
+  text-wrap: pretty;
+}
 html.lenis,
 html.lenis body {
   height: auto;
@@ -385,15 +391,19 @@ svg {
   padding-bottom: 0.08em;
   margin-bottom: -0.08em;
 }
-.words .w > span {
+/* Italic words are wrapped .w > em > span, so they rise with the rest of the line. */
+.words .w > span,
+.words .w > em > span {
   display: inline-block;
 }
-.js-ready .words .w > span {
+.js-ready .words .w > span,
+.js-ready .words .w > em > span {
   transform: translate3d(0, 105%, 0);
   transition: transform 1.25s var(--ease-silk);
   transition-delay: calc(var(--d, 0s) + var(--i, 0) * 0.045s);
 }
-.js-ready .words.is-in .w > span {
+.js-ready .words.is-in .w > span,
+.js-ready .words.is-in .w > em > span {
   transform: none;
 }
 /* line drawing: paths use pathLength="1" */
@@ -418,6 +428,7 @@ svg {
 @media (prefers-reduced-motion: reduce) {
   .js-ready [data-reveal],
   .js-ready .words .w > span,
+  .js-ready .words .w > em > span,
   .js-ready [data-aperture] {
     opacity: 1 !important;
     transform: none !important;

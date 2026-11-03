@@ -110,6 +110,18 @@ export class LifeEngine {
       sculpture: new SculptureScene(
         {
           id: "sculpture",
+          // The opening: she stands (0–4); the camera moves in to her pelvis while the skin there turns to glass and
+          // the anatomy shows through (4–8.2); she dissolves into it (7.6–8.8); by 10 the camera is on the anatomy
+          // scene's first view, where the story changes scene without a cut.
+          // It comes down to the height of her pelvis before it closes in, so her hands stay above the frame.
+          opening: [
+            { u: 0, pos: [-1.1, 1.5, 3.0], target: [0, 1.15, 0] },
+            { u: 4, pos: [-1.04, 1.44, 2.86], target: [0, 1.13, 0] },
+            { u: 6.0, pos: [-0.62, 1.0, 1.9], target: [0, 0.945, 0.03] },
+            { u: 8.2, pos: [-0.16, 0.94, 0.72], target: [0, 0.93, 0.035] },
+          ],
+          xray: [[0, 0], [5.0, 0], [7.0, 1]],
+          reveal: [[0, 0], [7.4, 0], [9.0, 1]],
           // Each week holds under its caption (Fig. 10–10c) and grows between them; the drop to 0 at
           // the birth happens under the glow, after the window has closed.
           week: [[0, 0], [10, 0], [10.4, 10], [14, 12], [20, 12.6], [26, 20], [32, 20.8], [40, 28], [46, 29], [54, 36], [63, 38], [64.6, 38], [66.6, 0]],
@@ -133,6 +145,8 @@ export class LifeEngine {
         opts.tier,
       ),
     };
+
+    (this.scenes.sculpture as SculptureScene).setInterior(this.scenes.anatomy as AnatomyScene);
 
     canvas.addEventListener("webglcontextlost", this.handleLost, false);
     window.addEventListener("pointermove", this.handlePointer, { passive: true });
@@ -244,6 +258,7 @@ export class LifeEngine {
       this.laidOut.add(id);
     }
     sc.update(lu, dt, this.ctx);
+    sc.beforeRender?.(this.renderer, this.ctx);
     this.renderer.render(sc.scene, sc.camera);
 
     // Project labels and the scale bar for the HTML overlay.

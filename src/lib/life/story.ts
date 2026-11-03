@@ -82,10 +82,12 @@ export function localUnits(slot: { from: number; to: number; local?: readonly [n
   return slot.local[0] + (slot.local[1] - slot.local[0]) * t;
 }
 
-/** Colour washes that hide each cut. Opacity peaks at `at` and falls off over `w` units. */
+/**
+ * Colour washes that hide each cut. Opacity peaks at `at` and falls off over `w` units. The opening needs none: it
+ * zooms into her pelvis and lands on the anatomy's first view, so the change of scene at 8 is seamless.
+ */
 const NIGHT = [23, 12, 39] as const;
 export const veils = [
-  { at: 8, w: 1.6, color: NIGHT },
   { at: 36, w: 1.4, color: NIGHT },
   { at: 62, w: 1.3, color: NIGHT },
   { at: 72, w: 1.2, color: NIGHT },
@@ -141,8 +143,8 @@ export const captions: Caption[] = [
   cap(S.scan, 77.2, 85.2, "Fig. 9", "Early pregnancy at about 7 weeks: gestational sac, yolk sac and a 1 cm embryo"),
   cap(S.life, 13, 20.5, "Fig. 10", "About 12 weeks: around 6 cm from head to bottom (illustration)"),
   cap(S.life, 24.5, 34, "Fig. 10a", "About 20 weeks: around 25 cm from head to heel"),
-  cap(S.life, 37.5, 47.5, "Fig. 10b", "About 28 weeks: many babies are turning head-down"),
-  cap(S.life, 52, 63, "Fig. 10c", "About 36 weeks: most babies have settled head-down"),
+  cap(S.life, 37.5, 47.5, "Fig. 10b", "About 28 weeks: many babies are turning head\u2011down"),
+  cap(S.life, 52, 63, "Fig. 10c", "About 36 weeks: most babies have settled head\u2011down"),
 ];
 
 export type Panel = {
@@ -329,7 +331,7 @@ export const panels: Panel[] = [
     from: 90.2,
     to: 93.6,
     level: 3,
-    body: ["In the last weeks, most babies settle head-down, ready to be born at around 40 weeks."],
+    body: ["In the last weeks, most babies settle head\u2011down, ready to be born at around 40 weeks."],
   },
   {
     id: "c11",
@@ -342,6 +344,14 @@ export const panels: Panel[] = [
     cta: "final",
   },
 ];
+
+/** Shorter forms used on phones, where a long label would cover the structure it names (explanations only: disclosures such as "enlarged" stay). */
+export const labelShort: Record<string, string> = {
+  endometrium: "Endometrium",
+  antral: "Resting follicles",
+  te: "Outer layer",
+  cavity: "Cavity",
+};
 
 /** On-screen anatomical labels. Positions come from the engine every frame. */
 export const labelText: Record<string, string> = {

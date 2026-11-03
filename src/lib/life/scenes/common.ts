@@ -24,6 +24,8 @@ export interface StoryScene {
   ready: boolean;
   load(ctx: Ctx): Promise<void>;
   update(u: number, dt: number, ctx: Ctx): void;
+  /** Optional: render anything the frame needs first (an offscreen view), after update and before the scene. */
+  beforeRender?(renderer: THREE.WebGLRenderer, ctx: Ctx): void;
   hud(u: number): Hud;
   layout(ctx: Ctx): void;
   dispose(): void;

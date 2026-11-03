@@ -28,6 +28,41 @@ const OVARY_STIM = new THREE.Vector3(2.25, 1.5, 1.25);
 /** Where the needle enters: the vaginal wall beside the cervix (schematic). The probe's fan opens from here too. */
 const ENTRY = new THREE.Vector3(1.9, -4.6, 1.1);
 
+/**
+ * The endometrial lining: the cavity's outline (an inverted triangle with a gently domed top, narrowing into the
+ * cervical canal) given depth as a smooth rounded body, thickest under the fundus. Built by reshaping a sphere.
+ */
+function liningGeometry() {
+  const g = new THREE.SphereGeometry(1, 72, 96);
+  const pos = g.attributes.position as THREE.BufferAttribute;
+  const top = 2.585;
+  const bottom = -3.75;
+  // The cavity's side: a quadratic curve from the internal os (0.13, -1.85) to the cornu (1.62, 2.45).
+  const side = (t: number) => [(1 - t) ** 2 * 0.13 + 2 * (1 - t) * t * 0.62 + t * t * 1.62, (1 - t) ** 2 * -1.85 + 2 * (1 - t) * t * 0.55 + t * t * 2.45];
+  const halfWidth = (y: number) => {
+    if (y <= -1.85) return lerp(0.07, 0.13, (y - bottom) / (-1.85 - bottom));
+    if (y <= 2.45) {
+      let lo = 0;
+      let hi = 1;
+      for (let i = 0; i < 24; i++) {
+        const m = (lo + hi) / 2;
+        if (side(m)[1] < y) lo = m;
+        else hi = m;
+      }
+      return side((lo + hi) / 2)[0];
+    }
+    return 1.62 * Math.sqrt(Math.max(0, 1 - (y - 2.45) / (top - 2.45)));
+  };
+  const halfDepth = (y: number) => lerp(0.06, 0.2, THREE.MathUtils.smoothstep(y, -2.5, 1.5));
+  for (let i = 0; i < pos.count; i++) {
+    const r = Math.sqrt(Math.max(1e-6, 1 - pos.getY(i) ** 2));
+    const y = lerp(bottom, top, (pos.getY(i) + 1) / 2);
+    pos.setXYZ(i, (pos.getX(i) / r) * halfWidth(y), y, (pos.getZ(i) / r) * halfDepth(y));
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
 function ellipsoidPoint(dir: THREE.Vector3, radii: THREE.Vector3, centre: THREE.Vector3, lift = 1) {
   const d = dir.clone();
   const s = 1 / Math.sqrt((d.x / radii.x) ** 2 + (d.y / radii.y) ** 2 + (d.z / radii.z) ** 2);
@@ -101,19 +136,10 @@ export class AnatomyScene implements StoryScene {
     uterus.renderOrder = 3;
     this.root.add(uterus);
 
-    // Endometrial cavity: an inverted triangle tapering into the cervical canal, glowing through the wall.
-    const cav = new THREE.Shape();
-    cav.moveTo(-1.62, 2.45);
-    cav.quadraticCurveTo(0, 2.72, 1.62, 2.45);
-    cav.quadraticCurveTo(0.62, 0.55, 0.13, -1.85);
-    cav.lineTo(0.07, -3.75);
-    cav.lineTo(-0.07, -3.75);
-    cav.lineTo(-0.13, -1.85);
-    cav.quadraticCurveTo(-0.62, 0.55, -1.62, 2.45);
-    const cavGeo = new THREE.ExtrudeGeometry(cav, { depth: 0.34, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.1, bevelSegments: 3, curveSegments: 24 });
-    cavGeo.translate(0, 0, -0.17);
+    // Endometrial cavity: an inverted triangle tapering into the cervical canal, glowing through the wall, as a soft
+    // rounded body (not a flat plate).
     // Opacity just under 1 so the lining blends and can fade with the rest of the context.
-    const endo = new THREE.Mesh(cavGeo, tissueMaterial({ color: "#e6a8c6", deep: "#8e4a78", rim: "#ffe4f2", glow: 0.6, fibre: 1.6, echo: 0.8, opacity: 0.999 }));
+    const endo = new THREE.Mesh(liningGeometry(), tissueMaterial({ color: "#e6a8c6", deep: "#8e4a78", rim: "#ffe4f2", glow: 0.6, fibre: 1.6, echo: 0.8, opacity: 0.999 }));
     this.context.push(endo.material as THREE.ShaderMaterial);
     endo.renderOrder = 1;
     this.root.add(endo);
@@ -131,9 +157,10 @@ export class AnatomyScene implements StoryScene {
       const pts = TUBE_PATH.map(([x, y, z]) => new THREE.Vector3(x * side, y, z));
       const curve = new THREE.CatmullRomCurve3(pts, false, "centripetal");
       this.tubeCurves.push(curve);
-      // Isthmus narrow, ampulla wider, infundibulum flaring at the end; the end inside the uterine wall tapers to a point.
+      // Isthmus narrow, ampulla wider, infundibulum flaring at the end; at the uterus it widens a little where it joins
+      // the wall (no point showing through the translucent uterus).
       const radius = (u: number) =>
-        (0.16 + 0.2 * THREE.MathUtils.smoothstep(u, 0.3, 0.6) + 0.22 * THREE.MathUtils.smoothstep(u, 0.86, 1)) * THREE.MathUtils.smoothstep(u, 0, 0.04);
+        0.16 + 0.2 * THREE.MathUtils.smoothstep(u, 0.3, 0.6) + 0.22 * THREE.MathUtils.smoothstep(u, 0.86, 1) + 0.08 * (1 - THREE.MathUtils.smoothstep(u, 0, 0.08));
       const tube = new THREE.Mesh(taperedTube(curve, 180, 14, radius), tubeMat);
       tube.renderOrder = 2;
       this.root.add(tube);
@@ -188,13 +215,13 @@ export class AnatomyScene implements StoryScene {
       }
       this.root.add(group);
 
-      // Utero-ovarian ligament, tapering to a point inside the uterine wall.
+      // Utero-ovarian ligament: from just inside the uterine wall, where it flares as it joins it, to the ovary.
       const lig = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(2.0 * side, 1.55, -0.1),
-        new THREE.Vector3(3.1 * side, 1.0, -0.15),
+        new THREE.Vector3(2.3 * side, 1.45, -0.1),
+        new THREE.Vector3(3.2 * side, 0.95, -0.15),
         new THREE.Vector3(4.05 * side, 0.45, -0.1),
       ]);
-      this.root.add(new THREE.Mesh(taperedTube(lig, 30, 8, (u) => 0.13 * THREE.MathUtils.smoothstep(u, 0, 0.12)), ligMat));
+      this.root.add(new THREE.Mesh(taperedTube(lig, 40, 16, (u) => 0.12 + 0.12 * (1 - THREE.MathUtils.smoothstep(u, 0, 0.3))), ligMat));
     }
 
     // ------------------------------------------------------------------ stimulation: several follicles grow at once
@@ -256,10 +283,14 @@ export class AnatomyScene implements StoryScene {
 
     this.scene.add(motes({ count: 160, box: [26, 16, 18], color: "#d9c8f2", size: 2.6, opacity: 0.45, center: [0, 1, -2] }));
 
+    // The first view is where the opening's zoom into her pelvis lands: the uterus and the near tubes, from just in
+    // front of her (about 12 cm), before the pull-back to the whole system.
     this.rig = new Rig([
-      { u: 0, target: [0, 1.7, 0], pos: [0.4, 2.0, 5.2] },
-      { u: 8, target: [0.6, 0.8, 0], pos: [2.2, 1.6, 20.5] },
-      { u: 21, target: [0.4, 0.6, 0], pos: [-2.0, 2.3, 26] },
+      { u: 0, target: [0, 0.9, 0], pos: [0.3, 1.25, 12.5] },
+      // Out to the whole system before the chapter's words have faded in.
+      // Far enough back that both ovaries stay on screen beside the captions on a 16:10 laptop.
+      { u: 5, target: [0.6, 0.8, 0], pos: [2.2, 1.6, 24.5] },
+      { u: 21, target: [0.4, 0.6, 0], pos: [-2.0, 2.3, 28.5] },
       { u: 30, target: [3.4, 0.4, 0], pos: [4.8, 1.8, 15.5] },
       { u: 38, target: [5.4, 0.25, 0.3], pos: [6.7, 1.4, 9.6] },
       { u: 56, target: [5.5, 0.15, 0.4], pos: [7.0, 0.9, 9.0] },
@@ -270,6 +301,18 @@ export class AnatomyScene implements StoryScene {
   }
 
   async load() {}
+
+  /** Its first view (local unit 0), for the opening's zoom to land on: the same lens, framing and position. */
+  openingCamera(ctx: Ctx, cam: THREE.PerspectiveCamera) {
+    cam.fov = this.camera.fov;
+    frameForCaptions(cam, ctx, 0.23);
+    this.rig.apply(cam, 0, ctx, 0.08);
+  }
+
+  /** Where that first view looks. */
+  openingTarget() {
+    return new THREE.Vector3().fromArray(this.rig.target.at(0));
+  }
 
   layout(ctx: Ctx) {
     this.scene.traverse((o) => {

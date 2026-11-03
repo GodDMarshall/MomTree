@@ -205,7 +205,7 @@ export const treatments: Treatment[] = [
       "In IVF, eggs are collected from the ovaries and fertilised with sperm in the embryology laboratory. Embryos are cultured and observed by embryologists, and one is transferred to the uterus at the right moment.",
     atAGlance: [
       { label: "Stimulation", value: "About 8–14 days of injections" },
-      { label: "Egg collection", value: "Under sedation or anaesthesia, usually 15–30 minutes" },
+      { label: "Egg collection", value: "Under sedation or anaesthesia, usually 15–30\u00a0minutes" },
       { label: "Embryo culture", value: "3–6 days" },
     ],
     whatItIs: [

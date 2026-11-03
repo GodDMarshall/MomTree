@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 const ways = [
   { icon: Phone, label: "Call", value: site.phone.display, href: site.phone.href, note: `Alternate: ${site.phoneAlt.display}` },
   { icon: WhatsApp, label: "WhatsApp", value: "Message us", href: whatsappLink(), note: "A quick question is welcome", external: true },
-  { icon: Mail, label: "Email", value: site.email, href: `mailto:${site.email}`, note: "Please avoid sending medical records by email" },
+  { icon: Mail, label: "Email", value: site.email, href: `mailto:${site.email}`, note: "Please avoid sending medical records by\u00a0email" },
   { icon: Pin, label: "Visit", value: "Vijayanagar, Mysuru", href: mapsLinks.directions, note: "Get directions", external: true },
 ];
 

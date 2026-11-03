@@ -12,6 +12,9 @@
   }
 }
 .life-stage {
+  /* The site's content column (.wrap: 1480px, centred, with the gutter), so on wide screens the story's words and
+     controls line up with the header and the pages. */
+  --edge: calc(max(0px, (100% - 1480px) / 2) + var(--gutter));
   --hud-bottom: calc(22px + env(safe-area-inset-bottom, 0px) + (100lvh - 100svh));
   position: sticky;
   top: 0;
@@ -101,7 +104,7 @@
   height: calc(var(--nav-h) + 120px);
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgb(14 7 25 / 0.66), rgb(14 7 25 / 0.3) 55%, transparent);
+  background: linear-gradient(to bottom, rgb(14 7 25 / 0.76), rgb(14 7 25 / 0.34) 55%, transparent);
 }
 
 /* ---------------------------------------------------------------- captions */
@@ -109,7 +112,7 @@
   --py: 0px;
   position: absolute;
   z-index: 4;
-  left: var(--gutter);
+  left: var(--edge);
   top: 50%;
   width: min(500px, 36vw);
   transform: translate3d(0, calc(-50% + var(--py)), 0);
@@ -239,6 +242,18 @@
   white-space: normal;
   max-width: 360px;
 }
+/* Long and short forms of a label: the short one on phones and short screens (see labelShort in story.ts). */
+.life-label-short {
+  display: none;
+}
+@media (max-width: 767px), (max-height: 500px) {
+  .life-label-long {
+    display: none;
+  }
+  .life-label-short {
+    display: inline;
+  }
+}
 /* Flipped (set by LifeUnfolds): the text runs out to the left of its dot, so the dot stays on its anchor. */
 .life-label.is-flip {
   flex-direction: row-reverse;
@@ -256,7 +271,7 @@
 .life-caption {
   position: absolute;
   z-index: 4;
-  right: calc(var(--gutter) + 6px);
+  right: calc(var(--edge) + 6px);
   top: calc(var(--nav-h) + 40px);
   width: min(280px, 26vw);
   display: flex;
@@ -274,8 +289,12 @@
   color: var(--color-leaf);
 }
 .life-captext {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(18 9 31 / 0.36);
   font-size: 12.5px;
   line-height: 1.5;
+  text-wrap: balance;
 }
 .life-day {
   font-family: var(--font-serif);
@@ -314,11 +333,17 @@
     0 0 2px rgb(14 7 25 / 0.9),
     0 1px 10px rgb(14 7 25 / 0.7);
 }
+/* A soft backing like the labels', so the notice stays readable over bright tissue; balanced lines, no lone word. */
 .life-illus {
+  width: fit-content;
   margin-top: 14px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgb(18 9 31 / 0.42);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-wrap: balance;
   color: rgb(255 255 255 / 0.85);
   text-shadow:
     0 0 2px rgb(14 7 25 / 0.9),
@@ -327,13 +352,15 @@
 
 /* ---------------------------------------------------------------- bottom HUD */
 .life-hud {
+  /* Room for the floating WhatsApp button at the right, unless the content column already clears it. */
+  --hud-r: max(var(--edge), calc(var(--gutter) + 72px));
   position: absolute;
   z-index: 5;
-  left: var(--gutter);
-  right: calc(var(--gutter) + 72px);
+  left: var(--edge);
+  right: var(--hud-r);
   bottom: var(--hud-bottom);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
@@ -401,7 +428,18 @@
 .life-chapters button:focus-visible {
   background: var(--color-lilac);
 }
+/* A long chapter name wraps onto two lines, so it never reaches the centred skip link. */
+.life-chtitle {
+  max-width: 190px;
+  line-height: 1.4;
+}
+/* Centred on the screen (not in the space left between the chapter name and the sound control, which moves as the
+   chapter name changes length). */
 .life-skip {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + (var(--hud-r) - var(--edge)) / 2);
+  transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -410,6 +448,7 @@
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 .life-sound {
   display: flex;
@@ -447,11 +486,12 @@
   .life-panel,
   .life-panel[data-kind="hero"],
   .life-panel[data-kind="final"] {
-    left: var(--gutter);
-    right: var(--gutter);
+    left: var(--edge);
+    right: var(--edge);
     width: auto;
     top: auto;
-    bottom: calc(var(--hud-bottom) + 100px);
+    /* Clear of the illustration notice above the controls, even when it takes two lines on a small phone. */
+    bottom: calc(var(--hud-bottom) + 108px);
     transform: translate3d(0, var(--py), 0);
   }
   .life-scrim {
@@ -471,7 +511,7 @@
     position: absolute;
     z-index: 4;
     top: calc(var(--nav-h) + 8px);
-    right: var(--gutter);
+    right: var(--edge);
     width: 62vw;
   }
   .life-captext {
@@ -480,13 +520,14 @@
   .life-illus {
     position: absolute;
     z-index: 5;
-    left: var(--gutter);
-    right: var(--gutter);
+    left: var(--edge);
+    right: var(--edge);
     bottom: calc(var(--hud-bottom) + 64px);
     margin: 0;
+    padding: 2px 5px;
     text-align: left;
     font-size: 9px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
   }
   .life-label {
     font-size: 9.5px;
@@ -502,10 +543,19 @@
     margin-left: 28px;
   }
   .life-hud {
-    right: calc(var(--gutter) + 64px);
+    --hud-r: calc(var(--edge) + 64px);
   }
   .life-sound-btn > span {
     display: none;
+  }
+  /* With only its icon, the sound control is a circle like the WhatsApp button beside it. */
+  .life-sound {
+    padding: 0;
+  }
+  .life-sound-btn {
+    width: 46px;
+    padding: 0;
+    justify-content: center;
   }
 }
 
@@ -559,6 +609,11 @@
   .life-rings {
     gap: 10px;
   }
+  /* Too narrow to centre it between the other controls: it takes its place in the row. */
+  .life-skip {
+    position: static;
+    transform: none;
+  }
   .life-rings svg {
     width: 46px;
     height: 46px;
@@ -586,7 +641,7 @@
   .life-panel,
   .life-panel[data-kind="hero"],
   .life-panel[data-kind="final"] {
-    left: var(--gutter);
+    left: var(--edge);
     right: auto;
   }
   .life-panel {
@@ -651,7 +706,7 @@
   .life-caption {
     position: absolute;
     top: 64px;
-    right: calc(var(--gutter) + 6px);
+    right: calc(var(--edge) + 6px);
     width: min(260px, 32vw);
   }
   .life-caption-body {
@@ -696,5 +751,16 @@
   }
   .life-sound-btn {
     height: 38px;
+  }
+}
+@media (max-width: 767px) and (max-height: 500px) {
+  .life-sound-btn {
+    width: 38px;
+  }
+}
+/* A small phone held sideways: the chapter number only, so the name never reaches the centred skip link. */
+@media (max-width: 759px) and (max-height: 500px) {
+  .life-chtitle {
+    display: none;
   }
 }

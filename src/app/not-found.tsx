@@ -3,7 +3,7 @@ import { Rings } from "@/components/ui/Rings";
 
 export default function NotFound() {
   return (
-    <section className="relative grid min-h-[90svh] place-items-center overflow-hidden px-[var(--gutter)] pt-28 text-center">
+    <section className="relative grid min-h-[90svh] place-items-center overflow-hidden px-[var(--gutter)] pb-20 pt-28 text-center">
       <Rings className="pointer-events-none absolute left-1/2 top-1/2 w-[min(110vw,900px)] -translate-x-1/2 -translate-y-1/2 text-leaf/40" count={10} />
       <div className="relative">
         <p className="t-label">Page not found</p>

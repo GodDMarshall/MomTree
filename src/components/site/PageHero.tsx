@@ -40,11 +40,19 @@ type Props = {
   aside?: React.ReactNode;
 };
 
+const RING_FADE = {
+  maskImage: "linear-gradient(to bottom, #000 50%, transparent 94%)",
+  WebkitMaskImage: "linear-gradient(to bottom, #000 50%, transparent 94%)",
+};
+
 /** Editorial page opening: breadcrumb, label, a large word-by-word title and a quiet ring ornament. */
 export function PageHero({ crumbs, label, title, lede, children, aside }: Props) {
   return (
     <header className="relative overflow-hidden pb-[clamp(56px,9vh,110px)] pt-[clamp(140px,22vh,220px)]">
-      <Rings className="pointer-events-none absolute -right-[22vw] -top-[6vw] w-[66vw] max-w-[900px] text-leaf/50 max-sm:-right-[40vw] max-sm:top-[96px]" count={9} />
+      {/* The rings fade out before the header ends, so they never stop in a straight cut. */}
+      <div className="pointer-events-none absolute inset-0" style={RING_FADE} aria-hidden="true">
+        <Rings className="absolute -right-[22vw] -top-[6vw] w-[66vw] max-w-[900px] text-leaf/50 max-sm:-right-[40vw] max-sm:top-[96px]" count={9} />
+      </div>
       <div className="wrap relative">
         <Breadcrumbs items={crumbs} />
         <div className={`mt-12 grid gap-12 ${aside ? "lg:grid-cols-12" : ""}`}>

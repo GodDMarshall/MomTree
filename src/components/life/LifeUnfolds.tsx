@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { captions, chapters, labelText, panels, plateBest, plates, toneAt, veilAt, type Panel, type PlateFraming } from "@/lib/life/story";
+import { captions, chapters, labelShort, labelText, panels, plateBest, plates, toneAt, veilAt, type Panel, type PlateFraming } from "@/lib/life/story";
 import type { FrameInfo, LifeEngine } from "@/lib/life/engine";
 import type { StoryAudio } from "@/lib/life/audio";
 import { whatsappLink } from "@/lib/site";
@@ -52,6 +52,7 @@ export function LifeUnfolds() {
   const capText = useRef<HTMLSpanElement>(null);
   const capDay = useRef<HTMLSpanElement>(null);
   const illusEl = useRef<HTMLSpanElement>(null);
+  const hudEl = useRef<HTMLDivElement>(null);
   const scaleEl = useRef<HTMLDivElement>(null);
   const scaleBar = useRef<HTMLSpanElement>(null);
   const scaleLabel = useRef<HTMLSpanElement>(null);
@@ -159,10 +160,11 @@ export function LifeUnfolds() {
     type Box = { l: number; t: number; r: number; b: number };
     const words: Box | null = !phone && pb && pb.width > 0 ? { l: pb.left - st.left - 8, t: pb.top - st.top - 6, r: pb.right - st.left + 8, b: pb.bottom - st.top + 6 } : null;
     const placed: Box[] = [];
-    // The illustration notice, and the figure caption while it shows, are in the way too.
+    // The illustration notice, the story's controls, and the figure caption while it shows, are in the way too.
     const notice = illusEl.current?.getBoundingClientRect();
-    for (const r of [notice && notice.width > 0 ? notice : null, Number(capWrap.current?.style.opacity) > 0.05 ? linesBox(capWrap.current) : null])
-      if (r) placed.push({ l: r.left - st.left - 6, t: r.top - st.top - 4, r: r.right - st.left + 6, b: r.bottom - st.top + 4 });
+    const controls = hudEl.current?.getBoundingClientRect();
+    for (const r of [notice && notice.width > 0 ? notice : null, controls && controls.width > 0 ? controls : null, Number(capWrap.current?.style.opacity) > 0.05 ? linesBox(capWrap.current) : null])
+      if (r) placed.push({ l: r.left - st.left - 6, t: r.top - st.top - 8, r: r.right - st.left + 6, b: r.bottom - st.top + 4 });
     const meets = (x: number, y: number, w: number, h: number, o: Box) => x < o.r && x + w > o.l && y < o.b && y + h > o.t;
     frame?.labels.forEach((l) => {
       const el = labelEls.current.get(l.id);
@@ -362,7 +364,16 @@ export function LifeUnfolds() {
               style={{ opacity: 0 }}
             >
               <i />
-              <b className="life-label-text">{text}</b>
+              <b className="life-label-text">
+                {labelShort[id] ? (
+                  <>
+                    <span className="life-label-long">{text}</span>
+                    <span className="life-label-short">{labelShort[id]}</span>
+                  </>
+                ) : (
+                  text
+                )}
+              </b>
             </span>
           ))}
         </div>
@@ -439,7 +450,7 @@ export function LifeUnfolds() {
         </div>
 
         {/* Bottom HUD: growth rings + chapter, skip, sound */}
-        <div className="life-hud">
+        <div ref={hudEl} className="life-hud">
           <div className="relative">
             <button
               type="button"
@@ -469,7 +480,7 @@ export function LifeUnfolds() {
               </svg>
               <span className="flex flex-col items-start text-left leading-none">
                 <span ref={chNum} className="font-serif text-[1.7rem] italic">01</span>
-                <span ref={chTitle} className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.22em] opacity-80 sm:block">
+                <span ref={chTitle} className="life-chtitle mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.22em] opacity-80 sm:block">
                   The beginning
                 </span>
               </span>
