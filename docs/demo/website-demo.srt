@@ -1,0 +1,243 @@
+1
+00:00:01,000 --> 00:00:05,927
+This is a website template for a fertility clinic, shown with placeholder details.
+
+2
+00:00:05,927 --> 00:00:09,389
+Let's see what each part does for patients, and for the clinic.
+
+3
+00:00:17,000 --> 00:00:22,500
+The site opens with Life Unfolds: the IVF journey, told as visitors scroll.
+
+4
+00:00:22,500 --> 00:00:27,791
+The story isn't a video: the visitor's browser draws each frame live, in 3D.
+
+5
+00:00:43,000 --> 00:00:46,155
+Patients can compare conventional IVF with ICSI,
+
+6
+00:00:46,155 --> 00:00:49,775
+where one sperm is injected into each mature egg.
+
+7
+00:01:02,700 --> 00:01:05,892
+The transfer takes the real path, through the cervix,
+
+8
+00:01:05,892 --> 00:01:08,520
+with the embryo labelled as enlarged.
+
+9
+00:01:20,100 --> 00:01:22,675
+The baby's size follows typical growth.
+
+10
+00:01:22,675 --> 00:01:26,779
+Every scene is marked as an illustration, not a patient's result.
+
+11
+00:01:36,600 --> 00:01:39,884
+Below the story, the home page introduces the clinic.
+
+12
+00:01:39,884 --> 00:01:44,733
+In review mode, dashed tags flag sample text and content awaiting approval.
+
+13
+00:01:44,733 --> 00:01:46,446
+Next come four commitments.
+
+14
+00:01:46,446 --> 00:01:51,967
+By design, the site shows no success rates: outcomes are discussed with each person.
+
+15
+00:01:51,967 --> 00:01:55,185
+Then patients meet the doctor who leads the clinic's care.
+
+16
+00:01:55,185 --> 00:01:59,631
+Here it's a sample profile, with a line drawing in place of a photograph.
+
+17
+00:01:59,633 --> 00:02:02,243
+An index covers all fourteen treatments.
+
+18
+00:02:02,243 --> 00:02:05,844
+When the mouse passes over one, a small lens shows its drawing.
+
+19
+00:02:05,844 --> 00:02:09,267
+Those the clinic doesn't offer are removed before launch.
+
+20
+00:02:09,267 --> 00:02:14,241
+In the laboratory section, five images from the same 3D engine glide past,
+
+21
+00:02:14,241 --> 00:02:16,779
+each labelled as a visualisation.
+
+22
+00:02:16,779 --> 00:02:21,367
+Claims that need proof, like the clean room, stay flagged until documented.
+
+23
+00:02:21,367 --> 00:02:24,498
+Testimonials change only when the visitor clicks.
+
+24
+00:02:24,498 --> 00:02:26,295
+In this demo, they're samples,
+
+25
+00:02:26,295 --> 00:02:30,351
+and a note explains that reviews describe care, not outcomes.
+
+26
+00:02:30,367 --> 00:02:33,224
+Common questions get short, plain answers.
+
+27
+00:02:33,224 --> 00:02:37,553
+Asked whether IVF can guarantee a pregnancy, the site says no.
+
+28
+00:02:37,567 --> 00:02:42,649
+At the bottom, a short form lets visitors ask for a call, without leaving the page.
+
+29
+00:02:44,933 --> 00:02:48,242
+Hovering over Treatments opens the full list, in groups.
+
+30
+00:02:48,242 --> 00:02:52,474
+The menu and the pages are built from one file, so they always match.
+
+31
+00:02:53,533 --> 00:02:58,483
+Each treatment has a page like this, tagged for review by the clinic's medical team.
+
+32
+00:02:58,483 --> 00:03:03,191
+All fourteen are laid out in six parts, including risks and limitations.
+
+33
+00:03:05,067 --> 00:03:06,188
+Before a first visit,
+
+34
+00:03:06,188 --> 00:03:10,192
+patients can get to know the Medical Director through a full profile.
+
+35
+00:03:10,192 --> 00:03:13,544
+It's set in one file, ready for the clinic's own doctor.
+
+36
+00:03:15,700 --> 00:03:19,395
+Room by room, the Facilities page describes each space.
+
+37
+00:03:19,395 --> 00:03:23,376
+Instead of borrowed photographs, 3D images show the work done there,
+
+38
+00:03:23,376 --> 00:03:26,352
+and dashed frames wait for the clinic's own.
+
+39
+00:03:28,533 --> 00:03:32,549
+The Patient stories page labels each testimonial as a sample.
+
+40
+00:03:32,549 --> 00:03:35,633
+Real ones need written permission and a legal check,
+
+41
+00:03:35,633 --> 00:03:39,057
+since medical advertising rules may not allow them.
+
+42
+00:03:40,933 --> 00:03:42,171
+In the knowledge centre,
+
+43
+00:03:42,171 --> 00:03:46,462
+eight plain-language guides help patients prepare questions for their doctor.
+
+44
+00:03:46,462 --> 00:03:50,771
+Search looks through the full text as you type, and topics narrow the list.
+
+45
+00:03:52,733 --> 00:03:55,504
+Each article waits for a clinician's check,
+
+46
+00:03:55,504 --> 00:04:00,479
+and ends by saying it's general education, not personal medical advice.
+
+47
+00:04:02,333 --> 00:04:05,605
+On the contact page, the request reads as one sentence,
+
+48
+00:04:05,605 --> 00:04:10,385
+the way a person would say it: a name, a phone number and a preferred date.
+
+49
+00:04:10,385 --> 00:04:12,376
+A checkbox asks for consent.
+
+50
+00:04:14,933 --> 00:04:18,804
+The thank-you appears only once the request has been forwarded,
+
+51
+00:04:18,804 --> 00:04:21,765
+by email or to a system the clinic chooses.
+
+52
+00:04:21,765 --> 00:04:24,400
+This one went to a test server, not a clinic.
+
+53
+00:04:24,400 --> 00:04:27,011
+The footer says plainly that this is a demo.
+
+54
+00:04:27,011 --> 00:04:30,306
+A link there opens the launch checklist: sixty items,
+
+55
+00:04:30,306 --> 00:04:35,492
+from phone numbers to medical and legal review, most with the file to change.
+
+56
+00:04:37,200 --> 00:04:42,396
+On phones, the same 3D story runs, adapting its quality to each device.
+
+57
+00:04:42,396 --> 00:04:48,069
+Where 3D can't run, or a visitor prefers less motion, there's a still version instead.
+
+58
+00:04:51,400 --> 00:04:54,123
+The full-screen menu keeps treatments grouped.
+
+59
+00:04:55,500 --> 00:04:57,887
+Before launch, placeholders are replaced,
+
+60
+00:04:57,887 --> 00:05:02,224
+medical content is approved, and requests are directed to the clinic.
+
+61
+00:05:02,224 --> 00:05:06,997
+Then demo and review modes are switched off, and the site becomes the clinic's own.
