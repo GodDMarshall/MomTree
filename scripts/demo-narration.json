@@ -1,0 +1,153 @@
+{
+  "voice": "af_heart",
+  "speed": 1.0,
+  "lang": "en-us",
+  "pronounce": {
+    "IVF": "I V F",
+    "IUI": "I U I"
+  },
+  "lines": [
+    {
+      "id": "intro",
+      "part": "intro",
+      "text": "This is a website template for a fertility clinic, shown with placeholder details. Let's see what each part does for patients, and for the clinic."
+    },
+    {
+      "id": "story-open",
+      "part": "story",
+      "at": 6.6,
+      "text": "The site opens with Life Unfolds: the IVF journey, told as visitors scroll."
+    },
+    {
+      "id": "story-live",
+      "part": "story",
+      "at": 12.1,
+      "text": "The story isn't a video: the visitor's browser draws each frame live, in 3D."
+    },
+    {
+      "id": "story-lab",
+      "part": "story",
+      "at": 32.6,
+      "text": "Patients can compare conventional IVF with ICSI, where one sperm is injected into each mature egg."
+    },
+    {
+      "id": "story-transfer",
+      "part": "story",
+      "at": 52.3,
+      "text": "The transfer takes the real path, through the cervix, with the embryo labelled as enlarged."
+    },
+    {
+      "id": "story-close",
+      "part": "story",
+      "at": 69.7,
+      "text": "The baby's size follows typical growth. Every scene is marked as an illustration, not a patient's result."
+    },
+    {
+      "id": "welcome",
+      "part": "site",
+      "text": "Below the story, the home page introduces the clinic. In review mode, dashed tags flag sample text and content awaiting approval."
+    },
+    {
+      "id": "principles",
+      "part": "site",
+      "text": "Next come four commitments. By design, the site shows no success rates: outcomes are discussed with each person."
+    },
+    {
+      "id": "director",
+      "part": "site",
+      "text": "Then patients meet the doctor who leads the clinic's care. Here it's a sample profile, with a line drawing in place of a photograph."
+    },
+    {
+      "id": "treatments-index",
+      "part": "site",
+      "text": "An index covers all fourteen treatments. When the mouse passes over one, a small lens shows its drawing. Those the clinic doesn't offer are removed before launch."
+    },
+    {
+      "id": "laboratory",
+      "part": "site",
+      "text": "In the laboratory section, five images from the same 3D engine glide past, each labelled as a visualisation. Claims that need proof, like the clean room, stay flagged until documented."
+    },
+    {
+      "id": "voices",
+      "part": "site",
+      "text": "Testimonials change only when the visitor clicks. In this demo, they're samples, and a note explains that reviews describe care, not outcomes."
+    },
+    {
+      "id": "questions",
+      "part": "site",
+      "text": "Common questions get short, plain answers. Asked whether IVF can guarantee a pregnancy, the site says no."
+    },
+    {
+      "id": "begin",
+      "part": "site",
+      "text": "At the bottom, a short form lets visitors ask for a call, without leaving the page."
+    },
+    {
+      "id": "megamenu",
+      "part": "site",
+      "text": "Hovering over Treatments opens the full list, in groups. The menu and the pages are built from one file, so they always match."
+    },
+    {
+      "id": "treatment-page",
+      "part": "site",
+      "text": "Each treatment has a page like this, tagged for review by the clinic's medical team. All fourteen are laid out in six parts, including risks and limitations."
+    },
+    {
+      "id": "doctors",
+      "part": "site",
+      "text": "Before a first visit, patients can get to know the Medical Director through a full profile. It's set in one file, ready for the clinic's own doctor."
+    },
+    {
+      "id": "facilities",
+      "part": "site",
+      "text": "Room by room, the Facilities page describes each space. Instead of borrowed photographs, 3D images show the work done there, and dashed frames wait for the clinic's own."
+    },
+    {
+      "id": "stories",
+      "part": "site",
+      "text": "The Patient stories page labels each testimonial as a sample. Real ones need written permission and a legal check, since medical advertising rules may not allow them."
+    },
+    {
+      "id": "knowledge",
+      "part": "site",
+      "text": "In the knowledge centre, eight plain-language guides help patients prepare questions for their doctor. Search looks through the full text as you type, and topics narrow the list."
+    },
+    {
+      "id": "article",
+      "part": "site",
+      "text": "Each article waits for a clinician's check, and ends by saying it's general education, not personal medical advice."
+    },
+    {
+      "id": "booking",
+      "part": "site",
+      "text": "On the contact page, the request reads as one sentence, the way a person would say it: a name, a phone number and a preferred date. A checkbox asks for consent."
+    },
+    {
+      "id": "booking-sent",
+      "part": "site",
+      "text": "The thank-you appears only once the request has been forwarded, by email or to a system the clinic chooses. This one went to a test server, not a clinic."
+    },
+    {
+      "id": "checklist",
+      "part": "site",
+      "text": "The footer says plainly that this is a demo. A link there opens the launch checklist: sixty items, from phone numbers to medical and legal review, most with the file to change."
+    },
+    {
+      "id": "mobile-story",
+      "part": "mobile",
+      "at": 0.8,
+      "text": "On phones, the same 3D story runs, adapting its quality to each device. Where 3D can't run, or a visitor prefers less motion, there's a still version instead."
+    },
+    {
+      "id": "mobile-menu",
+      "part": "mobile",
+      "at": 15.0,
+      "text": "The full-screen menu keeps treatments grouped."
+    },
+    {
+      "id": "outro",
+      "part": "outro",
+      "text": "Before launch, placeholders are replaced, medical content is approved, and requests are directed to the clinic. Then demo and review modes are switched off, and the site becomes the clinic's own."
+    }
+  ]
+}

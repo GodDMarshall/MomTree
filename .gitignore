@@ -14,3 +14,6 @@ _reference/
 test-results/
 # Local editor / agent tooling
 .claude/
+
+# Python (scripts/demo-voice.py)
+__pycache__/

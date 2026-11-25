@@ -1,7 +1,14 @@
-// Records a walkthrough video of the whole site, with the story's own generative score.
+// Records a narrated walkthrough video of the whole site, with subtitles and the story's own generative score.
 //
 //   npm run build
 //   npm run demo:video                          # starts the site, records every part, writes docs/demo/website-demo.mp4
+//
+// Narration: the words are in scripts/demo-narration.json. They are spoken first, by scripts/demo-voice.py (Kokoro,
+// an open text-to-speech model that runs locally; see the top of that file to install it), so that the picture can
+// wait for the voice: scenes recorded here are timed around their lines, and the story and phone scenes, whose pace
+// is fixed, give each line a start time ("at", seconds into the part). Subtitles of the same words are set in the
+// site's own font. Set DEMO_VOICE_MODEL to the folder with the model files, and PYTHON if the Python that has
+// kokoro-onnx installed is not `python3`.
 //
 // Options:
 //   --base <url>       record a server that is already running (otherwise `next start` is launched on a free port,
@@ -15,6 +22,9 @@
 //                      (with the score already recorded in the work folder, if there is one)
 //   --preview <n>      quick draft: keep every nth frame only (timing is unchanged, motion is choppy)
 //   --crf <n>          H.264 quality, lower is better and larger (default 24; 26 keeps a 4-minute video near 40 MB)
+//   --no-voice         no narration and no subtitles (the video of earlier versions)
+//   --no-encode        record, then stop (to re-record one part, then join everything with --encode-only)
+//   --voice-model <d>  the folder with Kokoro's model files (instead of DEMO_VOICE_MODEL)
 //
 // How it works. Frames are rendered on request, not recorded in real time, so the video is smooth on any machine,
 // including one without a GPU (WebGL then runs in software, slowly). The page's clock is virtual (Playwright's
@@ -29,6 +39,7 @@ import path from "node:path";
 import http from "node:http";
 import net from "node:net";
 import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { launchBrowser } from "./lib/browser.mjs";
 
@@ -52,6 +63,25 @@ const CRF = Number(opt("crf", 24));
 const W = 1920;
 const H = 1080;
 const DT = 1000 / FPS;
+
+// ------------------------------------------------------------------------------------------- narration
+const NARRATION_FILE = path.join(root, "scripts/demo-narration.json");
+const VOICE_DIR = path.join(WORK, "voice");
+const VOICED = !flag("no-voice");
+/** The spoken narration ({ lines: { id: { file, duration, segments, hash } } }), once demo-voice.py has run. */
+let VOICE = null;
+const readJson = (file, fallback = null) => (fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : fallback);
+function loadVoice() {
+  VOICE = VOICED ? readJson(path.join(VOICE_DIR, "voice.json")) : null;
+  return VOICE;
+}
+/** Speak the narration (only lines that changed are spoken again). */
+function speak() {
+  const model = opt("voice-model", process.env.DEMO_VOICE_MODEL ?? "");
+  const r = spawnSync(process.env.PYTHON ?? "python3", [path.join(root, "scripts/demo-voice.py"), "--narration", NARRATION_FILE, "--out", VOICE_DIR, ...(model ? ["--model", model] : [])], { stdio: "inherit" });
+  if (r.status !== 0) throw new Error("The narration could not be spoken (see above); --no-voice records the video without it.");
+  return loadVoice();
+}
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -194,8 +224,40 @@ class Recorder {
     this.cur = { x: W * 0.62, y: H * 0.56, o: 0 };
     this.rip = null;
     this.fade = 0;
+    this.cues = [];
+    this.speechEnd = 0;
     fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });
+    fs.rmSync(`${dir}.cues.json`, { force: true });
+  }
+
+  /** Start a line of the narration now, once the previous one has been said; the picture goes on meanwhile. */
+  async say(id) {
+    const line = VOICE?.lines?.[id];
+    if (!line) return;
+    await this.waitSpeech(0.25);
+    this.cues.push({ id, t: +this.t.toFixed(4), hash: line.hash });
+    this.speechEnd = this.t + line.duration;
+    this.line = { start: this.t, segments: line.segments };
+  }
+
+  /** Hold until sentence `i` of the line being said begins (or `frac` of the way through it). */
+  async atSentence(i, frac = 0) {
+    const seg = this.line?.segments?.[i];
+    if (!seg) return;
+    const left = this.line.start + seg.start + frac * (seg.end - seg.start) - this.t;
+    if (left > 0.5 / FPS) await this.hold(left);
+  }
+
+  /** Hold the picture until the line being said has ended, and a breath more. */
+  async waitSpeech(pad = 0.4) {
+    const left = this.speechEnd + pad - this.t;
+    if (left > 0.5 / FPS) await this.hold(left);
+  }
+
+  /** Keep the narration's timing with the frames (encode() places the voice and the subtitles from it). */
+  saveCues() {
+    fs.writeFileSync(`${this.dir}.cues.json`, JSON.stringify(this.cues));
   }
 
   /** Show a caption chip from now for `sec` seconds. */
@@ -282,6 +344,16 @@ class Recorder {
       const max = document.documentElement.scrollHeight - innerHeight;
       return Math.max(0, Math.min(max, el.getBoundingClientRect().top + scrollY - offset));
     }, { selector, offset });
+  }
+
+  /** Document y of the first element in the page's main content whose text starts with `text`, less `offset`. */
+  async yOfText(text, offset = 110) {
+    return this.page.evaluate(({ text, offset }) => {
+      const el = [...document.querySelectorAll("main p, main h1, main h2, main h3, main li")].find((e) => e.textContent.trim().startsWith(text));
+      if (!el) return null;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      return Math.max(0, Math.min(max, el.getBoundingClientRect().top + scrollY - offset));
+    }, { text, offset });
   }
 
   /** Scroll smoothly to a document y or an element, over `sec` seconds. */
@@ -372,7 +444,8 @@ class Recorder {
 }
 
 async function newPage(browser, { viewport = { width: W, height: H }, dpr = 1, mobile = false } = {}) {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: dpr, isMobile: mobile, hasTouch: mobile, reducedMotion: "no-preference" });
+  // An Indian locale and time zone, as the site's visitors have (the date field reads day first, like the site).
+  const context = await browser.newContext({ viewport, deviceScaleFactor: dpr, isMobile: mobile, hasTouch: mobile, reducedMotion: "no-preference", locale: "en-IN", timezoneId: "Asia/Kolkata" });
   await context.addInitScript(INIT);
   const page = await context.newPage();
   await page.clock.install({ time: new Date("2026-12-01T10:00:00+05:30") });
@@ -412,10 +485,25 @@ const MARK = (size, ring = "#ffffff") => `
   </svg>`;
 
 const RINGS = (n, color, opacity) =>
-  `<svg viewBox="0 0 200 200" style="position:absolute;width:1500px;height:1500px;left:50%;top:50%;transform:translate(-50%,-50%);opacity:${opacity}" fill="none" stroke="${color}" stroke-width=".25">${Array.from(
+  `<svg viewBox="0 0 200 200" style="position:absolute;width:1500px;height:1500px;left:50%;top:50%;transform:translate(-50%,-50%);overflow:visible;opacity:${opacity}" fill="none" stroke="${color}" stroke-width=".25">${Array.from(
     { length: n },
     (_, i) => `<circle cx="100" cy="100" r="${12 + i * 9}"/>`,
   ).join("")}</svg>`;
+
+/** Show `html` over a page of the site (loaded for its fonts) in a layer of its own. The page's body is hidden rather
+ *  replaced: the app may still render into the body after loading, which would bring the page back. */
+async function showOver(page, html) {
+  await page.evaluate((html) => {
+    document.body.style.setProperty("display", "none", "important");
+    let layer = document.getElementById("__over");
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.id = "__over";
+      document.documentElement.appendChild(layer);
+    }
+    layer.innerHTML = html;
+  }, html);
+}
 
 // ------------------------------------------------------------------------------------------------ parts
 async function partCard(browser, base, kind) {
@@ -423,21 +511,20 @@ async function partCard(browser, base, kind) {
   await load(page, `${base}/privacy`);
   const id = await identity(page);
   const intro = kind === "intro";
-  await page.evaluate(
-    ({ html }) => {
-      document.body.innerHTML = html;
-    },
-    { html: cardHtml(id, intro) },
-  );
+  await showOver(page, cardHtml(id, intro));
   await page.evaluate(() => document.fonts.ready);
   const rec = new Recorder(page, cdp, path.join(WORK, kind));
-  const dur = intro ? 5.2 : 5.6;
+  // The card stays until its line has been said (the outro's line ends before its fade).
+  const line = VOICE?.lines?.[kind];
+  const sayAt = intro ? 1.0 : 0.6;
+  const dur = Math.max(intro ? 5.2 : 5.6, line ? sayAt + line.duration + (intro ? 0.8 : 1.6) : 0);
   const keys = intro
     ? { mark: [0.25, 1.2], name: [0.7, 1.7], desc: [1.0, 1.9], sub: [1.6, 2.6], note: [2.0, 2.9] }
     : { mark: [0.2, 1.0], name: [0.45, 1.35], desc: [0.7, 1.5], sub: [1.0, 2.1], note: [1.5, 2.4] };
   rec.fade = intro ? 1 : 0;
   for (let i = 0, n = Math.round(dur * FPS); i < n; i++) {
     const t = i / FPS;
+    if (i === Math.round(sayAt * FPS)) await rec.say(kind);
     if (intro) rec.fade = 1 - smooth(0, 0.8, t);
     else rec.fade = smooth(dur - 1.0, dur, t);
     await rec.step({
@@ -464,6 +551,7 @@ async function partCard(browser, base, kind) {
       await rec.step();
     }
   }
+  rec.saveCues();
   await context.close();
   return rec.n;
 }
@@ -484,7 +572,7 @@ function cardHtml(id, intro) {
             : `<div data-a="sub" style="opacity:0;margin-top:50px;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:1100px">${features
                 .map((f) => `<span style="padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-size:16px;font-weight:500;color:#efe8f8">${f}</span>`)
                 .join("")}</div>
-               <div data-a="note" style="opacity:0;margin-top:44px;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#c6bbd8">Every name and detail shown is a placeholder · set them in one file</div>`
+               <div data-a="note" style="opacity:0;margin-top:44px;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#c6bbd8">Every name and detail shown is a placeholder · the launch checklist lists each one</div>`
         }
       </div>
     </div>`;
@@ -581,29 +669,47 @@ async function partSite(browser, base) {
   };
   const left = () => page.evaluate(() => document.documentElement.dataset.immersive === "false");
   await arrive();
-  for (let i = 0; i < 4 && !(await left()); i++) await arrive();
-  if (!(await left())) log("site: the page did not leave the story's mode at the story's end; the first frames will differ");
+  for (let i = 0; i < 2 && !(await left()); i++) await arrive();
+  if (!(await left())) {
+    // Still not seen: set the state the story sets when it ends (the navigation, the floating buttons and the section
+    // rail follow it), as the story part shows it, and let their transitions finish.
+    await page.evaluate(() => Object.assign(document.documentElement.dataset, { immersive: "false", tone: "light" }));
+    for (let i = 0; i < 20; i++) {
+      await page.clock.runFor(100);
+      await page.evaluate(() => window.__vtStep(100));
+    }
+  }
   const rec = new Recorder(page, cdp, path.join(WORK, "site"));
 
-  // ---- out of the story and into the home page
-  await rec.scrollTo(await rec.yOf("#welcome", 40), 2.4);
+  // ---- out of the story and into the home page. Each scene starts its line of the narration, acts while it is
+  // said, then waits for it to end (rec.say / rec.waitSpeech). On a new page the line starts once the page is up.
+  // The subtitles sit low on these pages, so the scrolling keeps what a line describes above y ≈ 900.
+  rec.caption("02", "The home page", 3.6, "top");
+  await rec.say("welcome");
+  await rec.scrollTo(await rec.yOf("#welcome", 0), 2.4);
   await rec.hold(1.0);
-  rec.caption("02", "An editorial home page: the clinic, its principles and its doctor", 4.6);
-  await rec.hold(0.8);
-  await rec.scrollTo("#principles", 2.2, 60);
-  await rec.hold(1.6);
-  await rec.scrollTo("#director", 2.0, 40);
-  await rec.hold(2.2);
-  rec.caption("02", "Every treatment, one index", 3.4);
-  await rec.scrollTo("#treatments", 2.0, 40);
+  await rec.waitSpeech();
+  await rec.say("principles");
+  await rec.scrollTo("#principles", 2.2, -40);
+  await rec.hold(1.2);
+  await rec.waitSpeech();
+  await rec.say("director");
+  await rec.scrollTo("#director", 2.0, -100);
+  await rec.hold(1.2);
+  await rec.waitSpeech();
+  await rec.say("treatments-index");
+  await rec.scrollTo("#treatments", 2.0, 0);
   await rec.pointer(true);
   const rows = await page.locator("#treatments a[href^='/treatments/']").count();
-  for (const k of [0, 3, 5].filter((k) => k < rows)) {
+  for (const k of [0, 1, 2].filter((k) => k < rows)) {
     await rec.moveToEl(`#treatments a[href^='/treatments/'] >> nth=${k}`, 0.7, 0.35, 0.5);
-    await rec.hold(0.5);
+    await rec.hold(0.7);
   }
+  // Off the list (its lens closes), then the pointer goes.
+  await rec.moveTo(W * 0.3, H * 0.3, 0.6);
   await rec.pointer(false);
-  rec.caption("02", "Inside the laboratory: 3D plates travel sideways as you scroll", 4.6);
+  await rec.waitSpeech();
+  await rec.say("laboratory");
   const lab = await rec.yOf("#laboratory", 0);
   await rec.scrollTo(lab, 1.6);
   const labEnd = await page.evaluate(() => {
@@ -613,131 +719,179 @@ async function partSite(browser, base) {
   });
   await rec.scrollTo(Math.max(lab + 10, labEnd), 7.5);
   await rec.hold(0.6);
-  rec.caption("02", "Sample testimonials, then common questions", 3.6);
-  await rec.scrollTo("#voices", 2.0, 60);
+  await rec.waitSpeech();
+  await rec.say("voices");
+  await rec.scrollTo("#voices", 2.0, 130);
   await rec.pointer(true);
   await rec.click("#voices button[aria-label='Next review']");
   await rec.hold(1.4);
   await rec.click("#voices button[aria-label='Next review']", 0.4);
   await rec.hold(1.2);
   await rec.pointer(false);
-  await rec.scrollTo("#questions", 1.8, 60);
+  await rec.waitSpeech();
+  await rec.say("questions");
+  await rec.scrollTo("#questions", 1.8, -40);
   await rec.pointer(true);
-  await rec.click("#questions button[aria-expanded] >> nth=0");
-  await rec.hold(2.0);
+  // The first answer is open already; open "Can IVF guarantee a pregnancy?" (the first one closes by itself).
+  await rec.click("#questions button[aria-expanded] >> nth=3");
+  await rec.hold(1.6);
   await rec.pointer(false);
-  await rec.scrollTo("#begin", 2.0, 40);
-  await rec.hold(1.8);
+  await rec.waitSpeech();
+  // The heading first, then on down to the form and its button.
+  await rec.say("begin");
+  await rec.scrollTo("#begin", 1.8, -30);
+  await rec.hold(0.4);
+  await rec.scrollTo("#begin", 1.6, -240);
+  await rec.hold(0.8);
+  await rec.waitSpeech();
 
   // ---- treatments, through the mega menu
   const go = async (href, sec = 1) => {
     await rec.click(`header nav[aria-label='Main'] a[href='${href}']:visible`, sec);
     await rec.until((h) => location.pathname === h, 8, href);
-    await rec.hold(0.4);
+    // Away from the menu, so its dropdown closes.
+    await rec.moveTo(W * 0.5, H * 0.42, 0.5);
   };
-  rec.caption("03", "Treatments: a mega menu, then a page for each treatment", 4.4);
+  // The section name shows first and has gone before the menu opens over its place.
+  rec.caption("03", "Treatments", 2.2, "top");
+  await rec.hold(2.3);
+  await rec.say("megamenu");
   await rec.pointer(true);
   await rec.moveToEl("header nav[aria-label='Main'] a[href='/treatments']:visible", 1.0);
   await rec.hold(1.4);
+  await rec.waitSpeech(0.2);
   await rec.click("header a[href='/treatments/ivf']:visible", 0.9);
   await rec.until(() => location.pathname === "/treatments/ivf", 8);
   await rec.pointer(false);
+  await rec.say("treatment-page");
   await rec.hold(1.6);
   await rec.scrollTo(900, 3.0);
   await rec.hold(0.8);
   await rec.scrollTo(2100, 3.2);
   await rec.hold(1.0);
+  await rec.waitSpeech();
 
   // ---- doctors
-  rec.caption("04", "Doctors: a profile page for each specialist", 3.8);
+  rec.caption("04", "Doctors", 3.4, "top");
   await rec.pointer(true);
   await go("/doctors");
-  await rec.hold(1.2);
+  await rec.say("doctors");
+  await rec.scrollTo("main a[href^='/doctors/']", 1.4, 420);
+  await rec.hold(0.4);
   await rec.click("main a[href^='/doctors/']:visible", 0.9);
   await rec.until(() => /^\/doctors\/./.test(location.pathname), 8);
   await rec.pointer(false);
   await rec.hold(1.6);
   await rec.scrollTo(1100, 2.8);
   await rec.hold(1.0);
+  await rec.waitSpeech();
 
   // ---- facilities
-  rec.caption("05", "Facilities, each illustrated until the clinic's photographs arrive", 4.4);
+  rec.caption("05", "Facilities", 3.4, "top");
   await rec.pointer(true);
   await go("/facilities");
   await rec.pointer(false);
+  await rec.say("facilities");
   await rec.hold(1.0);
-  await rec.scrollTo(1250, 3.0);
+  await rec.scrollTo(1370, 3.0);
   await rec.hold(0.8);
   await rec.scrollTo(2500, 2.8);
   await rec.hold(0.8);
+  await rec.waitSpeech();
 
   // ---- patient stories
-  rec.caption("06", "Patient stories (sample testimonials in this demo)", 3.6);
+  rec.caption("06", "Patient stories", 3.4, "top");
   await rec.pointer(true);
   await go("/patient-stories");
   await rec.pointer(false);
-  await rec.hold(1.0);
+  await rec.say("stories");
   await rec.scrollTo(700, 2.2);
   await rec.hold(1.0);
+  await rec.waitSpeech();
 
-  // ---- knowledge centre
-  rec.caption("07", "Knowledge centre: search and filter articles", 4.0);
+  // ---- knowledge centre: the search and the topics while the second sentence speaks of them
+  rec.caption("07", "Knowledge centre", 3.4, "top");
   await rec.pointer(true);
   await go("/knowledge-centre");
-  await rec.hold(0.8);
+  await rec.say("knowledge");
   const search = "main input[type='search'], main input[placeholder]";
-  await rec.click(search, 0.9);
+  const finder = await page.evaluate((sel) => document.querySelector(sel)?.getBoundingClientRect().top + scrollY, search);
+  if (finder) await rec.scrollTo(Math.max(0, finder - 250), 1.6);
+  await rec.atSentence(1);
+  await rec.click(search, 0.7);
   await rec.type("ICSI", 7);
-  await rec.hold(1.4);
+  await rec.hold(1.0);
   await page.keyboard.press("Control+A");
   await page.keyboard.press("Backspace");
-  await rec.hold(0.4);
-  await rec.click("main [role='group'] button >> nth=3", 0.9);
-  await rec.hold(1.6);
+  await rec.hold(0.3);
+  await rec.click("main [role='group'] button >> nth=3", 0.8);
+  await rec.hold(1.4);
+  await rec.waitSpeech(0.2);
   await rec.click("main a[href^='/knowledge-centre/']:visible", 1.0);
   await rec.until(() => /^\/knowledge-centre\/./.test(location.pathname), 8);
   await rec.pointer(false);
-  await rec.hold(1.4);
-  await rec.scrollTo(1000, 3.0);
+  await rec.say("article");
+  await rec.scrollTo(80, 0.4);
   await rec.hold(0.8);
+  // Down to the article's closing note, which the line ends on, and stay there.
+  const note = await rec.yOfText("This page offers general education", 600);
+  await rec.scrollTo(note ?? 1000, 3.2);
+  await rec.hold(0.6);
+  await rec.waitSpeech();
 
   // ---- contact: the conversational appointment request, sent for real (to a local receiver)
-  rec.caption("08", "Booking: a request written as one sentence", 4.0);
+  rec.caption("08", "Appointment request", 3.4, "top");
   await rec.pointer(true);
   await go("/contact");
-  await rec.hold(0.6);
+  await rec.say("booking");
   await rec.scrollTo("form", 2.0, 220);
-  await rec.click("form input[name='name']", 0.8);
+  // Each field is clicked near its end, so the pointer is not over the words being typed.
+  await rec.click("form input[name='name']", 0.8, 0.92);
   await rec.type("Ananya", 9);
-  await rec.click("form input[name='phone']", 0.7);
-  await rec.type("98765 43210", 12);
+  await rec.click("form input[name='phone']", 0.7, 0.92);
+  await rec.type("00000 00000", 12); // undialable, like the site's own placeholder number
   await rec.click("form input[name='date']", 0.7);
   await page.locator("form input[name='date']").fill("2026-12-08");
-  await rec.hold(0.6);
+  await rec.atSentence(1);
+  await rec.click("form input[type='checkbox']", 0.8);
+  await rec.hold(0.4);
+  await rec.waitSpeech(0.1);
   await rec.click("form textarea[name='message']", 0.7);
   await rec.type("We would like to talk about our options.", 22);
-  await rec.click("form input[type='checkbox']", 0.8);
-  await rec.hold(0.5);
-  rec.caption("08", "The request is validated, sent and confirmed with a reference", 4.6);
+  await rec.hold(0.3);
+  await rec.say("booking-sent");
   await rec.click("form button[type='submit']", 0.8);
   await rec.until(() => /Request received/i.test(document.body.innerText), 10);
   await rec.pointer(false);
-  await rec.hold(2.6);
+  // The thank-you is shorter than the form: up a little, so the next section's heading stays below the subtitles.
+  await rec.scrollTo((await rec.scrollY()) - 120, 0.8);
+  await rec.hold(1.2);
+  await rec.waitSpeech();
 
   // ---- the footer and the launch checklist (review mode)
-  rec.caption("09", "Review mode: a launch checklist for the clinic's sign-off", 4.4);
+  rec.caption("09", "Launch checklist", 3.4, "top");
+  // Room below the footer for this shot only, so its demo notice, which the line mentions, sits above the subtitles.
+  await page.addStyleTag({ content: "footer{padding-bottom:96px}" });
+  await rec.say("checklist");
   await rec.scrollTo(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight), 2.4);
-  await rec.hold(1.0);
+  await rec.hold(0.6);
   const checklist = await page.locator("footer a[href='/review']:visible").count();
   if (checklist) {
+    await rec.atSentence(1);
     await rec.pointer(true);
-    await rec.click("footer a[href='/review']:visible", 1.0);
+    await rec.click("footer a[href='/review']:visible", 0.9);
     await rec.until(() => location.pathname === "/review", 8);
     await rec.pointer(false);
-    await rec.hold(1.2);
-    await rec.scrollTo(900, 2.6);
-    await rec.hold(1.2);
+    await rec.hold(0.8);
+    await rec.scrollTo(900, 2.2);
+    // To the medical and legal review rows as the line names them.
+    await rec.atSentence(1, 0.62);
+    const medical = await rec.yOfText("Treatments (medical copy)", 140);
+    if (medical) await rec.scrollTo(medical, 2.2);
+    await rec.hold(0.8);
   }
+  await rec.waitSpeech(0.6);
+  rec.saveCues();
   await rec.fadeTo(1, 0.7);
   await context.close();
   return rec.n;
@@ -759,8 +913,9 @@ async function partMobile(browser, base) {
     // The stage (text and background) in the site's own fonts, rendered once.
     const s = await newPage(browser);
     await load(s.page, `${base}/privacy`);
-    await s.page.evaluate(({ html }) => (document.body.innerHTML = html), {
-      html: `<div style="position:fixed;inset:0;overflow:hidden;color:#fff;font-family:var(--font-sans);background:radial-gradient(ellipse 60% 80% at 66% 50%, #46247a 0%, #241339 55%, #120a20 100%)">
+    await showOver(
+      s.page,
+      `<div style="position:fixed;inset:0;overflow:hidden;color:#fff;font-family:var(--font-sans);background:radial-gradient(ellipse 60% 80% at 66% 50%, #46247a 0%, #241339 55%, #120a20 100%)">
         ${RINGS(10, "#c7a8f0", 0.2).replace("left:50%", "left:66%")}
         <div style="position:absolute;left:150px;top:50%;transform:translateY(-50%);max-width:640px">
           <span style="display:inline-grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border-radius:999px;background:#d9b36c;color:#170c27;font-size:13px;font-weight:700">10</span>
@@ -769,7 +924,7 @@ async function partMobile(browser, base) {
           <div style="margin-top:34px;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#c6bbd8">${id.short} · ${id.descriptor}</div>
         </div>
       </div>`,
-    });
+    );
     await s.page.evaluate(() => document.fonts.ready);
     const r = await s.cdp.send("Page.captureScreenshot", { format: "png" });
     fs.writeFileSync(stagePath, Buffer.from(r.data, "base64"));
@@ -815,9 +970,9 @@ async function partMobile(browser, base) {
   });
   // The menu, as a full-screen drawer.
   await rec.click("header button[aria-label='Open menu']:visible", 0.6);
-  await rec.hold(1.8);
+  await rec.hold(1.0);
   await rec.click("#mobile-drawer summary", 0.7);
-  await rec.hold(1.6);
+  await rec.hold(2.5);
   await context.close();
 
   // Set each phone frame into the stage.
@@ -894,32 +1049,226 @@ function frameCount(part) {
   return fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".jpg")).length : 0;
 }
 
-function encode() {
+// ------------------------------------------------------------------------------- narration and subtitles
+/** Every line of the narration on the video's timeline: from the cues of the parts timed around it, or from the
+ *  lines' own start times in the story and phone parts. */
+const warned = new Set();
+const warnOnce = (msg) => warned.has(msg) || (warned.add(msg), log(msg));
+
+function narrationTimeline() {
+  if (!VOICE) return [];
+  const lines = readJson(NARRATION_FILE).lines;
+  const out = [];
+  let offset = 0;
+  for (const part of ALL_PARTS) {
+    if (!frameCount(part)) continue;
+    const cues = readJson(path.join(WORK, `${part}.cues.json`)) ?? lines.filter((l) => l.part === part && typeof l.at === "number").map((l) => ({ id: l.id, t: l.at }));
+    for (const c of cues) {
+      const v = VOICE.lines[c.id];
+      if (!v) continue;
+      if (c.hash && c.hash !== v.hash) warnOnce(`narration: "${c.id}" was changed after the ${part} part was recorded; record that part again so the picture fits it`);
+      out.push({ ...v, id: c.id, part, start: offset + c.t });
+    }
+    offset += (frameCount(part) * PREVIEW) / FPS;
+  }
+  out.sort((a, b) => a.start - b.start);
+  for (let i = 1; i < out.length; i++) {
+    if (out[i].start < out[i - 1].start + out[i - 1].duration) warnOnce(`narration: "${out[i - 1].id}" runs into "${out[i].id}"`);
+  }
+  return out;
+}
+
+/** A sentence too long for two lines on screen is shown in two halves, split near the middle at a pause. */
+function screenParts(text, max = 88) {
+  if (text.length <= max) return [text];
+  const mid = text.length / 2;
+  let at = -1;
+  for (const m of text.matchAll(/[,;:\u2013\u2014]\s/g)) if (at < 0 || Math.abs(m.index + 1 - mid) < Math.abs(at - mid)) at = m.index + 1;
+  if (at < 0 || Math.abs(at - mid) > text.length * 0.3) at = text.lastIndexOf(" ", mid);
+  return [text.slice(0, at).trim(), text.slice(at).trim()];
+}
+
+/** The subtitles: each sentence on screen while it is said, and a moment after unless the next one comes first. */
+function subtitleCues() {
+  const subs = [];
+  for (const line of narrationTimeline()) {
+    for (const seg of line.segments) {
+      const parts = screenParts(seg.text);
+      const chars = parts.reduce((s, p) => s + p.length, 0);
+      let t = line.start + seg.start;
+      for (const text of parts) {
+        const d = ((seg.end - seg.start) * text.length) / chars;
+        subs.push({ text, start: t, end: t + d, side: line.part === "mobile" ? "left" : line.part === "site" ? "low" : "centre" });
+        t += d;
+      }
+    }
+  }
+  subs.sort((a, b) => a.start - b.start);
+  subs.forEach((s, i) => (s.end = Math.min(s.end + 0.4, subs[i + 1]?.start ?? Infinity)));
+  return subs;
+}
+
+const SUBTITLE_STYLE = 4; // part of each image's name: change it when the look below changes
+const subtitleFile = (s) => path.join(WORK, "subtitles", `${createHash("sha1").update(`${SUBTITLE_STYLE}|${s.side}|${s.text}`).digest("hex").slice(0, 16)}.png`);
+
+/** Break a subtitle into lines of at most `max` characters, so its box fits the words: where it can, at a pause
+ *  (after a comma, colon, semicolon or dash) near the middle, otherwise at the space nearest the middle. */
+function subtitleLines(text, max) {
+  if (text.length <= max) return [text];
+  const spaces = [...text.matchAll(/ /g)].map((m) => m.index);
+  const pauses = spaces.filter((i) => /[,;:\u2013\u2014]$/.test(text.slice(0, i)));
+  const parts = Math.ceil(text.length / max);
+  const out = [];
+  let from = 0;
+  for (let k = 1; k < parts; k++) {
+    const target = from + (text.length - from) / (parts - k + 1);
+    const near = (list) => list.filter((i) => i > from).sort((a, b) => Math.abs(a - target) - Math.abs(b - target))[0];
+    const pause = near(pauses);
+    const at = pause !== undefined && Math.abs(pause - target) < max * 0.3 ? pause : near(spaces);
+    if (at === undefined) break;
+    out.push(text.slice(from, at));
+    from = at + 1;
+  }
+  out.push(text.slice(from));
+  return out;
+}
+
+/** Each subtitle as a transparent 1920×1080 image, set by the browser in the site's own font. */
+async function renderSubtitles(base, subs) {
+  fs.mkdirSync(path.join(WORK, "subtitles"), { recursive: true });
+  const todo = [...new Map(subs.map((s) => [subtitleFile(s), s])).values()].filter((s) => !fs.existsSync(subtitleFile(s)));
+  if (!todo.length) return;
+  const browser = await launchBrowser();
+  try {
+    const page = await browser.newPage({ viewport: { width: W, height: H } });
+    // Any page of the site, for its fonts. The subtitle is set in a layer of its own outside the page's body, which
+    // is not displayed at all (the app may still render into the body after loading).
+    await page.goto(`${base}/privacy`, { waitUntil: "networkidle", timeout: 120000 });
+    await page.evaluate(() => {
+      document.documentElement.style.setProperty("background", "transparent", "important");
+      document.body.style.setProperty("display", "none", "important");
+      const layer = document.createElement("div");
+      layer.id = "__subtitle";
+      layer.style.cssText = "position:fixed;inset:0;z-index:2147483647";
+      document.documentElement.appendChild(layer);
+    });
+    for (const s of todo) {
+      // centre: above the story's own controls; low: near the bottom of the site's pages, where it hides least;
+      // left: beside the phone. Lines are broken here, so each box fits its words.
+      const left = s.side === "left";
+      const bottom = { centre: 104, low: 24, left: 120 }[s.side] ?? 104;
+      const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      const text = subtitleLines(s.text, left ? 36 : 58).map(esc).join("<br>");
+      await page.evaluate((html) => {
+        document.getElementById("__subtitle").innerHTML = html;
+      }, `<div style="position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:${left ? "flex-start" : "center"};padding:0 0 ${bottom}px ${left ? 150 : 0}px">
+          <div style="padding:10px 24px 12px;border-radius:14px;background:#11081e;color:#fff;font-family:var(--font-sans);font-size:33px;font-weight:500;line-height:1.36;text-align:${left ? "left" : "center"};white-space:nowrap;box-shadow:0 18px 50px -22px rgba(0,0,0,.6)">${text}</div>
+        </div>`);
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({ path: subtitleFile(s), omitBackground: true });
+    }
+  } finally {
+    await browser.close();
+  }
+  log(`subtitles: ${todo.length} set`);
+}
+
+const srtTime = (t) => {
+  const ms = Math.max(0, Math.round(t * 1000));
+  const p = (n, w = 2) => String(n).padStart(w, "0");
+  return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms / 60000) % 60)}:${p(Math.floor(ms / 1000) % 60)},${p(ms % 1000, 3)}`;
+};
+
+/** Integrated loudness of a sound file, in LUFS (EBU R128). */
+function loudness(file) {
+  const r = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", file, "-af", "ebur128=framelog=quiet", "-f", "null", "-"], { encoding: "utf8" });
+  const m = /I:\s+(-?[\d.]+) LUFS/.exec((r.stderr ?? "").split("Summary:").pop());
+  return m ? Number(m[1]) : null;
+}
+
+/** The narration as one track, each line placed at its moment. */
+function narrationTrack(lines, dur) {
+  if (!lines.length) return null;
+  const out = path.join(VOICE_DIR, "narration.wav");
+  const args = ["-y", "-hide_banner", "-loglevel", "error"];
+  for (const l of lines) args.push("-i", path.join(VOICE_DIR, l.file));
+  const graph = [
+    ...lines.map((l, i) => `[${i}:a]adelay=delays=${Math.round(l.start * 1000)}:all=1[v${i}]`),
+    `${lines.map((_, i) => `[v${i}]`).join("")}amix=inputs=${lines.length}:normalize=0:dropout_transition=0,aresample=48000,aformat=channel_layouts=stereo,apad=whole_dur=${dur.toFixed(3)},atrim=0:${dur.toFixed(3)}[n]`,
+  ];
+  args.push("-filter_complex", graph.join(";"), "-map", "[n]", out);
+  const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
+  if (r.status !== 0) throw new Error("ffmpeg could not build the narration track");
+  return out;
+}
+
+async function encode() {
   const seq = path.join(WORK, "all");
   fs.rmSync(seq, { recursive: true, force: true });
   fs.mkdirSync(seq, { recursive: true });
+  const rate = FPS / PREVIEW;
+  // Frames are linked in order; a frame with a subtitle on it is written with the subtitle laid over it.
+  const subs = loadVoice() ? subtitleCues().filter((s) => fs.existsSync(subtitleFile(s))) : [];
+  if (VOICE && !subs.length) log("subtitles: none set (they are set when the parts are recorded)");
+  const jobs = [];
   let n = 0;
+  let k = 0;
   for (const part of ALL_PARTS) {
     const dir = path.join(WORK, part);
     if (!fs.existsSync(dir)) continue;
-    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".jpg")).sort()) fs.linkSync(path.join(dir, f), path.join(seq, `${String(++n).padStart(6, "0")}.jpg`));
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".jpg")).sort()) {
+      const src = path.join(dir, f);
+      const dst = path.join(seq, `${String(++n).padStart(6, "0")}.jpg`);
+      const t = (n - 1) / rate;
+      while (k < subs.length && subs[k].end <= t) k++;
+      const sub = subs[k] && subs[k].start <= t ? subs[k] : null;
+      if (sub) jobs.push(() => sharp(src).composite([{ input: subtitleFile(sub) }]).jpeg({ quality: 92 }).toFile(dst));
+      else fs.linkSync(src, dst);
+    }
   }
   if (!n) throw new Error(`No frames in ${WORK}`);
-  const rate = FPS / PREVIEW;
+  for (let i = 0; i < jobs.length; i += 8) await Promise.all(jobs.slice(i, i + 8).map((j) => j()));
   const dur = n / rate;
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
-  const score = path.join(WORK, "score.webm");
+
+  // Sound: the narration in front, the score beneath it, ducked while the voice speaks.
+  const score = !flag("no-audio") && fs.existsSync(path.join(WORK, "score.webm")) ? path.join(WORK, "score.webm") : null;
+  const lines = narrationTimeline();
+  const voice = narrationTrack(lines, dur);
   const args = ["-y", "-hide_banner", "-loglevel", "error", "-framerate", String(rate), "-i", path.join(seq, "%06d.jpg")];
-  if (!flag("no-audio") && fs.existsSync(score)) {
-    args.push("-i", score, "-filter_complex", `[1:a]atrim=0:${dur.toFixed(3)},afade=t=in:st=0:d=1.2,afade=t=out:st=${Math.max(0, dur - 3).toFixed(3)}:d=3,loudnorm=I=-19:TP=-2:LRA=11,aresample=48000[a]`, "-map", "0:v", "-map", "[a]", "-c:a", "aac", "-b:a", "128k");
+  const fadeScore = `atrim=0:${dur.toFixed(3)},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=1.2,afade=t=out:st=${Math.max(0, dur - 3).toFixed(3)}:d=3`;
+  let graph = null;
+  if (score && voice) {
+    const gs = -22 - (loudness(score) ?? -22);
+    const gv = -16 - (loudness(voice) ?? -16);
+    args.push("-i", score, "-i", voice);
+    graph = `[1:a]${fadeScore},volume=${gs.toFixed(1)}dB[sc];[2:a]volume=${gv.toFixed(1)}dB,asplit=2[vo][key];[sc][key]sidechaincompress=threshold=0.02:ratio=4:attack=30:release=700[duck];[duck][vo]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.84:level=disabled,aresample=48000[a]`;
+  } else if (voice) {
+    args.push("-i", voice);
+    graph = `[1:a]volume=${(-16 - (loudness(voice) ?? -16)).toFixed(1)}dB,alimiter=limit=0.84:level=disabled,aresample=48000[a]`;
+  } else if (score) {
+    args.push("-i", score);
+    graph = `[1:a]${fadeScore},loudnorm=I=-19:TP=-2:LRA=11,aresample=48000[a]`;
   }
-  // A light temporal denoise takes out the story's film grain, which would otherwise cost most of the bitrate.
-  args.push("-vf", "hqdn3d=1.5:1.5:6:6", "-c:v", "libx264", "-preset", "slow", "-crf", String(CRF), "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", String(FPS), "-movflags", "+faststart", "-t", dur.toFixed(3), OUT);
-  log(`encoding ${n} frames (${dur.toFixed(1)} s)`);
+  if (graph) args.push("-filter_complex", graph, "-map", "0:v", "-map", "[a]", "-c:a", "aac", "-b:a", "128k");
+  // A light temporal denoise takes out the story's film grain, which would otherwise cost most of the bitrate. Only
+  // over the story: on the pages it leaves faint trails behind scrolling text.
+  const before = ALL_PARTS.slice(0, ALL_PARTS.indexOf("story")).reduce((t, p) => t + (frameCount(p) * PREVIEW) / FPS, 0);
+  const story = (frameCount("story") * PREVIEW) / FPS;
+  const denoise = story ? `hqdn3d=1.5:1.5:6:6:enable='between(t,${before.toFixed(3)},${(before + story).toFixed(3)})'` : "null";
+  args.push("-vf", denoise, "-c:v", "libx264", "-preset", "slow", "-crf", String(CRF), "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", String(FPS), "-movflags", "+faststart", "-t", dur.toFixed(3), OUT);
+  log(`encoding ${n} frames (${dur.toFixed(1)} s)${lines.length ? `, ${lines.length} lines of narration` : ""}`);
   const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
   if (r.status !== 0) throw new Error("ffmpeg failed");
   log(`wrote ${path.relative(root, OUT)} (${(fs.statSync(OUT).size / 1e6).toFixed(1)} MB)`);
+  // The subtitles as a file too (for players and video sites that show their own).
+  if (subs.length) {
+    const srt = OUT.replace(/\.mp4$/i, "") + ".srt";
+    fs.writeFileSync(srt, subtitleCues().map((s, i) => `${i + 1}\n${srtTime(s.start)} --> ${srtTime(s.end)}\n${s.text}\n`).join("\n"));
+    log(`wrote ${path.relative(root, srt)}`);
+  }
 }
+
 
 // --------------------------------------------------------------------------------- server and receiver
 async function freePort() {
@@ -966,6 +1315,7 @@ async function startSite(webhook) {
 }
 
 // ------------------------------------------------------------------------------------------------- main
+
 const GROUPS = [["intro", "story"], ["site", "outro"], ["mobile"]];
 const RUNNERS = { intro: (b, base) => partCard(b, base, "intro"), outro: (b, base) => partCard(b, base, "outro"), story: partStory, site: partSite, mobile: partMobile };
 
@@ -985,6 +1335,9 @@ async function recordParts(base, parts) {
 
 async function main() {
   fs.mkdirSync(WORK, { recursive: true });
+  // The narration is spoken first: the scenes recorded here are timed around it.
+  if (VOICED && !flag("child") && !flag("encode-only")) speak();
+  else loadVoice();
   if (flag("encode-only")) return encode();
 
   let base = opt("base", "");
@@ -1010,7 +1363,7 @@ async function main() {
         const run = async () => {
           for (let g = queue.shift(); g; g = queue.shift()) {
             await new Promise((resolve, reject) => {
-              const c = spawn(process.execPath, [import.meta.filename, "--child", "--base", base, "--parts", g.join(","), "--work", WORK, "--fps", String(FPS), "--preview", String(PREVIEW)], { stdio: "inherit" });
+              const c = spawn(process.execPath, [import.meta.filename, "--child", "--base", base, "--parts", g.join(","), "--work", WORK, "--fps", String(FPS), "--preview", String(PREVIEW), ...(VOICED ? [] : ["--no-voice"])], { stdio: "inherit" });
               children.add(c);
               c.on("exit", (code) => {
                 children.delete(c);
@@ -1036,7 +1389,9 @@ async function main() {
       // A few seconds to spare: the encoder trims the score to the video's exact length.
       await recordScore(base, (total || 240) + 10, intro);
     }
-    encode();
+    if (VOICE) await renderSubtitles(base, subtitleCues());
+    if (flag("no-encode")) return;
+    await encode();
   } finally {
     site?.child.kill();
     receiver?.server.close();

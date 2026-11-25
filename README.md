@@ -225,10 +225,11 @@ appear in URLs or logs.
 
 ## Demo video
 
-[`docs/demo/website-demo.mp4`](docs/demo/website-demo.mp4) walks through the whole site in about four minutes
-(1920×1080, with the story's own generative score): the Life Unfolds story, the home page, treatments, the doctor's
-profile, facilities, patient stories, the knowledge centre, an appointment request from start to confirmation, the
-launch checklist, and the site on a phone.
+[`docs/demo/website-demo.mp4`](docs/demo/website-demo.mp4) is a narrated walkthrough of the whole site (1920×1080,
+with subtitles, and the story's own generative score beneath the voice): the Life Unfolds story, the home page,
+treatments, the doctor's profile, facilities, patient stories, the knowledge centre, an appointment request from
+start to confirmation, the launch checklist, and the site on a phone. The subtitles are also in
+[`docs/demo/website-demo.srt`](docs/demo/website-demo.srt), for players and video sites that show their own.
 
 It is produced by `scripts/record-demo.mjs` from a production build:
 
@@ -243,10 +244,32 @@ confirmation; nothing is sent anywhere), records each part, records the score, a
 page's clock is virtual, CSS animations are stepped one frame at a time, and the 3D story is drawn once per frame.
 The result is smooth on any machine. Without a GPU, WebGL runs in software and a full recording takes about an hour;
 `--preview 10` makes a quick draft. Other options: `--parts intro,story,site,mobile,outro`, `--no-audio`,
-`--out <file>`, `--work <folder>`, `--jobs <n>`, `--crf <n>` (see the top of the script).
+`--no-voice`, `--out <file>`, `--work <folder>`, `--jobs <n>`, `--crf <n>`, and `--no-encode` to re-record one
+part before joining everything with `--encode-only` (see the top of the script).
+
+The narration's words are in `scripts/demo-narration.json`. They are spoken before recording by
+`scripts/demo-voice.py` with [Kokoro](https://github.com/thewh1teagle/kokoro-onnx), an open text-to-speech model that
+runs on your machine, so the scenes can be timed around the voice. To set it up once (Python 3.10 or later):
+
+```bash
+pip install kokoro-onnx soundfile
+```
+
+Download `kokoro-v1.0.onnx` and `voices-v1.0.bin` from the
+[model files release](https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0) into one folder,
+and point the script at it (set `PYTHON` as well if that Python is not `python3`):
+
+```bash
+DEMO_VOICE_MODEL=/path/to/kokoro npm run demo:video
+```
+
+The voice, its speed and any respellings (for example `IVF` said as "I V F") are set at the top of the narration
+file. `--no-voice` records the video without narration or subtitles.
 
 The clinic's name on the title cards and on every page comes from `src/lib/site.ts`, so a renamed clinic gets a
-matching video by running the script again.
+matching video by running the script again; the narration speaks of "the clinic", so it fits any name. Change its
+words if the site changes (each scene waits for its line, and the story and phone scenes give each line a start
+time and must not run into the next one; the script warns if they do).
 
 ## Before launch
 

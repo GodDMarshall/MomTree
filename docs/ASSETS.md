@@ -144,8 +144,10 @@ no licensing. An optional baby-coo sample can be added at `/public/audio/coo.mp3
 ## Demo video
 
 `docs/demo/` holds a walkthrough video recorded from the site itself by `scripts/record-demo.mjs`
-(`npm run demo:video`): every frame is the site's own rendering, and the sound is the story's
-generative score.
+(`npm run demo:video`), and its subtitles. Every frame is the site's own rendering. The narration
+is synthetic speech: it is generated locally by Kokoro (an open text-to-speech model, Apache 2.0
+licence; voice "af_heart") from `scripts/demo-narration.json`, so no voice actor or recording is
+involved. Beneath it is the story's generative score.
 
 ## Fonts and libraries
 
