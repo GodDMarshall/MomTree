@@ -33,6 +33,9 @@ export function Welcome() {
           A clinic where science <Capsule photo={plates.icsiWide} /> meets <Capsule photo={stills.hands} w="1.5em" />{" "}
           <em>personal care.</em>
         </h2>
+        <p className="t-roman mt-4 text-[13px] text-ink-soft" data-reveal="">
+          Pictured: a 3D visualisation of ICSI, and an AI-generated photograph (not a patient).
+        </p>
         <div className="mt-[clamp(48px,9vh,110px)] grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-5 lg:col-start-5" data-reveal="">
             <p className="t-lede">

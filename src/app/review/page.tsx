@@ -126,7 +126,7 @@ function rows(): { area: string; items: Row[] }[] {
           where: "Doctor profile",
           file: DOCTOR,
         },
-        { item: "Medical team profiles", why: "Add other doctors and team members only once every qualification has been verified.", where: "Our doctors, About", href: "/doctors" },
+        { item: "Medical team profiles", why: "Add other doctors and team members only once every qualification has been verified (the Our doctors page lists the Medical Director only, so it needs a list too).", where: "Our doctors, About", href: "/doctors", file: "src/content/doctor.ts, src/app/doctors/page.tsx" },
       ],
     },
     {
@@ -156,8 +156,8 @@ function rows(): { area: string; items: Row[] }[] {
         {
           item: "AI-generated photographs",
           why: "The mother, hands and newborn photographs are AI-generated, each captioned as such, and never show a patient. Approve their use, or replace them with licensed photographs.",
-          where: "Home, About, share card",
-          file: CLINIC,
+          where: "Home, About, share card, the static story",
+          file: `${CLINIC}, public/story (built by scripts/prepare-assets.mjs)`,
         },
         ...(HAS_ILLUSTRATION
           ? [{ item: "20-week pregnancy illustration", why: "An AI-generated medical illustration shown after the 7-week scene and captioned as an illustration. Check the cord, placenta and fetal proportions before approving it.", where: "Home", href: "/" }]
@@ -219,19 +219,19 @@ function rows(): { area: string; items: Row[] }[] {
     {
       area: "Legal & operations",
       items: [
-        { item: "Privacy policy", why: "Draft written for the DPDP Act, 2023. Legal review needed, and a grievance contact named.", where: "/privacy", href: "/privacy" },
-        { item: "Medical disclaimer", why: "Approve the wording.", where: "/medical-disclaimer", href: "/medical-disclaimer" },
-        { item: "Vision and mission", why: "Drafts provided: confirm or replace them.", where: "/about", href: "/about" },
-        { item: "Service commitments", why: "Time to talk, written estimates, prompt results and emotional support: confirm that the clinic offers each.", where: "/about", href: "/about" },
+        { item: "Privacy policy", why: "Draft written for the DPDP Act, 2023. Legal review needed, and a grievance contact named.", where: "/privacy", href: "/privacy", file: "src/app/privacy/page.tsx" },
+        { item: "Medical disclaimer", why: "Approve the wording.", where: "/medical-disclaimer", href: "/medical-disclaimer", file: "src/app/medical-disclaimer/page.tsx" },
+        { item: "Vision and mission", why: "Drafts provided: confirm or replace them.", where: "/about", href: "/about", file: "src/app/about/page.tsx" },
+        { item: "Service commitments", why: "Time to talk, written estimates, prompt results and emotional support: confirm that the clinic offers each.", where: "/about", href: "/about", file: "src/app/about/page.tsx" },
         {
           item: "Appointment delivery",
-          why: "Configure APPOINTMENT_WEBHOOK_URL or RESEND_API_KEY (see .env.example), then send a test request end to end. Until then the form honestly asks visitors to call or WhatsApp.",
+          why: "Configure APPOINTMENT_WEBHOOK_URL, or RESEND_API_KEY together with APPOINTMENT_EMAIL_TO and APPOINTMENT_EMAIL_FROM (see .env.example), then send a test request end to end. Until then the form honestly asks visitors to call or WhatsApp.",
           where: "Contact",
           href: "/contact#appointment",
           file: ".env",
         },
         { item: "Analytics (optional)", why: "None are installed. If wanted, choose a privacy-respecting option and update the privacy policy.", where: "Whole site" },
-        { item: "Baby coo sound (optional)", why: "Supply a licensed recording if wanted for the end of the story.", where: "Home audio" },
+        { item: "Baby coo sound (optional)", why: "Supply a licensed recording if wanted for the end of the story: put it under public/audio/ and set StoryAudio.cooUrl.", where: "Home audio", file: "src/lib/life/audio.ts" },
       ],
     },
     {

@@ -59,7 +59,7 @@ export default async function DoctorPage({ params }: Params) {
                 </div>
                 <div>
                   <dt className="t-label">Specialisation</dt>
-                  <dd className="mt-2 font-serif text-[1.4rem]">Reproductive medicine</dd>
+                  <dd className="mt-2 font-serif text-[1.4rem]">{d.specialisation}</dd>
                 </div>
               </dl>
               <div className="mt-8 flex flex-wrap items-center gap-3">

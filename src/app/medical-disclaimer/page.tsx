@@ -52,7 +52,7 @@ export default function DisclaimerPage() {
           ))}
         </dl>
         <p className="mt-10 text-[14px] text-ink-soft">
-          Questions about anything on this website? Call {site.phone.display} or write to {site.email}.
+          Questions about anything on this website? Call <span className="whitespace-nowrap">{site.phone.display}</span> or write to {site.email}.
         </p>
       </div>
     </>

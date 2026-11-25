@@ -17,6 +17,7 @@ export function Voices() {
   const go = (d: number) => setI((x) => (x + d + reviews.length) % reviews.length);
   const hasSamples = reviews.some((x) => x.sample);
   const ratingToVerify = ratingSummary && !ratingSummary.verified ? ratingSummary : null;
+  const rating = ratingSummary?.verified ? ratingSummary : null;
 
   return (
     <section data-rail="Voices" id="voices" className="section border-t border-[var(--color-hair)]" aria-labelledby="voices-title">
@@ -31,8 +32,13 @@ export function Voices() {
             {hasSamples && "The testimonials shown here are illustrative samples, not the words of real patients. "}
             Every experience is individual. Reviews describe people&apos;s experience of care. They are not evidence of outcomes, and one person&apos;s journey does not predict another&apos;s.
           </p>
-          {(site.reviewsUrl || ratingToVerify) && (
+          {(site.reviewsUrl || ratingToVerify || rating) && (
             <div className="mt-6 flex flex-wrap items-center gap-3" data-reveal="">
+              {rating && (
+                <p className="text-[14px]">
+                  Rated <strong className="font-semibold">{rating.rating}</strong> from {rating.count} reviews
+                </p>
+              )}
               {site.reviewsUrl && (
                 <a href={site.reviewsUrl} target="_blank" rel="noopener noreferrer" className="text-[12.5px] font-semibold uppercase tracking-[0.16em] link-line">
                   Read all reviews

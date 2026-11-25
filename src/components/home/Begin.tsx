@@ -7,7 +7,7 @@ import { REVIEW_MODE } from "@/lib/review";
 import { addressOneLine, mapsLinks, site, whatsappLink } from "@/lib/site";
 import { Mail, Phone, WhatsApp } from "@/components/ui/Icons";
 
-export function Begin({ id = "begin", heading = "Your questions *matter.* Let's talk." }: { id?: string; heading?: string }) {
+export function Begin({ id = "begin", heading = "Your questions *matter.* Let’s talk." }: { id?: string; heading?: string }) {
   return (
     <section data-rail="Begin" id={id} className="section relative overflow-hidden bg-lilac/60 scroll-mt-24" aria-labelledby={`${id}-title`}>
       <Rings className="pointer-events-none absolute -left-[20vw] -top-[18vw] w-[60vw] max-w-[860px] text-violet/15" count={9} />
@@ -20,7 +20,7 @@ export function Begin({ id = "begin", heading = "Your questions *matter.* Let's 
           <p className="t-lede mt-6 max-w-[48ch]" data-reveal="">
             Every journey deserves individual attention. Tell us a little, and our fertility care team will call you to find a time that suits you.
           </p>
-          <div className="mt-12" id="appointment">
+          <div className="mt-12 scroll-mt-32" id="appointment">
             <AppointmentForm />
           </div>
         </div>

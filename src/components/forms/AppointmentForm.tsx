@@ -113,7 +113,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
           {...err("phone")}
         />
         <span>, </span>
-        <label htmlFor={`${id}-date`}>and I&apos;d like to visit around</label>{" "}
+        <label htmlFor={`${id}-date`}>and I’d like to visit around</label>{" "}
         <input
           id={`${id}-date`}
           name="date"

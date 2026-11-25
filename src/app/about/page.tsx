@@ -15,7 +15,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About us",
-  description: `${site.name} is a fertility clinic offering advanced reproductive treatment with personalised care. Its embryology and andrology laboratories, operation theatres and in-house pharmacy are all under one roof.`,
+  description: `${site.name} offers fertility assessment, IUI, IVF and ICSI in one place, with its own embryology and andrology laboratories, operation theatres and pharmacy. Every plan begins with understanding your history and your results.`,
   alternates: { canonical: "/about" },
 };
 
@@ -153,6 +153,11 @@ export default function AboutPage() {
               <li key={f.id} className="border-t border-paper/15 py-6">
                 <h3 className="font-serif text-[1.55rem] leading-tight">{f.name}</h3>
                 <p className="mt-3 text-[15px] leading-relaxed text-on-night-soft">{f.text}</p>
+                {f.claim && (
+                  <div className="mt-3">
+                    <Pending>{f.claim}</Pending>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

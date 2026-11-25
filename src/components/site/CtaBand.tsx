@@ -4,7 +4,7 @@ import { ArrowRight, Phone, WhatsApp } from "@/components/ui/Icons";
 import { Words } from "@/components/ui/Words";
 
 /** A calm, recurring invitation to talk. No pressure tactics: three equal ways to reach us. */
-export function CtaBand({ title = "Let's talk about *your next step.*", text = "Speak with our fertility care team. A short request is all it takes, and we will call you back." }: { title?: string; text?: string }) {
+export function CtaBand({ title = "Let’s talk about *your next step.*", text = "Speak with our fertility care team. A short request is all it takes, and we will call you back." }: { title?: string; text?: string }) {
   return (
     <section className="section-tight border-t border-[var(--color-hair)]" aria-label="Talk to us">
       <div className="wrap grid items-end gap-10 lg:grid-cols-12">

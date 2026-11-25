@@ -12,11 +12,13 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
         <ol className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-soft">
           {items.map((c, i) => (
             <li key={c.path} className="flex items-center gap-2">
-              {i > 0 && <span aria-hidden="true">/</span>}
               {i < items.length - 1 ? (
-                <Link href={c.path} className="link-line">
-                  {c.name}
-                </Link>
+                <>
+                  <Link href={c.path} className="link-line">
+                    {c.name}
+                  </Link>
+                  <span aria-hidden="true">/</span>
+                </>
               ) : (
                 <span aria-current="page" className="text-violet">
                   {c.name}

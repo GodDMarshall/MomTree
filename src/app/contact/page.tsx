@@ -47,7 +47,7 @@ export default function ContactPage() {
               >
                 <w.icon className="h-5 w-5 text-violet" />
                 <span className="t-label mt-5">{w.label}</span>
-                <span className="mt-2 break-words font-serif text-[1.35rem] leading-tight">{w.value}</span>
+                <span className="mt-2 break-words font-serif text-[1.35rem] leading-tight [font-variant-numeric:lining-nums]">{w.value}</span>
                 <span className="mt-2 text-[13px] text-ink-soft">{w.note}</span>
               </a>
             </li>

@@ -138,7 +138,7 @@ Copy `.env.example` to `.env.local` and fill in:
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Canonical URL, sitemap, structured data, and the source named on appointment requests |
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL, sitemap, structured data, and the source named on appointment requests. Set it to the demo's own address when deploying a demo too, or shared links point their preview image at example.com |
 | `NEXT_PUBLIC_REVIEW_MODE` | `true` (default) shows pending markers and the `/review` checklist, and blocks indexing. Set `false` **only** after sign-off |
 | `APPOINTMENT_WEBHOOK_URL` / `APPOINTMENT_WEBHOOK_SECRET` | Deliver appointment requests as JSON to a CRM, Google Apps Script, Zapier, etc. With a secret, each request is signed (HMAC-SHA256 in the `x-appointment-signature` header) |
 | `RESEND_API_KEY`, `APPOINTMENT_EMAIL_TO`, `APPOINTMENT_EMAIL_FROM` | Or deliver them by email via Resend |
@@ -243,7 +243,7 @@ confirmation; nothing is sent anywhere), records each part, records the score, a
 page's clock is virtual, CSS animations are stepped one frame at a time, and the 3D story is drawn once per frame.
 The result is smooth on any machine. Without a GPU, WebGL runs in software and a full recording takes about an hour;
 `--preview 10` makes a quick draft. Other options: `--parts intro,story,site,mobile,outro`, `--no-audio`,
-`--out <file>`, `--work <folder>`, `--jobs <n>` (see the top of the script).
+`--out <file>`, `--work <folder>`, `--jobs <n>`, `--crf <n>` (see the top of the script).
 
 The clinic's name on the title cards and on every page comes from `src/lib/site.ts`, so a renamed clinic gets a
 matching video by running the script again.

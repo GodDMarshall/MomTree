@@ -54,7 +54,7 @@ export function Laboratory() {
       <div className="flex flex-col justify-center py-[clamp(72px,12vh,140px)] lg:min-h-[100svh]">
         <div
           ref={trackRef}
-          className="no-scrollbar flex snap-x snap-mandatory scroll-pl-[var(--gutter)] scroll-pr-[var(--gutter)] items-start gap-6 overflow-x-auto px-[var(--gutter)] lg:motion-safe:snap-none lg:motion-safe:items-stretch lg:motion-safe:overflow-visible"
+          className="no-scrollbar flex snap-x snap-mandatory scroll-pl-[var(--gutter)] scroll-pr-[var(--gutter)] items-start gap-6 overflow-x-auto px-[var(--gutter)] lg:motion-safe:snap-none lg:motion-safe:items-stretch lg:motion-safe:overflow-visible lg:motion-reduce:[scrollbar-width:thin]"
         >
           <div className="flex w-[min(68vw,520px)] shrink-0 snap-start flex-col justify-center lg:w-[520px] lg:pr-10">
             <p className="t-label">Inside the laboratory</p>

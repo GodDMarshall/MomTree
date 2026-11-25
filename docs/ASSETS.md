@@ -28,7 +28,8 @@ fields: faceless and draped, a likeness of no one. Her pregnancy grows by week w
 (crown-rump length by week, the uterus rising from the pelvis to below the ribs, the baby turning
 head-down in the third trimester), seen through a glass window in the belly, and the story closes
 with the newborn in her arms in a soft light, while points of light gather around them. Every
-scene is labelled as an illustration, not to scale and not an individual outcome.
+scene is labelled as an illustration, not a patient's treatment or result; figures say where a
+view is enlarged or schematic.
 
 ## Rendered by the engine: posters and plates
 

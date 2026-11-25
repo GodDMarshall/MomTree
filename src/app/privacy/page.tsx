@@ -51,7 +51,7 @@ const sections: { h: string; p: string[] }[] = [
   },
   {
     h: "Contact",
-    p: [`${site.name}, ${addressOneLine}. Email ${site.email}, phone ${site.phone.display}.`],
+    p: [`${site.name}, ${addressOneLine}. Email ${site.email}, phone ${site.phone.display.replace(/ /g, "\u00a0")}.`],
   },
 ];
 
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
         lede="Fertility is personal. This page explains, simply, what this website collects and how it is used."
       >
         <div className="mt-8">
-          <Pending>Draft policy: to be reviewed by the clinic&apos;s legal adviser and a grievance officer named</Pending>
+          <Pending>Draft policy: legal review needed, and a grievance officer to be named</Pending>
         </div>
       </PageHero>
       <div className="wrap-narrow space-y-12 pb-28">

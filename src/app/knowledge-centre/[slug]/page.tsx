@@ -80,7 +80,7 @@ export default async function ArticlePage({ params }: Params) {
                   <Pending>Awaiting clinician review</Pending>
                 </div>
               </div>
-              <ArticleCover article={a} className="aspect-square rounded-[28px] lg:col-span-4 lg:col-start-9" />
+              <ArticleCover article={a} className="aspect-[16/9] rounded-[28px] lg:col-span-4 lg:col-start-9 lg:aspect-square" />
             </div>
           </div>
         </header>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nav, site, whatsappLink } from "@/lib/site";
-import { treatmentsByGroup } from "@/content/treatments";
+import { treatmentsByGroup, treatments } from "@/content/treatments";
 import { roman } from "@/lib/format";
 import { Logo, LogoSwap } from "./BrandMark";
 import { ArrowRight, Close, Phone, WhatsApp } from "@/components/ui/Icons";
@@ -113,7 +113,7 @@ export function Nav() {
         className={`mx-auto flex items-center justify-between transition-all duration-700 ease-[var(--ease-soft)] ${
           floating
             ? "max-w-[1400px] w-[calc(100%-24px)] rounded-full border border-[var(--color-hair)] bg-paper px-4 py-1.5 shadow-[0_18px_50px_-30px_rgb(29_26_38/0.45)] md:px-6"
-            : "max-w-[1480px] px-[var(--gutter)] py-5 short:py-2"
+            : "max-w-[1480px] w-full rounded-full border border-transparent px-[var(--gutter)] py-5 short:py-2"
         } ${onDark ? "text-paper" : "text-ink"}`}
       >
         <Link href="/" className="relative z-10 shrink-0" aria-label={`${site.name}, home`}>
@@ -220,7 +220,7 @@ export function Nav() {
                           </Link>
                         </div>
                         <div className="col-span-3 -mt-2 flex items-center justify-between border-t border-[var(--color-hair)] pt-4">
-                          <span className="text-[13px] text-ink-soft">All 14 treatments, explained in plain language.</span>
+                          <span className="text-[13px] text-ink-soft">All {treatments.length} treatments, explained in plain language.</span>
                           <Link href="/treatments" className="text-[13px] font-semibold tracking-[0.12em] uppercase link-line">
                             View the full index
                           </Link>

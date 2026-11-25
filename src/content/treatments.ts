@@ -204,9 +204,9 @@ export const treatments: Treatment[] = [
     summary:
       "In IVF, eggs are collected from the ovaries and fertilised with sperm in the embryology laboratory. Embryos are cultured and observed by embryologists, and one is transferred to the uterus at the right moment.",
     atAGlance: [
-      { label: "Stimulation", value: "About 8–14 days of injections" },
-      { label: "Egg collection", value: "Under sedation or anaesthesia, usually 15–30\u00a0minutes" },
-      { label: "Embryo culture", value: "3–6 days" },
+      { label: "Stimulation", value: "About 8–\u206014 days of injections" },
+      { label: "Egg collection", value: "Under sedation or anaesthesia, usually 15–\u206030\u00a0minutes" },
+      { label: "Embryo culture", value: "3–\u20606 days" },
     ],
     whatItIs: [
       "In vitro fertilisation means fertilisation that takes place outside the body, in a carefully controlled laboratory. It allows embryologists to see each stage that would normally be hidden: the egg, fertilisation and the first days of development.",
@@ -222,11 +222,11 @@ export const treatments: Treatment[] = [
       "Fertility preservation or embryo testing, after counselling",
     ],
     howItWorks: [
-      { title: "Ovarian stimulation", text: "Daily hormone injections for roughly 8–14 days help several follicles grow. Scans and blood tests guide the dose." },
-      { title: "Trigger", text: "A final injection matures the eggs, and egg collection is timed about 34–36 hours later." },
+      { title: "Ovarian stimulation", text: "Daily hormone injections for roughly 8–\u206014 days help several follicles grow. Scans and blood tests guide the dose." },
+      { title: "Trigger", text: "A final injection matures the eggs, and egg collection is timed about 34–\u206036 hours later." },
       { title: "Egg collection", text: "Under sedation or anaesthesia, a fine needle guided by ultrasound collects eggs from the follicles. You usually go home the same day." },
       { title: "Fertilisation", text: "The same day, eggs are placed with prepared sperm (conventional IVF) or injected individually (ICSI). The next morning, embryologists check for signs of fertilisation." },
-      { title: "Embryo culture", text: "Embryos develop in incubators that hold temperature, gases and humidity steady, and are assessed at set times for 3–6 days." },
+      { title: "Embryo culture", text: "Embryos develop in incubators that hold temperature, gases and humidity steady, and are assessed at set times for 3–\u20606 days." },
       { title: "Embryo transfer", text: "A selected embryo is placed in the uterus with a soft catheter under ultrasound guidance. Suitable remaining embryos can be frozen." },
       { title: "Pregnancy test", text: "A blood test is done about two weeks after egg collection." },
     ],
@@ -281,7 +281,7 @@ export const treatments: Treatment[] = [
       { title: "Preparation", text: "The cells surrounding each egg are removed so the embryologist can see whether it is mature." },
       { title: "Selection", text: "A single, moving sperm of normal appearance is chosen for each mature egg." },
       { title: "Injection", text: "The egg is held gently with a holding pipette while the sperm is injected through the outer shell into the cytoplasm." },
-      { title: "Fertilisation check", text: "About 16–18 hours later, embryologists look for two pronuclei, the first sign of normal fertilisation." },
+      { title: "Fertilisation check", text: "About 16–\u206018 hours later, embryologists look for two pronuclei, the first sign of normal fertilisation." },
     ],
     whatToExpect: [
       "For you, an ICSI cycle feels the same as IVF. The difference happens in the laboratory.",
@@ -311,7 +311,7 @@ export const treatments: Treatment[] = [
     summary:
       "In blastocyst culture, embryos continue to grow in the laboratory until day five or six. By then they have two distinct groups of cells, and embryologists have more information for choosing an embryo to transfer.",
     atAGlance: [
-      { label: "Culture length", value: "5–6 days" },
+      { label: "Culture length", value: "5–\u20606 days" },
       { label: "Assessed by", value: "Embryologists, at set times" },
       { label: "Often allows", value: "Single embryo transfer" },
     ],
@@ -320,15 +320,15 @@ export const treatments: Treatment[] = [
       "Culturing embryos to this stage lets embryologists see which embryos continue to develop, and helps when choosing a single embryo for transfer or freezing.",
     ],
     whoMayBeEvaluated: [
-      "IVF and ICSI cycles with several good-quality embryos on day 2–3",
+      "IVF and ICSI cycles with several good-quality embryos on day 2–\u20603",
       "When single embryo transfer is planned",
       "When embryos are to be frozen or tested",
     ],
     howItWorks: [
       { title: "Day 1", text: "Fertilisation is confirmed by the presence of two pronuclei." },
-      { title: "Days 2–3", text: "The embryo divides into two to four cells, then about eight." },
+      { title: "Days 2–\u20603", text: "The embryo divides into two to four cells, then about eight." },
       { title: "Day 4", text: "The cells draw tightly together into a morula." },
-      { title: "Days 5–6", text: "A cavity forms and the embryo becomes a blastocyst. Embryologists assess its expansion and its two cell groups." },
+      { title: "Days 5–\u20606", text: "A cavity forms and the embryo becomes a blastocyst. Embryologists assess its expansion and its two cell groups." },
       { title: "Transfer or freezing", text: "A blastocyst can be transferred fresh, or frozen by vitrification for a later transfer." },
     ],
     whatToExpect: [
@@ -402,7 +402,7 @@ export const treatments: Treatment[] = [
     atAGlance: [
       { label: "Anaesthesia", value: "General" },
       { label: "Setting", value: "Operation theatre; usually day care or one night" },
-      { label: "Recovery", value: "Most activities within about 1–2 weeks" },
+      { label: "Recovery", value: "Most activities within about 1–\u20602 weeks" },
     ],
     whatItIs: [
       "During laparoscopy, a thin telescope with a camera is passed through a small cut near the navel. Carbon dioxide gas gently lifts the abdominal wall so the organs can be seen, and small instruments are introduced through one or two further cuts.",
@@ -432,7 +432,7 @@ export const treatments: Treatment[] = [
       "Rarely, conversion to open surgery.",
     ],
     faqs: [
-      { q: "Will I have scars?", a: "Usually two to four small scars of about 5–10 mm, which fade over time." },
+      { q: "Will I have scars?", a: "Usually two to four small scars of about 5–\u206010 mm, which fade over time." },
       { q: "How soon can we try to conceive afterwards?", a: "It depends on what was found and treated. Your surgeon will advise you." },
       { q: "Is laparoscopy always needed before IVF?", a: "No. It is recommended only when what it finds or treats could change your care." },
     ],
@@ -495,7 +495,7 @@ export const treatments: Treatment[] = [
     atAGlance: [
       { label: "Type", value: "Mostly transvaginal" },
       { label: "Radiation", value: "None" },
-      { label: "Time", value: "Usually 5–15 minutes" },
+      { label: "Time", value: "Usually 5–\u206015 minutes" },
     ],
     whatItIs: [
       "Fertility scans are usually transvaginal: a slim probe in a protective cover gives clear, close-up images of the uterus and ovaries. Ultrasound uses sound waves, not radiation.",
@@ -540,7 +540,7 @@ export const treatments: Treatment[] = [
       "Male factors are involved in a large share of fertility problems, which is why both partners are evaluated together. The andrology laboratory assesses semen, prepares sperm for treatment and can freeze sperm for later use.",
     atAGlance: [
       { label: "Core test", value: "Semen analysis" },
-      { label: "Before the test", value: "Usually 2–7 days of abstinence" },
+      { label: "Before the test", value: "Usually 2–\u20607 days of abstinence" },
       { label: "Results", value: "Discussed with your doctor" },
     ],
     whatItIs: [
@@ -554,7 +554,7 @@ export const treatments: Treatment[] = [
       "Abnormal results that need repeating or further assessment",
     ],
     howItWorks: [
-      { title: "Preparation", text: "Avoid ejaculation for 2–7 days before the test, or as advised." },
+      { title: "Preparation", text: "Avoid ejaculation for 2–\u20607 days before the test, or as advised." },
       { title: "Sample", text: "Collected by masturbation into a sterile container, in a private room at the clinic." },
       { title: "Analysis", text: "The laboratory assesses the sample under the microscope, usually within the hour." },
       { title: "Review", text: "Your doctor explains the results and any next steps, which may include lifestyle changes, further tests or treatment." },
@@ -574,7 +574,7 @@ export const treatments: Treatment[] = [
     ],
     related: ["icsi", "iui", "art-bank"],
     photo: plates.spermWide,
-    verify: ["Before the andrology laboratory is described as automated or AI-assisted, confirm which system is used and what it does."],
+    verify: ["Describe laboratory equipment only as the clinic actually uses it."],
     review: "pending",
   },
   {
@@ -622,7 +622,6 @@ export const treatments: Treatment[] = [
     related: ["donor-services", "andrology", "ivf"],
     verify: [
       "Confirm whether the clinic is itself registered as an ART bank or works with a registered partner bank.",
-      "Do not describe the ART bank as supplying 'surrogate mothers': that wording conflicts with the Surrogacy (Regulation) Act, 2021.",
     ],
     review: "pending",
   },

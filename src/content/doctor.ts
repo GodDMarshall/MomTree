@@ -18,6 +18,7 @@ export const director = {
     { abbr: "Fellowship", detail: "Reproductive Medicine" },
   ],
   experience: "15+ years",
+  specialisation: "Reproductive medicine",
   /** A square photograph of the doctor. While null, a neutral illustrated placeholder is shown. */
   portrait: null as Portrait | null,
   summary:

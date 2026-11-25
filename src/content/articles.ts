@@ -46,7 +46,7 @@ export const articles: Article[] = [
     excerpt: "Age affects fertility for both partners, especially the number and quality of eggs. Here is what that means for treatment, explained honestly.",
     categories: ["ivf-education", "female-fertility"],
     motif: "ovulation-induction",
-    published: "2025-01-20",
+    published: "2026-11-02",
     updated: "2026-11-02",
     review: "pending",
     blocks: [
@@ -88,7 +88,7 @@ export const articles: Article[] = [
     excerpt: "Clear answers to common misunderstandings about IVF, from guarantees and bed rest to the health of children born after treatment.",
     categories: ["fertility-myths", "ivf-education"],
     motif: "ivf",
-    published: "2025-01-20",
+    published: "2026-11-02",
     updated: "2026-11-02",
     review: "pending",
     blocks: [
@@ -116,11 +116,11 @@ export const articles: Article[] = [
     excerpt: "The questions worth asking any clinic, including ours, before you begin treatment.",
     categories: ["treatment-guidance"],
     motif: "fertility-evaluation",
-    published: "2025-01-18",
+    published: "2026-11-02",
     updated: "2026-11-02",
     review: "pending",
     blocks: [
-      { type: "p", text: "Choosing where to have fertility treatment is a big decision. These are the questions we would encourage you to ask any clinic, including ours." },
+      { type: "p", text: "Choosing where to have fertility treatment is a big decision. These are the questions we would encourage you to ask any clinic." },
       { type: "h2", text: "Registration and regulation" },
       { type: "p", text: "In India, clinics offering assisted reproduction must be registered under the ART (Regulation) Act, 2021. You can ask to see a clinic's registration." },
       { type: "h2", text: "Honest information about outcomes" },
@@ -149,7 +149,7 @@ export const articles: Article[] = [
     excerpt: "A step-by-step view of the fertility journey, from the first evaluation to deciding whether IVF is the right next step.",
     categories: ["treatment-guidance", "fertility-health"],
     motif: "ultrasound",
-    published: "2025-01-18",
+    published: "2026-11-02",
     updated: "2026-11-02",
     review: "pending",
     blocks: [
@@ -178,7 +178,7 @@ export const articles: Article[] = [
     excerpt: "How to read success figures, what affects your own chances, and what is usually included in the cost of IVF.",
     categories: ["ivf-education"],
     motif: "blastocyst-culture",
-    published: "2024-12-20",
+    published: "2026-11-02",
     updated: "2026-11-02",
     review: "pending",
     blocks: [
@@ -187,7 +187,7 @@ export const articles: Article[] = [
       { type: "ul", items: ["Age, especially the age of the person providing the eggs", "The cause and duration of infertility", "Egg and sperm quality", "How embryos develop in the laboratory", "The health of the uterus", "General health, including weight and smoking"] },
       { type: "h2", text: "How to read success figures" },
       { type: "p", text: "A meaningful figure says what was counted (ideally live births), out of what (per embryo transfer, or per cycle started), and for which age group. A single headline percentage for all patients says little about your own chances." },
-      { type: "p", text: "That is why this website does not publish a single success rate. Your doctor will discuss realistic expectations based on your own results." },
+      { type: "p", text: "That is why we do not publish a single success rate. Your doctor will discuss realistic expectations based on your own results." },
       { type: "h2", text: "What the cost usually includes" },
       { type: "ul", items: ["Consultations and tests", "Medicines for ovarian stimulation, which vary with dose and protocol", "Monitoring scans and blood tests", "Egg collection, laboratory work and embryo transfer", "ICSI, embryo freezing and storage, if needed"] },
       { type: "p", text: "Because plans differ, so do costs. You will receive a written estimate before treatment begins." },

@@ -11,6 +11,7 @@ import { REVIEW_MODE } from "@/lib/review";
 const hasSamples = reviews.some((r) => r.sample);
 /** A published rating that has not been verified yet: shown only as a review note, never as a claim. */
 const ratingToVerify = ratingSummary && !ratingSummary.verified ? ratingSummary : null;
+const rating = ratingSummary?.verified ? ratingSummary : null;
 
 export const metadata: Metadata = {
   title: "Patient stories",
@@ -35,11 +36,16 @@ export default function PatientStoriesPage() {
           { name: "Patient stories", path: "/patient-stories" },
         ]}
         label="Patient stories"
-        title="In their *own words.*"
+        title={hasSamples ? "Patient *stories.*" : "In their *own words.*"}
         lede={lede}
       >
-        {(site.reviewsUrl || (REVIEW_MODE && ratingToVerify)) && (
+        {(site.reviewsUrl || rating || (REVIEW_MODE && ratingToVerify)) && (
           <div className="mt-8 flex flex-wrap items-center gap-4">
+            {rating && (
+              <p className="text-[15px]">
+                Rated <strong className="font-semibold">{rating.rating}</strong> from {rating.count} reviews
+              </p>
+            )}
             {site.reviewsUrl && (
               <a href={site.reviewsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-solid">
                 Read all reviews
@@ -115,14 +121,14 @@ export default function PatientStoriesPage() {
           <div className="lg:col-span-5 lg:col-start-8">
             {site.reviewsUrl ? (
               <>
-                <p className="t-lede">If we have been part of your journey, a review helps others find care. Please share only what you are comfortable sharing publicly.</p>
+                <p className="t-lede">If we have been part of your journey, a review helps others find care. Please include only what you are comfortable making public.</p>
                 <a href={site.reviewsUrl} target="_blank" rel="noopener noreferrer" className="btn mt-8">
                   Leave a review
                 </a>
               </>
             ) : (
               <>
-                <p className="t-lede">If we have been part of your journey, we would be glad to hear how it went. Please share only what you are comfortable sharing.</p>
+                <p className="t-lede">If we have been part of your journey, we would be glad to hear how it went. Please include only what you are comfortable sharing.</p>
                 <a href={`mailto:${site.email}`} className="btn mt-8">
                   Write to us
                 </a>

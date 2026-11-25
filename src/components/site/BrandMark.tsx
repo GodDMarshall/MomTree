@@ -72,6 +72,8 @@ export function Logo({
       role={alt ? "img" : undefined}
       aria-label={alt || undefined}
       aria-hidden={alt ? undefined : true}
+      data-short-name={name}
+      data-descriptor={site.descriptor}
     >
       <MarkShapes id={id} ring={ring} cx={120} cy={32} />
       <text

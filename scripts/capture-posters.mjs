@@ -111,16 +111,17 @@ for (const orientation of ONLY.has("plates") ? ["tall", "wide"] : []) {
 
 // ---------------------------------------------------------------------------------- share card
 // 1200×630, the size social platforms display. Set in the site's own fonts (loaded by the page) with
-// the clinic's name read from the page's structured data (name, alternateName) and the care line from
+// the clinic's name and descriptor read from the page's logo (data attributes) and the care line from
 // the home page's title, over the AI-generated opening photograph.
 if (ONLY.has("og")) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
   await page.goto(`${BASE}/privacy`, { waitUntil: "networkidle", timeout: 120000 });
   await page.evaluate(async () => {
     const ld = [...document.querySelectorAll('script[type="application/ld+json"]')].map((s) => JSON.parse(s.textContent)).find((d) => d["@type"] === "MedicalClinic");
+    const logo = document.querySelector("[data-descriptor]");
     const name = ld?.name ?? "";
-    const short = ld?.alternateName ?? name;
-    const descriptor = name.replace(short, "").trim();
+    const short = logo?.dataset.shortName ?? ld?.alternateName ?? name;
+    const descriptor = logo?.dataset.descriptor ?? "";
     // The home page's title ends with the care line: "Fertility care" or "Fertility care in <city>".
     const home = new DOMParser().parseFromString(await (await fetch("/")).text(), "text/html");
     const care = home.title.split(" · ").pop();

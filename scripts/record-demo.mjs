@@ -11,8 +11,10 @@
 //   --out <file>       output video (default docs/demo/website-demo.mp4)
 //   --work <dir>       where frames are kept (default: a folder in the system temp directory)
 //   --fps <n>          frames per second (default 30)
-//   --no-audio         skip the score;  --audio-only  record only the score;  --encode-only  only join and encode
+//   --no-audio         no score at all;  --audio-only  record only the score;  --encode-only  only join and encode
+//                      (with the score already recorded in the work folder, if there is one)
 //   --preview <n>      quick draft: keep every nth frame only (timing is unchanged, motion is choppy)
+//   --crf <n>          H.264 quality, lower is better and larger (default 24; 26 keeps a 4-minute video near 40 MB)
 //
 // How it works. Frames are rendered on request, not recorded in real time, so the video is smooth on any machine,
 // including one without a GPU (WebGL then runs in software, slowly). The page's clock is virtual (Playwright's
@@ -46,6 +48,7 @@ const WORK = path.resolve(opt("work", path.join(os.tmpdir(), "ivf-site-demo")));
 const PARTS = opt("parts", ALL_PARTS.join(",")).split(",").filter(Boolean);
 const JOBS = Number(opt("jobs", 3));
 const PREVIEW = Math.max(1, Number(opt("preview", 1)));
+const CRF = Number(opt("crf", 24));
 const W = 1920;
 const H = 1080;
 const DT = 1000 / FPS;
@@ -68,6 +71,11 @@ const PANELS = [
   [55.2, 61.6], [63, 67.4], [67.8, 71.6], [72.6, 77.9], [78.8, 84.6], [85.8, 89.8], [90.2, 93.6], [95.6, 101],
 ];
 export const STORY = { holdStart: 2.6, holdEnd: 3.6, fast: 2.5, slow: 0.95 };
+
+/** The engine's animation clock at the story's last frame: each frame moves it on by 1/FPS, from `start`. */
+export function storyEndTime(fps = FPS, start = 0) {
+  return storyUnits(fps).reduce((t) => t + 1 / fps, start);
+}
 
 export function storyUnits(fps = FPS) {
   const units = [];
@@ -132,7 +140,7 @@ const INIT = () => {
           <span data-num style="display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border-radius:999px;background:#d9b36c;color:#170c27;font-size:13px;font-weight:700;letter-spacing:.04em"></span>
           <span data-txt></span>
         </div>
-        <div data-rip style="position:absolute;left:0;top:0;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:2px solid rgba(128,192,65,.95);opacity:0"></div>
+        <div data-rip style="position:absolute;left:0;top:0;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:2px solid rgba(217,179,108,.95);opacity:0"></div>
         <svg data-cur width="30" height="30" viewBox="0 0 30 30" style="position:absolute;left:0;top:0;margin:-3px 0 0 -4px;opacity:0;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))">
           <path d="M5 3.5 L5 24 L10.5 18.8 L14.2 27 L18 25.3 L14.4 17.3 L22 17.3 Z" fill="#fff" stroke="#1d1a26" stroke-width="1.6" stroke-linejoin="round"/>
         </svg>`;
@@ -384,13 +392,13 @@ async function load(page, url, ready = () => true) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-/** The clinic's name and descriptor, read from the page (so the video follows src/lib/site.ts). */
+/** The clinic's name and descriptor, read from the page's logo (so the video follows src/lib/site.ts). */
 async function identity(page) {
   return page.evaluate(() => {
+    const logo = document.querySelector("[data-descriptor]");
     const ld = [...document.querySelectorAll('script[type="application/ld+json"]')].map((s) => JSON.parse(s.textContent)).find((d) => d["@type"] === "MedicalClinic");
     const name = ld?.name ?? document.title;
-    const short = ld?.alternateName ?? name;
-    return { name, short, descriptor: name.replace(short, "").trim() };
+    return { name, short: logo?.dataset.shortName ?? ld?.alternateName ?? name, descriptor: logo?.dataset.descriptor ?? "" };
   });
 }
 
@@ -482,16 +490,20 @@ function cardHtml(id, intro) {
     </div>`;
 }
 
-async function partStory(browser, base) {
-  const { context, page, cdp } = await newPage(browser);
-  await load(page, `${base}/?capture=1`, () => Boolean(window.__life));
-  // The engine renders on request from here on; every scene is loaded and compiled before recording.
+/** The engine renders on request from here on; every scene is loaded and compiled first. */
+async function prepareStory(page) {
   await page.evaluate(() => window.__life.hold());
   for (const u of [0.3, 6, 13, 24, 31, 40, 50, 61, 69, 74, 81, 88, 97, 100]) {
     await page.evaluate((u) => window.__life.renderAt(u), u);
     await sleep(250);
   }
   for (let i = 0; i < 40 && !(await page.evaluate(() => Object.values(window.__life.scenes ?? {}).every((s) => s.ready !== false))); i++) await sleep(250);
+}
+
+async function partStory(browser, base) {
+  const { context, page, cdp } = await newPage(browser);
+  await load(page, `${base}/?capture=1`, () => Boolean(window.__life));
+  await prepareStory(page);
   await page.evaluate(() => window.__life.renderAt(0));
 
   const geo = await page.evaluate(() => {
@@ -501,6 +513,9 @@ async function partStory(browser, base) {
   const yAt = (u) => geo.top + (u / 100) * (geo.h - geo.vh);
   const rec = new Recorder(page, cdp, path.join(WORK, "story"));
   const units = storyUnits();
+  // The animation clock (drifting light, dust, grain) is set for every frame, so the site part, recorded
+  // separately, can start from exactly the story's last frame (see storyEndTime).
+  let clock = 0;
   const at = (u) => units.findIndex((x) => x >= u) / FPS;
   const cues = [
     [0.5, "01", "Life Unfolds: the IVF journey as a scroll-driven 3D story", 5.2],
@@ -514,44 +529,65 @@ async function partStory(browser, base) {
     const t = i / FPS;
     for (const c of cues) if (Math.abs(c[0] - t) < 0.5 / FPS) rec.caption(c[1], c[2], c[3], "top");
     rec.fade = 1 - smooth(0, 0.9, t);
+    const time = clock;
+    clock += 1 / FPS;
     await rec.step({
       clock: false,
       before: () =>
-        page.evaluate(({ u, y, dt }) => {
+        page.evaluate(({ u, y, time, dt }) => {
           window.scrollTo(0, y);
+          window.__life.setTime(time);
           window.__life.capture(u, dt);
-        }, { u, y: yAt(u), dt: 1 / FPS }),
+        }, { u, y: yAt(u), time, dt: 1 / FPS }),
     });
   }
-  // Out of the story and into the page below it: the clock runs again, the engine has drawn its last frame.
-  const welcome = await rec.yOf("#welcome", 0);
-  await rec.scrollTo(welcome - 40, 2.4);
-  await rec.hold(1.6);
   await context.close();
   return rec.n;
 }
 
 async function partSite(browser, base) {
   const { context, page, cdp } = await newPage(browser);
-  // Wait for hydration (smooth scrolling is set up, and resets the page to the top) and for the 3D engine, which
-  // is paused: this part starts below the story and never shows it.
+  // Wait for hydration (smooth scrolling is set up, and resets the page to the top) and for the 3D engine.
   await load(page, `${base}/?capture=1`, () => Boolean(window.__lenis && window.__life));
-  // The story's last moment, drawn once (at the story part's quality): its last few pixels peek out above the welcome section.
-  await page.evaluate(() => {
-    window.__life.hold();
+  // Start exactly where the story part ends: its last moment, drawn at the same animation time, with the page
+  // scrolled to the end of the story (where the navigation floats and the back-to-top button shows). The story
+  // is stepped through first (every 10th frame, not saved), so its captions, labels and scale bar are left as
+  // the story part leaves them: the last ones stay in place, hidden, above the illustration notice.
+  await prepareStory(page);
+  const units = storyUnits();
+  for (let i = 0; i < units.length; i += 10) await page.evaluate((u) => window.__life.renderAt(u), units[i]);
+  await page.evaluate((time) => {
+    window.__life.setTime(time);
     window.__life.renderAt(100);
+  }, storyEndTime());
+  const end = await page.evaluate(() => {
+    const s = document.getElementById("life-unfolds");
+    return s.getBoundingClientRect().top + scrollY + (s.offsetHeight - innerHeight);
   });
-  await page.clock.runFor(400);
-  // Start where the story part ends, with the welcome section fully revealed.
-  const welcome = await page.evaluate(() => document.getElementById("welcome").getBoundingClientRect().top + scrollY);
-  await page.evaluate((y) => (window.__lenis ? window.__lenis.scrollTo(y, { immediate: true, force: true }) : window.scrollTo(0, y)), welcome - 40);
-  for (let i = 0; i < 40; i++) {
-    await page.clock.runFor(100);
-    await page.evaluate(() => window.__vtStep(100));
-  }
+  // Arrive there as the story part does, from just before the end, with a frame drawn (not saved) at each
+  // position: the page's scroll handlers then see the story end, and the navigation floats as it does there.
+  // A single jump from the top of the page is not seen as leaving the story, and the page's scroll positions
+  // are measured again shortly after it loads (which can undo the arrival), so the page is given time and,
+  // if it is still in the story's mode, arrives again.
+  const arrive = async () => {
+    for (const y of [end - 2, end]) {
+      await page.evaluate((y) => window.scrollTo(0, y), y);
+      await cdp.send("Page.captureScreenshot", { format: "jpeg", quality: 10, optimizeForSpeed: true });
+    }
+    for (let i = 0; i < 20; i++) {
+      await page.clock.runFor(100);
+      await page.evaluate(() => window.__vtStep(100));
+    }
+  };
+  const left = () => page.evaluate(() => document.documentElement.dataset.immersive === "false");
+  await arrive();
+  for (let i = 0; i < 4 && !(await left()); i++) await arrive();
+  if (!(await left())) log("site: the page did not leave the story's mode at the story's end; the first frames will differ");
   const rec = new Recorder(page, cdp, path.join(WORK, "site"));
 
-  // ---- the home page
+  // ---- out of the story and into the home page
+  await rec.scrollTo(await rec.yOf("#welcome", 40), 2.4);
+  await rec.hold(1.0);
   rec.caption("02", "An editorial home page: the clinic, its principles and its doctor", 4.6);
   await rec.hold(0.8);
   await rec.scrollTo("#principles", 2.2, 60);
@@ -806,6 +842,7 @@ async function partMobile(browser, base) {
 
 // --------------------------------------------------------------------------------------------- the score
 async function recordScore(base, totalSec, introSec) {
+  fs.rmSync(path.join(WORK, "score.webm"), { force: true });
   const browser = await launchBrowser({ args: ["--autoplay-policy=no-user-gesture-required"] });
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   await context.addInitScript(AUDIO_TAP);
@@ -873,10 +910,11 @@ function encode() {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   const score = path.join(WORK, "score.webm");
   const args = ["-y", "-hide_banner", "-loglevel", "error", "-framerate", String(rate), "-i", path.join(seq, "%06d.jpg")];
-  if (fs.existsSync(score)) {
-    args.push("-i", score, "-filter_complex", `[1:a]atrim=0:${dur.toFixed(3)},afade=t=in:st=0:d=1.2,afade=t=out:st=${Math.max(0, dur - 3).toFixed(3)}:d=3,loudnorm=I=-19:TP=-2:LRA=11[a]`, "-map", "0:v", "-map", "[a]", "-c:a", "aac", "-b:a", "160k");
+  if (!flag("no-audio") && fs.existsSync(score)) {
+    args.push("-i", score, "-filter_complex", `[1:a]atrim=0:${dur.toFixed(3)},afade=t=in:st=0:d=1.2,afade=t=out:st=${Math.max(0, dur - 3).toFixed(3)}:d=3,loudnorm=I=-19:TP=-2:LRA=11,aresample=48000[a]`, "-map", "0:v", "-map", "[a]", "-c:a", "aac", "-b:a", "128k");
   }
-  args.push("-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", String(FPS), "-movflags", "+faststart", "-t", dur.toFixed(3), OUT);
+  // A light temporal denoise takes out the story's film grain, which would otherwise cost most of the bitrate.
+  args.push("-vf", "hqdn3d=1.5:1.5:6:6", "-c:v", "libx264", "-preset", "slow", "-crf", String(CRF), "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", String(FPS), "-movflags", "+faststart", "-t", dur.toFixed(3), OUT);
   log(`encoding ${n} frames (${dur.toFixed(1)} s)`);
   const r = spawnSync("ffmpeg", args, { stdio: "inherit" });
   if (r.status !== 0) throw new Error("ffmpeg failed");

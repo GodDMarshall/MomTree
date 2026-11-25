@@ -11,7 +11,7 @@ export function clinicJsonLd() {
     "@context": "https://schema.org",
     "@type": "MedicalClinic",
     "@id": `${site.url}/#clinic`,
-    // The share-card script (scripts/capture-posters.mjs) reads name and alternateName from here.
+    // The share-card and demo-video scripts read the name from here (and the descriptor from the logo).
     name: site.name,
     alternateName: site.shortName,
     url: site.url,

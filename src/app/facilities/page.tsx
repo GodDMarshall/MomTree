@@ -6,6 +6,7 @@ import { Pending } from "@/components/ui/Pending";
 import { Gallery } from "@/components/home/Gallery";
 import { facilities, gallery } from "@/content/clinic";
 import { roman } from "@/lib/format";
+import { REVIEW_MODE } from "@/lib/review";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,12 +15,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/facilities" },
 };
 
-// Until the clinic's own photographs are added (content/clinic.ts → clinicPhotos and each facility),
-// the rooms are illustrated with 3D visualisations, and the lede says so.
-const lede =
-  gallery.length > 0
-    ? "Consultation, ultrasound, laboratories, operation theatres and pharmacy under one roof, shown in photographs of our own clinic. Where a photograph is not yet available, we say so rather than show someone else's."
-    : "Consultation, ultrasound, laboratories, operation theatres and pharmacy under one roof. The rooms are illustrated with 3D visualisations of the work each one supports, never with photographs of somewhere else, and the clinic's own photographs replace them at launch.";
+// Facility images are the clinic's own photographs, or 3D visualisations (public/plates) until those are
+// supplied; the lede describes whichever the page actually shows.
+const photographed = facilities.some((f) => f.photos.some((p) => !p.src.startsWith("/plates/")));
+const lede = photographed
+  ? "Consultation, ultrasound, laboratories, operation theatres and pharmacy under one roof, shown in photographs of our own clinic. Where a photograph is not yet available, we say so rather than show someone else's."
+  : "Consultation, ultrasound, laboratories, operation theatres and pharmacy under one roof. Where a room is illustrated, it is with a 3D visualisation of the work it supports, never a photograph of somewhere else.";
 
 export default function FacilitiesPage() {
   let plateNo = 0;
@@ -67,11 +68,11 @@ export default function FacilitiesPage() {
                     );
                   })}
                 </div>
-              ) : (
+              ) : REVIEW_MODE ? (
                 <div className="grid aspect-[16/10] place-items-center rounded-[18px] border border-dashed border-accent/60 bg-paper-2 p-8 text-center">
-                  <p className="max-w-[34ch] text-[14.5px] text-ink-soft">A photograph of this room appears here once the clinic supplies one.</p>
+                  <Pending>Photograph of this room: to be supplied by the clinic</Pending>
                 </div>
-              )}
+              ) : null}
             </div>
           </section>
         ))}

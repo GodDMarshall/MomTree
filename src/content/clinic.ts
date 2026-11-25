@@ -14,11 +14,11 @@ const wide = { width: 3200, height: 2000 };
 
 /** Visualisations rendered by the Life Unfolds engine: portrait (4:5) and landscape (16:10). */
 export const plates = {
-  fertilisation: { src: `${P}/fertilisation.webp`, ...tall, alt: "3D visualisation of an egg within its corona cells, approached by sperm", caption: "Conventional IVF: an egg within its corona cells, approached by sperm" },
-  icsi: { src: `${P}/icsi.webp`, ...tall, alt: "3D visualisation of ICSI: a holding pipette steadies an egg while a fine needle approaches", caption: "ICSI: a holding pipette steadies the egg for a single sperm" },
-  cleavage: { src: `${P}/cleavage.webp`, ...tall, alt: "3D visualisation of a four-cell embryo inside its zona pellucida", caption: "A four-cell embryo, about day 2" },
-  blastocyst: { src: `${P}/blastocyst.webp`, ...tall, alt: "3D visualisation of a blastocyst with its inner cell mass, outer layer and cavity", caption: "A blastocyst, about days 5 to 6" },
-  hatching: { src: `${P}/hatching.webp`, ...tall, alt: "3D visualisation of a blastocyst hatching from its zona pellucida", caption: "A blastocyst hatching from its shell, the zona" },
+  fertilisation: { src: `${P}/fertilisation.webp`, ...tall, alt: "3D visualisation of an egg within its corona cells, approached by sperm", caption: "Conventional IVF: an egg within its corona cells, approached by sperm (3D visualisation)" },
+  icsi: { src: `${P}/icsi.webp`, ...tall, alt: "3D visualisation of ICSI: a holding pipette steadies an egg while a fine needle approaches", caption: "ICSI: a holding pipette steadies the egg for a single sperm (3D visualisation)" },
+  cleavage: { src: `${P}/cleavage.webp`, ...tall, alt: "3D visualisation of a four-cell embryo inside its zona pellucida", caption: "A four-cell embryo, about day 2 (3D visualisation)" },
+  blastocyst: { src: `${P}/blastocyst.webp`, ...tall, alt: "3D visualisation of a blastocyst with its inner cell mass, outer layer and cavity", caption: "A blastocyst, about days 5 to 6 (3D visualisation)" },
+  hatching: { src: `${P}/hatching.webp`, ...tall, alt: "3D visualisation of a blastocyst hatching from its zona pellucida", caption: "A blastocyst hatching from its shell, the zona (3D visualisation)" },
   icsiWide: { src: `${P}/icsi-wide.webp`, ...wide, alt: "3D visualisation of ICSI micromanipulation: holding pipette, egg and injection needle", caption: "ICSI micromanipulation (3D visualisation)" },
   blastocystWide: { src: `${P}/blastocyst-wide.webp`, ...wide, alt: "3D visualisation of a blastocyst-stage embryo", caption: "Blastocyst culture (3D visualisation)" },
   spermWide: { src: `${P}/sperm-wide.webp`, ...wide, alt: "3D visualisation of prepared sperm swimming towards an egg", caption: "Prepared sperm approaching an egg (3D visualisation)" },
@@ -74,11 +74,11 @@ export const facilities: Facility[] = [
     id: "ultrasound",
     name: "Ultrasound",
     text: "Transvaginal and abdominal ultrasound for assessment, follicle monitoring, guided egg collection, embryo transfer and early pregnancy scans.",
-    photos: [plates.monitoringWide, plates.earlyScanWide],
+    photos: [plates.earlyScanWide, plates.transferWide],
   },
   {
     id: "clinic",
-    name: "Fertility clinic & consultation",
+    name: "Consultation & counselling",
     text: "A calm, private space for consultations and counselling, where there is always time for your questions.",
     photos: [],
   },

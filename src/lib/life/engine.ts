@@ -220,6 +220,19 @@ export class LifeEngine {
     this.frame(dt);
   }
 
+  /**
+   * Tools only: set the animation clock (drifting light, dust, grain) in seconds, so that a recording made in
+   * parts can pick up exactly where an earlier part left off.
+   */
+  setTime(t: number) {
+    shared.uTime.value = t;
+  }
+
+  /** Tools only: the animation clock, in seconds. */
+  get time() {
+    return shared.uTime.value;
+  }
+
   /** Tools only: frame every scene's subject in the centre, without the room kept for captions. */
   setCentred(centred: boolean) {
     this.ctx.centred = centred;
