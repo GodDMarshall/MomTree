@@ -51,17 +51,19 @@ export function Nav() {
     setDrawer(false);
   }, [pathname]);
 
-  // Drawer: lock scroll, focus management, Escape to close.
+  // Drawer: lock scroll, focus management, Escape to close. The lock is on the root element, as Lenis's own is: a
+  // locked body would become a scroll container of its own, and the story's sticky stage would jump out of view
+  // behind the opening drawer.
   useEffect(() => {
     const lenis = window.__lenis;
     if (drawer) {
       lenis?.stop();
-      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
       const first = drawerRef.current?.querySelector<HTMLElement>("a, button");
       first?.focus();
     } else {
       lenis?.start();
-      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
