@@ -1,14 +1,25 @@
 import { createHmac, randomBytes } from "node:crypto";
 import { normalisePhone, validateAppointment, type AppointmentInput } from "@/lib/appointment";
+import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Appointment requests. Patient details are never logged, never put in URLs and never sent to
 // analytics. Delivery is configured with environment variables (see .env.example):
-//   APPOINTMENT_WEBHOOK_URL (+ optional APPOINTMENT_WEBHOOK_SECRET for an HMAC signature), or
+//   APPOINTMENT_WEBHOOK_URL (+ optional APPOINTMENT_WEBHOOK_SECRET, which adds an HMAC-SHA256
+//   signature of the body in the "x-appointment-signature" header), or
 //   RESEND_API_KEY + APPOINTMENT_EMAIL_TO + APPOINTMENT_EMAIL_FROM for email.
 // With neither configured, the route answers 503 NOT_CONFIGURED and the form offers phone/WhatsApp.
+
+/** The website each request came from: the host of NEXT_PUBLIC_SITE_URL (see src/lib/site.ts). */
+const SOURCE = (() => {
+  try {
+    return new URL(site.url).host;
+  } catch {
+    return site.url;
+  }
+})();
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
@@ -42,7 +53,7 @@ export async function POST(req: Request) {
     return json({ code: "BAD_REQUEST" }, 400);
   }
 
-  const reference = `MT-${randomBytes(3).toString("hex").toUpperCase()}`;
+  const reference = `REQ-${randomBytes(3).toString("hex").toUpperCase()}`;
   // Bots fill the hidden field. Answer as if accepted, but deliver nothing.
   if (input.company) return json({ ok: true, reference });
 
@@ -60,7 +71,7 @@ export async function POST(req: Request) {
     message: (input.message ?? "").trim(),
     consentToContact: true,
     receivedAt: new Date().toISOString(),
-    source: "momtreeivf.com",
+    source: SOURCE,
   };
 
   const webhook = process.env.APPOINTMENT_WEBHOOK_URL;
@@ -73,14 +84,14 @@ export async function POST(req: Request) {
       const body = JSON.stringify(record);
       const headers: Record<string, string> = { "content-type": "application/json" };
       const secret = process.env.APPOINTMENT_WEBHOOK_SECRET;
-      if (secret) headers["x-momtree-signature"] = createHmac("sha256", secret).update(body).digest("hex");
+      if (secret) headers["x-appointment-signature"] = createHmac("sha256", secret).update(body).digest("hex");
       const res = await fetch(webhook, { method: "POST", headers, body });
       if (!res.ok) throw new Error(`webhook ${res.status}`);
       return json({ ok: true, reference });
     }
     if (resendKey && emailTo && emailFrom) {
       const text = [
-        `New consultation request ${record.reference}`,
+        `New consultation request ${record.reference} from the ${site.name} website (${record.source})`,
         ``,
         `Name: ${record.name}`,
         `Phone: ${record.phone}`,
@@ -92,7 +103,12 @@ export async function POST(req: Request) {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${resendKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ from: emailFrom, to: emailTo.split(",").map((s) => s.trim()), subject: `Consultation request ${record.reference}`, text }),
+        body: JSON.stringify({
+          from: emailFrom,
+          to: emailTo.split(",").map((s) => s.trim()).filter(Boolean),
+          subject: `Consultation request ${record.reference} · ${site.name}`,
+          text,
+        }),
       });
       if (!res.ok) throw new Error(`email ${res.status}`);
       return json({ ok: true, reference });

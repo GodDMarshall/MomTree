@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/site/PageHero";
 import { Pending } from "@/components/ui/Pending";
-import { site } from "@/lib/site";
+import { addressOneLine, site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
-  description: "How Momtree IVF & Genetics handles personal information shared through this website.",
+  description: `How ${site.name} handles personal information shared through this website.`,
   alternates: { canonical: "/privacy" },
 };
 
 const sections: { h: string; p: string[] }[] = [
+  {
+    h: "Who we are",
+    p: [`This website is run by ${site.name} ("we", "us"), which is responsible for the personal information you share through it.`],
+  },
   {
     h: "What we collect",
     p: [
@@ -24,7 +28,7 @@ const sections: { h: string; p: string[] }[] = [
   {
     h: "How it is handled",
     p: [
-      "Requests are delivered securely to the clinic's team. Personal details are never placed in website addresses (URLs), are not sent to analytics services, and are not written to public logs.",
+      "Requests are delivered securely to our clinic team. Personal details are never placed in website addresses (URLs), are not sent to analytics services, and are not written to public logs.",
       "Service providers that help us run the website or deliver messages process information only on our instructions.",
     ],
   },
@@ -47,7 +51,7 @@ const sections: { h: string; p: string[] }[] = [
   },
   {
     h: "Contact",
-    p: [`${site.name}, ${site.address.building}, ${site.address.street}, ${site.address.locality}, ${site.address.city} ${site.address.postalCode}. Email ${site.email}, phone ${site.phone.display}.`],
+    p: [`${site.name}, ${addressOneLine}. Email ${site.email}, phone ${site.phone.display}.`],
   },
 ];
 

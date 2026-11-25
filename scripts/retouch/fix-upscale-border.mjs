@@ -1,5 +1,5 @@
 // Repair the frame that Topaz upscales come back with: a band of dark, smeared pixels on every edge
-// (9 px on all four upscales of 2026-11-02; inside it the image matches the original to within 1-4
+// (9 px on every upscale so far, 2026-11-02; inside it the image matches the original to within 1-4
 // levels). The band's width is measured on each edge, as the rows or columns that differ from the
 // original resized to the upscale's size, and the widest is refilled from that resized original and
 // blended into the upscale over a few pixels, so nothing is cropped or rescaled and the plates keep

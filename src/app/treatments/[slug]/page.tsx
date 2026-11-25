@@ -92,7 +92,7 @@ export default async function TreatmentPage({ params }: Params) {
               </div>
             </div>
             <div className="relative mx-auto w-full max-w-[460px] lg:col-span-5">
-              <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[124%] w-[124%] max-w-none -translate-x-1/2 -translate-y-1/2 text-leaf/45" count={6} />
+              <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[124%] w-[124%] max-w-none -translate-x-1/2 -translate-y-1/2 text-accent/45" count={6} />
               <div className="relative aspect-square rounded-full bg-lilac/70 p-[12%] text-violet">
                 <TreatmentPlate slug={t.slug} className="h-full w-full" />
               </div>
@@ -143,7 +143,7 @@ export default async function TreatmentPage({ params }: Params) {
             <ul className="mt-8 grid gap-x-10 sm:grid-cols-2">
               {t.whoMayBeEvaluated.map((w) => (
                 <li key={w} className="flex gap-4 border-t border-[var(--color-hair)] py-4 leading-relaxed">
-                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf" aria-hidden="true" />
+                  <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
                   {w}
                 </li>
               ))}
@@ -152,10 +152,10 @@ export default async function TreatmentPage({ params }: Params) {
 
           <section id="how" className="scroll-mt-28">
             <h2 className="t-h2">How it works</h2>
-            <ol className="relative mt-10 space-y-10 border-l border-leaf/50 pl-10">
+            <ol className="relative mt-10 space-y-10 border-l border-accent/50 pl-10">
               {t.howItWorks.map((s, i) => (
                 <li key={s.title} className="relative" data-reveal="">
-                  <span className="absolute -left-[57px] top-0 grid h-8 w-8 place-items-center rounded-full border border-leaf bg-paper font-serif text-[15px] italic text-violet">
+                  <span className="absolute -left-[57px] top-0 grid h-8 w-8 place-items-center rounded-full border border-accent bg-paper font-serif text-[15px] italic text-violet">
                     {i + 1}
                   </span>
                   <h3 className="t-h3">{s.title}</h3>

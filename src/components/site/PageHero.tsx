@@ -51,7 +51,7 @@ export function PageHero({ crumbs, label, title, lede, children, aside }: Props)
     <header className="relative overflow-hidden pb-[clamp(56px,9vh,110px)] pt-[clamp(140px,22vh,220px)]">
       {/* The rings fade out before the header ends, so they never stop in a straight cut. */}
       <div className="pointer-events-none absolute inset-0" style={RING_FADE} aria-hidden="true">
-        <Rings className="absolute -right-[22vw] -top-[6vw] w-[66vw] max-w-[900px] text-leaf/50 max-sm:-right-[40vw] max-sm:top-[96px]" count={9} />
+        <Rings className="absolute -right-[22vw] -top-[6vw] w-[66vw] max-w-[900px] text-accent/50 max-sm:-right-[40vw] max-sm:top-[96px]" count={9} />
       </div>
       <div className="wrap relative">
         <Breadcrumbs items={crumbs} />

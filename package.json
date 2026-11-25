@@ -1,8 +1,8 @@
 {
-  "name": "momtree-ivf",
+  "name": "ivf-clinic-website",
   "version": "1.0.0",
   "private": true,
-  "description": "Momtree IVF & Genetics, Mysuru: website with the Life Unfolds scroll experience",
+  "description": "IVF clinic website template with Life Unfolds, a scroll-driven 3D story of IVF",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "assets": "node scripts/prepare-assets.mjs",
     "posters": "node scripts/capture-posters.mjs",
-    "check": "node scripts/site-check.mjs"
+    "check": "node scripts/site-check.mjs",
+    "demo:video": "node scripts/record-demo.mjs"
   },
   "dependencies": {
     "gsap": "3.15.0",

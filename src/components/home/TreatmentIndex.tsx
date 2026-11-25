@@ -92,7 +92,7 @@ export function TreatmentIndex({ compact = false }: { compact?: boolean }) {
                       </span>
                       <span className="hidden text-[14.5px] leading-relaxed text-ink-soft md:block">{t.short}</span>
                       <span className="flex items-center gap-3">
-                        <TreatmentPlate slug={t.slug} className="h-11 w-11 shrink-0 text-violet md:hidden [&_text]:hidden" />
+                        <TreatmentPlate slug={t.slug} className="h-11 w-11 shrink-0 text-violet md:hidden [&_g]:[stroke-width:5] [&_text]:hidden" />
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--color-hair)] transition-colors duration-500 group-hover:border-ink group-hover:bg-ink group-hover:text-paper">
                           <ArrowRight className="h-4 w-4" />
                         </span>
@@ -110,7 +110,7 @@ export function TreatmentIndex({ compact = false }: { compact?: boolean }) {
       <div
         ref={lensRef}
         aria-hidden="true"
-        className={`pointer-events-none absolute left-0 top-0 z-10 hidden h-[240px] w-[240px] rounded-full border border-leaf/60 bg-paper/95 shadow-[0_40px_80px_-40px_rgb(29_26_38/0.5)] backdrop-blur-sm transition-[opacity,scale] duration-500 ease-[var(--ease-soft)] [@media(pointer:fine)]:block ${
+        className={`pointer-events-none absolute left-0 top-0 z-10 hidden h-[240px] w-[240px] rounded-full border border-accent/60 bg-paper/95 shadow-[0_40px_80px_-40px_rgb(29_26_38/0.5)] backdrop-blur-sm transition-[opacity,scale] duration-500 ease-[var(--ease-soft)] [@media(pointer:fine)]:block ${
           active ? "scale-100 opacity-100" : "scale-75 opacity-0"
         }`}
       >

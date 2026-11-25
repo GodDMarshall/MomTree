@@ -5,7 +5,7 @@ import { TreatmentPlate } from "@/components/plates/TreatmentPlate";
 export function ArticleCover({ article, className = "" }: { article: Article; className?: string }) {
   const dark = article.categories.includes("ivf-education") || article.categories.includes("iui-and-icsi");
   return (
-    <div className={`relative grid place-items-center overflow-hidden ${dark ? "night-glow text-leaf" : "bg-lilac/70 text-violet"} ${className}`}>
+    <div className={`relative grid place-items-center overflow-hidden ${dark ? "night-glow text-accent" : "bg-lilac/70 text-violet"} ${className}`}>
       <TreatmentPlate slug={article.motif} className="h-[62%] w-[62%] [&_text]:hidden" />
     </div>
   );

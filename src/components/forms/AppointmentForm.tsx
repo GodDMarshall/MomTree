@@ -11,7 +11,8 @@ type Status = "idle" | "sending" | "done" | "unavailable" | "error";
 /**
  * The appointment request, written as one sentence. Short, warm and fully accessible: each
  * inline field has a real label, error text and aria wiring. Nothing is shown as "confirmed"
- * unless the server has accepted and delivered the request.
+ * unless the server has accepted and delivered the request. The clinic's name and numbers come
+ * from src/lib/site.ts; only the main phone and WhatsApp are offered (the alternate is optional).
  */
 export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" }) {
   const id = useId();
@@ -121,7 +122,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
           max={max}
           value={v.date}
           onChange={(e) => set("date", e.target.value)}
-          className={`${field} w-[min(13ch,100%)] min-w-[12.5ch] text-[0.8em] [&::-webkit-calendar-picker-indicator]:ml-1 [&::-webkit-calendar-picker-indicator]:opacity-50`}
+          className={`${field} w-[min(16ch,100%)] min-w-[15.5ch] text-[0.8em] [&::-webkit-calendar-picker-indicator]:ml-1 [&::-webkit-calendar-picker-indicator]:opacity-50`}
           {...err("date")}
         />
         <span>.</span>
@@ -138,7 +139,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
           maxLength={MAX_MESSAGE}
           value={v.message}
           onChange={(e) => set("message", e.target.value)}
-          className={`mt-2 w-full resize-y rounded-2xl border bg-transparent p-4 text-[15px] leading-relaxed outline-none transition-colors focus:border-leaf ${
+          className={`mt-2 w-full resize-y rounded-2xl border bg-transparent p-4 text-[15px] leading-relaxed outline-none transition-colors focus:border-accent ${
             dark ? "border-paper/20 text-paper" : "border-[var(--color-hair)] text-ink"
           }`}
           {...err("message")}
@@ -161,7 +162,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
           {...err("consent")}
         />
         <span>
-          I agree that Momtree IVF may contact me by phone or WhatsApp about this request. My details are used only for this purpose.{" "}
+          I agree that {site.shortName} may contact me by phone or WhatsApp about this request. My details are used only for this purpose.{" "}
           <Link href="/privacy" className="link-under">Privacy policy</Link>
         </span>
       </label>
@@ -178,7 +179,9 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
 
       {status === "unavailable" && (
         <div role="status" className={`mt-6 rounded-2xl border p-5 text-[15px] leading-relaxed ${dark ? "border-paper/20" : "border-[var(--color-hair)] bg-white/60"}`}>
-          Online requests are not connected yet, so your details were not sent. Please call or WhatsApp us, and we will be glad to help.
+          {site.demo
+            ? "Online requests are not connected on this demo website, so your details were not sent."
+            : "Online requests are not connected yet, so your details were not sent. Please call or WhatsApp us, and we will be glad to help."}
           <div className="mt-4 flex flex-wrap gap-3">
             <a href={site.phone.href} className="btn btn-solid !min-h-[44px]">
               <Phone /> Call {site.phone.display}
@@ -196,7 +199,7 @@ export function AppointmentForm({ tone = "light" }: { tone?: "light" | "dark" })
       )}
 
       <div className="mt-8 flex flex-wrap items-center gap-4">
-        <button type="submit" className={`btn ${dark ? "btn-leaf" : "btn-solid"}`} disabled={status === "sending"}>
+        <button type="submit" className={`btn ${dark ? "btn-accent" : "btn-solid"}`} disabled={status === "sending"}>
           {status === "sending" ? "Sending…" : "Request a consultation"} <ArrowRight />
         </button>
         <p id={`${id}-privacy`} className={`text-[12.5px] ${dark ? "text-on-night-soft" : "text-ink-soft"}`}>

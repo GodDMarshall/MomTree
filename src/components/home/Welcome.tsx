@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { photos, type Photo } from "@/content/clinic";
+import { plates, stills, type Photo } from "@/content/clinic";
+import { site } from "@/lib/site";
 import { ArrowRight } from "@/components/ui/Icons";
 import { Pending } from "@/components/ui/Pending";
 
@@ -22,20 +23,20 @@ export function Welcome() {
       <div className="wrap">
         <div className="flex items-baseline justify-between gap-6">
           <p className="t-label" data-reveal="">
-            Welcome to Momtree
+            Welcome to {site.shortName}
           </p>
           <p className="t-roman hidden text-[15px] md:block" data-reveal="">
-            Vijayanagar, Mysuru
+            {site.city ?? site.descriptor}
           </p>
         </div>
         <h2 id="welcome-title" className="t-display mt-10 max-w-[19ch]" data-reveal="">
-          A clinic in <Capsule photo={photos.corridor} /> Mysuru, where science <Capsule photo={photos.icsiStation} w="1.5em" />{" "}
-          <em>nurtures life.</em>
+          A clinic where science <Capsule photo={plates.icsiWide} /> meets <Capsule photo={stills.hands} w="1.5em" />{" "}
+          <em>personal care.</em>
         </h2>
         <div className="mt-[clamp(48px,9vh,110px)] grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-5 lg:col-start-5" data-reveal="">
             <p className="t-lede">
-              Momtree IVF &amp; Genetics is a fertility clinic in Vijayanagar, Mysuru, offering advanced reproductive treatment with personalised care. Every plan begins with understanding: your history, your results and what matters to you.
+              {site.name} offers fertility assessment, IUI, IVF and ICSI in one place. Every plan begins with understanding: your history, your results and what matters to you.
             </p>
           </div>
           <div className="lg:col-span-3" data-reveal="" style={{ ["--d" as string]: "0.15s" }}>
@@ -43,10 +44,10 @@ export function Welcome() {
               Our team supports couples and individuals through each step, from the first questions to treatment and beyond, with clear explanations, privacy and time for the conversations that matter.
             </p>
             <Link href="/about" className="mt-6 inline-flex items-center gap-2 text-[12.5px] font-semibold uppercase tracking-[0.16em] link-line">
-              About Momtree <ArrowRight className="h-4 w-4" />
+              About us <ArrowRight className="h-4 w-4" />
             </Link>
             <div className="mt-6">
-              <Pending>Clinic description: awaiting approval</Pending>
+              <Pending>Sample description: replace with the clinic&apos;s own</Pending>
             </div>
           </div>
         </div>

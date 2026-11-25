@@ -8,9 +8,9 @@ import { clamp01, frameForCaptions, lerp, Rig, rng, smooth, type Ctx, type Hud, 
  * The sculptural mother: a faceless porcelain figure, rendered by raymarching signed distance
  * fields in a fullscreen shader. Over the story she stands with her hands over her abdomen, then
  * the pregnancy grows week by week with the baby visible through a glass window in the belly, and
- * at the close she holds the newborn while leaves (from the Momtree logo) gather around them.
+ * at the close she holds the newborn while soft points of light gather around them.
  *
- * The shader writes depth, so the rasterised motes and leaves sit correctly in front of or
+ * The shader writes depth, so the rasterised motes and lights sit correctly in front of or
  * behind the figure. Sizes follow typical growth: crown-rump length by week, the uterus rising
  * from the pelvis at 12 weeks to below the ribs near term, and the baby turning head-down in the
  * third trimester. It is an illustration, not a model of any patient.
@@ -29,8 +29,8 @@ export type SculptureBeats = {
   baby: Key[];
   /** Soft light that carries the birth transition. */
   bloom: Key[];
-  /** Leaves gathering around mother and child at the close, 0..1. */
-  leaves: Key[];
+  /** Points of light gathering around mother and child at the close, 0..1. */
+  lights: Key[];
   camera: { u: number; pos: number[]; target: number[] }[];
   /** Caption framing: how far the subject sits right of centre on wide screens. */
   shift?: number;
@@ -419,56 +419,40 @@ void main(){
   gl_FragDepth = depth;
 }`;
 
-const LEAF_VERT = /* glsl */ `
-attribute vec4 aLeaf;
+// Points of light for the close: each one draws in from further out as it appears, then drifts and
+// twinkles. Mostly warm white, some lilac and a few gold, added to the frame like light.
+const LIGHT_VERT = /* glsl */ `
+attribute vec4 aSeed;
+attribute vec3 aFrom;
 uniform float uTime;
-uniform float uLeaves;
-varying vec2 vUv;
-varying float vShade;
-varying vec3 vN;
+uniform float uLights;
+uniform vec2 uRes;
+varying float vAlpha;
+varying vec3 vColor;
 void main(){
-  float appear = smoothstep(aLeaf.x, aLeaf.x + 0.32, uLeaves);
-  vec3 p = position * appear;
-  float f = sin(uTime * (0.6 + aLeaf.y * 0.5) + aLeaf.z * 6.283) * 0.22;
-  float c = cos(f), s = sin(f);
-  p = vec3(p.x * c - p.z * s, p.y, p.x * s + p.z * c);
-  vUv = uv;
-  vShade = aLeaf.w;
-  vN = normalize(mat3(modelMatrix * instanceMatrix) * vec3(0.0, 0.0, 1.0));
-  vec4 wp = modelMatrix * instanceMatrix * vec4(p, 1.0);
-  wp.y += sin(uTime * 0.5 + aLeaf.z * 5.0) * 0.006 * appear;
-  gl_Position = projectionMatrix * viewMatrix * wp;
+  float appear = smoothstep(aSeed.x, aSeed.x + 0.3, uLights);
+  float settle = appear * appear * (3.0 - 2.0 * appear);
+  vec3 p = mix(position + aFrom, position, settle);
+  float t = uTime * (0.22 + aSeed.z * 0.3) + aSeed.y * 6.283;
+  p += vec3(sin(t) * 0.014, sin(t * 0.73 + 1.3) * 0.02, cos(t * 0.81) * 0.014);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  // Sized against the frame's height, so the lights keep their proportion to the figure on any screen.
+  // Mostly small bright sparks, with a few large, soft ones (aSeed.z is weighted towards small).
+  gl_PointSize = (0.045 + aSeed.z * 0.17) * uRes.y / max(0.5, -mv.z);
+  float twinkle = 0.62 + 0.38 * sin(uTime * (0.9 + aSeed.w * 1.4) + aSeed.y * 12.0);
+  vAlpha = appear * twinkle * (1.0 - 0.55 * aSeed.z);
+  vColor = aSeed.w < 0.12 ? vec3(0.95, 0.78, 0.47) : (aSeed.w < 0.42 ? vec3(0.9, 0.84, 1.0) : vec3(1.0, 0.96, 0.9));
 }`;
-const LEAF_FRAG = /* glsl */ `
-uniform vec3 uLeaf;
-uniform vec3 uLeafLight;
-varying vec2 vUv;
-varying float vShade;
-varying vec3 vN;
+const LIGHT_FRAG = /* glsl */ `
+varying float vAlpha;
+varying vec3 vColor;
 void main(){
-  vec3 c = mix(uLeaf * (0.78 + 0.22 * vShade), uLeafLight, smoothstep(0.2, 1.0, vUv.y) * 0.35);
-  // Lit from the key light (either face), with a darker midrib.
-  float lit = 0.62 + 0.38 * abs(dot(normalize(vN), normalize(vec3(-0.45, 0.75, 0.5))));
-  float rib = 1.0 - 0.22 * (1.0 - smoothstep(0.0, 0.03, abs(vUv.x - 0.53))) * smoothstep(0.05, 0.2, vUv.y);
-  gl_FragColor = vec4(c * lit * rib, 1.0);
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  float core = 1.0 - smoothstep(0.0, 0.24, d);
+  float halo = pow(clamp(1.0 - d, 0.0, 1.0), 1.5);
+  gl_FragColor = vec4(vColor, (halo * 0.55 + core * 0.55) * vAlpha);
 }`;
-
-/** The leaf of the Momtree logo: a rounded leaf with a pointed tip and a notch at the stem. */
-function leafGeometry() {
-  const s = new THREE.Shape();
-  s.moveTo(0, 0);
-  s.bezierCurveTo(-0.5, 0.1, -0.52, 0.62, 0.02, 1.05);
-  s.bezierCurveTo(0.38, 0.62, 0.46, 0.22, 0.16, 0.06);
-  s.lineTo(0.03, 0.36);
-  s.lineTo(0, 0);
-  const g = new THREE.ShapeGeometry(s, 10);
-  g.computeBoundingBox();
-  const bb = g.boundingBox!;
-  const uv = g.attributes.uv as THREE.BufferAttribute;
-  const pos = g.attributes.position as THREE.BufferAttribute;
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, (pos.getX(i) - bb.min.x) / (bb.max.x - bb.min.x), (pos.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
-  return g;
-}
 
 const v3 = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -481,7 +465,7 @@ export class SculptureScene implements StoryScene {
   private beats: SculptureBeats;
   private rig: Rig;
   private mat: THREE.ShaderMaterial;
-  private leafMat: THREE.ShaderMaterial;
+  private lightMat: THREE.ShaderMaterial;
   private dust: THREE.Points;
   private tmp = new THREE.Vector3();
   private q = new THREE.Quaternion();
@@ -564,42 +548,49 @@ export class SculptureScene implements StoryScene {
     this.dust = motes({ count: 120, box: [3.2, 2.6, 2.6], color: "#dccbf3", size: 1.4, opacity: 0.35, center: [0, 1.2, 0] });
     this.scene.add(this.dust);
 
-    // Leaves: mostly above and behind the pair, never in front of the faces.
-    const geo = leafGeometry();
-    const count = 44;
-    this.leafMat = new THREE.ShaderMaterial({
-      vertexShader: LEAF_VERT,
-      fragmentShader: LEAF_FRAG,
-      side: THREE.DoubleSide,
-      uniforms: { uTime: shared.uTime, uLeaves: { value: 0 }, uLeaf: { value: new THREE.Color("#80c041") }, uLeafLight: { value: new THREE.Color("#d9f0b8") } },
-    });
-    const leaves = new THREE.InstancedMesh(geo, this.leafMat, count);
-    const attr = new Float32Array(count * 4);
-    const r = rng(7);
-    const o = new THREE.Object3D();
-    // A crown like the logo's canopy: small leaves in an egg-shaped crown around the pair, each
-    // pointing outwards, laid out facing the closing camera and set just behind her head.
+    // Points of light around and above the pair, set behind them (the figure hides those behind her),
+    // laid out facing the closing camera; a few at the sides come forward for depth, never over the faces.
+    const count = 76;
+    const pos = new Float32Array(count * 3);
+    const from = new Float32Array(count * 3);
+    const seed = new Float32Array(count * 4);
+    const r = rng(11);
     const az = -0.37;
     const right = v3(Math.cos(az), 0, -Math.sin(az));
     const back = v3(-Math.sin(az), 0, -Math.cos(az));
-    for (let i = 0, placed = 0; placed < count && i < 4000; i++) {
-      const a = lerp(-2.3, 2.3, r());
-      const rad = lerp(0.22, 0.42, Math.sqrt(r()));
-      const lx = Math.sin(a) * rad * 0.95;
-      const ly = 1.55 + Math.cos(a) * rad * 0.85;
-      if (ly < 1.24) continue;
-      const depthOff = 0.1 + r() * 0.1;
-      o.position.copy(right).multiplyScalar(lx).add(v3(0, ly, -0.04)).addScaledVector(back, depthOff);
-      o.rotation.set((r() - 0.5) * 0.5, az + (r() - 0.5) * 0.6, -a + (r() - 0.5) * 0.45);
-      o.scale.setScalar(lerp(0.035, 0.065, r()));
-      o.updateMatrix();
-      leaves.setMatrixAt(placed, o.matrix);
-      attr.set([placed / count * 0.68, r(), r(), r()], placed * 4);
+    const p = new THREE.Vector3();
+    const out = new THREE.Vector3();
+    for (let i = 0, placed = 0; placed < count && i < 6000; i++) {
+      const a = lerp(-Math.PI, Math.PI, r());
+      const rad = lerp(0.26, 0.6, Math.sqrt(r()));
+      const lx = Math.sin(a) * rad * 1.05;
+      const ly = 1.42 + Math.cos(a) * rad * 0.92;
+      if (ly < 0.95) continue;
+      const side = Math.abs(lx) > 0.34;
+      const depth = side && r() < 0.35 ? -0.12 * r() : 0.06 + r() * 0.3;
+      p.copy(right).multiplyScalar(lx).add(v3(0, ly, -0.04)).addScaledVector(back, depth);
+      // Where it starts: further out from the pair, and a little lower, so the lights rise as they gather.
+      out.copy(right).multiplyScalar(Math.sin(a)).add(v3(0, Math.cos(a), 0)).multiplyScalar(lerp(0.22, 0.48, r())).add(v3(0, -0.08, 0));
+      pos.set([p.x, p.y, p.z], placed * 3);
+      from.set([out.x, out.y, out.z], placed * 3);
+      seed.set([(placed / count) * 0.7, r(), r() * r(), r()], placed * 4);
       placed++;
     }
-    geo.setAttribute("aLeaf", new THREE.InstancedBufferAttribute(attr, 4));
-    leaves.frustumCulled = false;
-    this.scene.add(leaves);
+    const lg = new THREE.BufferGeometry();
+    lg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    lg.setAttribute("aFrom", new THREE.BufferAttribute(from, 3));
+    lg.setAttribute("aSeed", new THREE.BufferAttribute(seed, 4));
+    this.lightMat = new THREE.ShaderMaterial({
+      vertexShader: LIGHT_VERT,
+      fragmentShader: LIGHT_FRAG,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: { uTime: shared.uTime, uLights: { value: 0 }, uRes: shared.uRes },
+    });
+    const lights = new THREE.Points(lg, this.lightMat);
+    lights.frustumCulled = false;
+    this.scene.add(lights);
   }
 
   async load() {}
@@ -650,7 +641,7 @@ export class SculptureScene implements StoryScene {
     this.glassNow = keyAt(b.glass, u);
     U.uGlass.value = this.glassNow;
     U.uBloom.value = keyAt(b.bloom, u);
-    this.leafMat.uniforms.uLeaves.value = keyAt(b.leaves, u);
+    this.lightMat.uniforms.uLights.value = keyAt(b.lights, u);
     // The opening (below local unit 10; the story never reaches 10 in that slot, and the pregnancy starts at 10).
     const opening = u < 10;
     this.xrayNow = opening && b.xray ? keyAt(b.xray, u) : 0;

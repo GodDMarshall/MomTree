@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { PageHero } from "@/components/site/PageHero";
 import { CtaBand } from "@/components/site/CtaBand";
 import { Plate } from "@/components/ui/Plate";
+import { Portrait } from "@/components/ui/Portrait";
 import { Words } from "@/components/ui/Words";
 import { Rings } from "@/components/ui/Rings";
 import { Pending } from "@/components/ui/Pending";
 import { ArrowRight } from "@/components/ui/Icons";
 import { director } from "@/content/doctor";
-import { facilities, photos } from "@/content/clinic";
+import { facilities, stills } from "@/content/clinic";
 import { roman } from "@/lib/format";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "About Momtree",
-  description:
-    "Momtree IVF & Genetics is a fertility clinic in Vijayanagar, Mysuru, led by Medical Director Dr. Navyashri M S, with an embryology laboratory, andrology laboratory, operation theatres and in-house pharmacy.",
+  title: "About us",
+  description: `${site.name} is a fertility clinic offering advanced reproductive treatment with personalised care. Its embryology and andrology laboratories, operation theatres and in-house pharmacy are all under one roof.`,
   alternates: { canonical: "/about" },
 };
 
@@ -34,24 +34,24 @@ export default function AboutPage() {
           { name: "Home", path: "/" },
           { name: "About", path: "/about" },
         ]}
-        label="About Momtree"
-        title="Where science *nurtures life.*"
-        lede="Momtree IVF & Genetics is a fertility clinic in Vijayanagar, Mysuru, offering advanced reproductive treatment with personalised care. We are dedicated to helping couples and individuals through the challenges of infertility with compassionate support and modern techniques."
+        label="About us"
+        title={site.tagline}
+        lede={`${site.name} brings fertility assessment, treatment and the laboratory together under one roof. We take the time to explain each step, and we look after the people going through treatment as well as the treatment itself.`}
       >
         <div className="mt-8">
-          <Pending>Clinic description: awaiting approval</Pending>
+          <Pending>Sample description: replace with the clinic&apos;s own</Pending>
         </div>
       </PageHero>
 
       <section className="section-tight" aria-label="The clinic">
         <div className="wrap grid gap-10 lg:grid-cols-12">
-          <Plate className="lg:col-span-7" {...photos.corridor} n={1} caption={photos.corridor.caption} shape="soft" sizes="(max-width: 1024px) 100vw, 58vw" priority />
+          <Plate className="lg:col-span-7" {...stills.hands} n={1} caption={stills.hands.caption} shape="soft" sizes="(max-width: 1024px) 100vw, 58vw" priority />
           <div className="flex flex-col justify-end lg:col-span-4 lg:col-start-9">
             <p className="font-serif text-[1.8rem] font-light leading-snug" data-reveal="">
-              A single address for the whole journey: consultation, ultrasound, laboratories, theatres and pharmacy.
+              One address for the whole journey: consultation, ultrasound, laboratories, theatres and pharmacy.
             </p>
             <p className="mt-6 text-ink-soft" data-reveal="">
-              Sankalp Solitaire, General Thimmaiah Road, Vijayanagar 2nd Stage, Mysuru.
+              Each step, from the first conversation to treatment, happens in one place, with one team that knows your history.
             </p>
           </div>
         </div>
@@ -82,10 +82,10 @@ export default function AboutPage() {
           <div>
             <p className="t-label">Vision</p>
             <h2 id="vision-title" className="t-h3 mt-4 max-w-[30ch]">
-              To be a trusted place in Mysuru where every person seeking parenthood receives expert, honest and compassionate fertility care.
+              To be a trusted place{site.city ? ` in ${site.city}` : ""} where every person seeking parenthood receives expert, honest and compassionate fertility care.
             </h2>
             <div className="mt-5">
-              <Pending>Draft vision: client to confirm or replace</Pending>
+              <Pending>Draft vision: confirm or replace with the clinic&apos;s own</Pending>
             </div>
           </div>
           <div>
@@ -94,7 +94,7 @@ export default function AboutPage() {
               To understand each patient fully, recommend only what helps, explain every step clearly, and support people emotionally as well as medically.
             </p>
             <div className="mt-5">
-              <Pending>Draft mission: client to confirm or replace</Pending>
+              <Pending>Draft mission: confirm or replace with the clinic&apos;s own</Pending>
             </div>
           </div>
         </div>
@@ -103,9 +103,9 @@ export default function AboutPage() {
       <section className="section overflow-x-clip" aria-labelledby="lead-title">
         <div className="wrap grid items-center gap-14 lg:grid-cols-12">
           <div className="relative mx-auto w-full max-w-[420px] lg:col-span-4">
-            <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[132%] w-[132%] max-w-none -translate-x-1/2 -translate-y-1/2 text-leaf/50" count={6} />
+            <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[132%] w-[132%] max-w-none -translate-x-1/2 -translate-y-1/2 text-accent/50" count={6} />
             <div className="relative aspect-square overflow-hidden rounded-full bg-lilac">
-              <Image src={director.portrait.src} alt={director.portrait.alt} fill sizes="420px" className="object-cover" />
+              <Portrait portrait={director.portrait} sizes="420px" />
             </div>
           </div>
           <div className="lg:col-span-7 lg:col-start-6">
@@ -115,9 +115,12 @@ export default function AboutPage() {
             </h2>
             <p className="mt-4 font-serif text-[1.2rem]">{director.credentials}</p>
             <p className="t-lede mt-6 max-w-[56ch]">{director.summary}</p>
-            <Link href={`/doctors/${director.slug}`} className="btn btn-solid mt-8">
-              Her profile <ArrowRight />
-            </Link>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href={`/doctors/${director.slug}`} className="btn btn-solid">
+                View profile <ArrowRight />
+              </Link>
+              <Pending>Sample profile: replace with the clinic&apos;s own doctor</Pending>
+            </div>
           </div>
         </div>
       </section>
@@ -175,7 +178,7 @@ export default function AboutPage() {
               "Support for the emotional side of treatment, not just the medical.",
             ].map((x) => (
               <li key={x} className="flex gap-4 border-t border-[var(--color-hair)] pt-5 leading-relaxed">
-                <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf" aria-hidden="true" />
+                <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
                 {x}
               </li>
             ))}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { whatsappLink } from "@/lib/site";
+import { site, whatsappLink } from "@/lib/site";
 import { WhatsApp } from "@/components/ui/Icons";
 
 /**
@@ -57,7 +57,7 @@ export function FloatingActions() {
       >
         <svg viewBox="0 0 48 48" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
           <circle cx="24" cy="24" r="21" fill="rgb(255 255 255 / 0.8)" stroke="var(--color-hair)" strokeWidth="1" />
-          <circle cx="24" cy="24" r="21" fill="none" stroke="var(--color-leaf)" strokeWidth="1.4" strokeDasharray={C} strokeDashoffset={C * (1 - progress)} strokeLinecap="round" />
+          <circle cx="24" cy="24" r="21" fill="none" stroke="var(--color-accent)" strokeWidth="1.4" strokeDasharray={C} strokeDashoffset={C * (1 - progress)} strokeLinecap="round" />
         </svg>
         <svg viewBox="0 0 16 16" className="relative h-3.5 w-3.5" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.3">
           <path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -68,7 +68,7 @@ export function FloatingActions() {
         href={whatsappLink()}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Chat with Momtree IVF on WhatsApp"
+        aria-label={`Chat with ${site.shortName} on WhatsApp`}
         className={`group fixed bottom-5 right-5 z-40 flex h-14 items-center gap-0 overflow-hidden rounded-full border pl-[17px] pr-[17px] shadow-[0_20px_50px_-24px_rgb(29_26_38/0.6)] backdrop-blur-md transition-all duration-500 hover:gap-3 hover:pr-6 ${
           onDark ? "border-paper/25 bg-night/60 text-paper" : "border-[var(--color-hair)] bg-paper text-ink"
         }`}

@@ -1,6 +1,6 @@
-// Knowledge Centre. The first five articles are migrated from the old site and rewritten for accuracy
-// (for example, the old "IVF over 35" article said ICSI gives "higher success rates", which is not the
-// case when sperm is normal). All articles await clinician review before launch.
+// Knowledge Centre. Patient education in plain language, written for accuracy rather than reassurance
+// (for example, ICSI is never presented as giving "higher success rates": it does not when sperm is
+// normal). Location-neutral on purpose. All articles await clinician review before launch.
 import type { ReviewStatus } from "@/lib/review";
 
 export type CategoryId =
@@ -35,12 +35,9 @@ export type Article = {
   motif: string;
   published: string;
   updated: string;
-  migratedFrom?: string;
   blocks: Block[];
   review: ReviewStatus;
 };
-
-const OLD = "https://momtreeivf.com";
 
 export const articles: Article[] = [
   {
@@ -51,7 +48,6 @@ export const articles: Article[] = [
     motif: "ovulation-induction",
     published: "2025-01-20",
     updated: "2026-11-02",
-    migratedFrom: `${OLD}/ivf-for-couples-over-35-challenges-and-solutions/`,
     review: "pending",
     blocks: [
       { type: "p", text: "Many people start thinking about a family in their mid-thirties or later. If that is you, it helps to understand how age affects fertility, and what treatment can and cannot change." },
@@ -94,7 +90,6 @@ export const articles: Article[] = [
     motif: "ivf",
     published: "2025-01-20",
     updated: "2026-11-02",
-    migratedFrom: `${OLD}/common-ivf-myths-and-facts-everything-you-need-to-know/`,
     review: "pending",
     blocks: [
       { type: "p", text: "IVF is widely used, yet surrounded by misunderstandings that can add worry to an already emotional time. Here are some of the most common, and what the evidence says." },
@@ -123,7 +118,6 @@ export const articles: Article[] = [
     motif: "fertility-evaluation",
     published: "2025-01-18",
     updated: "2026-11-02",
-    migratedFrom: `${OLD}/how-to-choose-the-best-ivf-specialist-and-fertility-clinic-in-mysuru/`,
     review: "pending",
     blocks: [
       { type: "p", text: "Choosing where to have fertility treatment is a big decision. These are the questions we would encourage you to ask any clinic, including ours." },
@@ -157,7 +151,6 @@ export const articles: Article[] = [
     motif: "ultrasound",
     published: "2025-01-18",
     updated: "2026-11-02",
-    migratedFrom: `${OLD}/best-time-to-start-ivf-a-step-by-step-fertility-journey/`,
     review: "pending",
     blocks: [
       { type: "p", text: "There is no single right moment to start IVF. For most people the journey begins with understanding what is happening, and IVF is one of several possible next steps." },
@@ -187,7 +180,6 @@ export const articles: Article[] = [
     motif: "blastocyst-culture",
     published: "2024-12-20",
     updated: "2026-11-02",
-    migratedFrom: `${OLD}/ivf-treatment-a-comprehensive-guide-to-success-rates-and-cost-in-mysore/`,
     review: "pending",
     blocks: [
       { type: "p", text: "Success rates and costs are among the first things people ask about IVF. Both are easy to misunderstand, so here is how to think about them." },

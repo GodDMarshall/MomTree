@@ -1,40 +1,63 @@
-// Single source of truth for the clinic's contact details. Every value here is taken from the
-// current momtreeivf.com website (audited November 2026); see docs/APPROVAL-CHECKLIST.md.
+// The clinic's identity and contact details: the single file to edit when this site is adapted for
+// a clinic. The values below are neutral placeholders for the demo build. They are deliberately not
+// real: the phone number cannot be dialled, the email uses the reserved example.com domain, and no
+// map or social profile is linked until real details are set (see docs/LAUNCH-CHECKLIST.md).
+
+export type Phone = { display: string; href: string };
 
 export const site = {
-  name: "Momtree IVF & Genetics",
-  shortName: "Momtree IVF",
-  tagline: "Where science nurtures life.",
-  url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://momtreeivf.com").replace(/\/$/, ""),
-  phone: { display: "+91 96114 54999", href: "tel:+919611454999" },
-  phoneAlt: { display: "0821 453 0704", href: "tel:+918214530704" },
-  email: "momtreeivf@gmail.com",
-  whatsappNumber: "919611454999",
-  instagram: "https://www.instagram.com/momtreeivf/",
+  /** Full name, used in titles, structured data and the footer. */
+  name: "Your Clinic IVF Centre",
+  /** The name on its own, used in running text ("At Your Clinic, ..."). */
+  shortName: "Your Clinic",
+  /** The line under the name in the logo. */
+  descriptor: "IVF Centre",
+  /** The About page's headline. The part in *asterisks* is set in italics. */
+  tagline: "Careful science, *personal care.*",
+  /** City for page titles and the hero label, e.g. "Pune". Leave null to keep titles location-free. */
+  city: null as string | null,
+  /** Demo build: shows a notice that the clinic, people and details on the site are placeholders. */
+  demo: true,
+  url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.example.com").replace(/\/$/, ""),
+  phone: { display: "+91 00000 00000", href: "tel:+910000000000" } as Phone,
+  phoneAlt: null as Phone | null,
+  email: "hello@example.com",
+  /** WhatsApp number in international format without "+" (placeholder: not a real number). */
+  whatsappNumber: "910000000000",
+  instagram: null as null | { url: string; handle: string },
+  /** Public reviews page (for example a Google Business Profile). Hidden while null. */
+  reviewsUrl: null as string | null,
   address: {
-    building: "Sankalp Solitaire, 5671/B",
-    street: "General Thimmaiah Road, Vijay Nagar 2nd Stage",
-    locality: "Vijayanagar",
-    city: "Mysuru",
-    region: "Karnataka",
-    postalCode: "570017",
+    building: "Clinic building",
+    street: "Street address",
+    locality: "Area",
+    city: "City",
+    region: "State",
+    postalCode: "000 000",
     country: "IN",
   },
-  // Opening hours are not published on the current site; shown only once the clinic confirms them.
+  /** Search text for Google Maps (usually the clinic's name and address). The map stays hidden while null. */
+  mapQuery: null as string | null,
+  // Opening hours are shown only once the clinic confirms them.
   hours: null as null | { days: string; time: string }[],
-} as const;
+};
 
 export const addressOneLine = `${site.address.building}, ${site.address.street}, ${site.address.locality}, ${site.address.city}, ${site.address.region} ${site.address.postalCode}`;
 
-const mapsQuery = encodeURIComponent(`Momtree IVF, ${addressOneLine}`);
-export const mapsLinks = {
-  directions: `https://www.google.com/maps/dir/?api=1&destination=${mapsQuery}`,
-  place: `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`,
-  embed: `https://www.google.com/maps?q=${mapsQuery}&output=embed`,
-};
+/** Google Maps links, or null when no location has been set (the map and directions are then hidden). */
+export const mapsLinks = site.mapQuery
+  ? {
+      directions: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(site.mapQuery)}`,
+      place: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.mapQuery)}`,
+      embed: `https://www.google.com/maps?q=${encodeURIComponent(site.mapQuery)}&output=embed`,
+    }
+  : null;
+
+/** "Fertility care" or "Fertility care in <city>", for page titles and the hero label. */
+export const careLine = site.city ? `Fertility care in ${site.city}` : "Fertility care";
 
 /** WhatsApp deep link. The pre-filled text is generic on purpose: no personal data in URLs. */
-export function whatsappLink(text = "Hello Momtree IVF, I would like to know more about a consultation.") {
+export function whatsappLink(text = `Hello ${site.shortName}, I would like to know more about a consultation.`) {
   return `https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(text)}`;
 }
 
@@ -47,7 +70,7 @@ export const nav: NavItem[] = [
     label: "About",
     href: "/about",
     children: [
-      { label: "About Momtree", href: "/about", note: "Who we are and how we work" },
+      { label: "About us", href: "/about", note: "Who we are and how we work" },
       { label: "Our philosophy", href: "/about#philosophy", note: "Science, compassion, privacy" },
       { label: "Facilities", href: "/facilities", note: "Laboratories, theatres, pharmacy" },
       { label: "Our doctors", href: "/doctors", note: "Meet the Medical Director" },

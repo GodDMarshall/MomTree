@@ -8,15 +8,21 @@ import { Mail, Phone, Pin, WhatsApp } from "@/components/ui/Icons";
 
 export const metadata: Metadata = {
   title: "Contact & appointments",
-  description: "Book a consultation at Momtree IVF & Genetics, Sankalp Solitaire, Vijayanagar, Mysuru. Call +91 96114 54999, WhatsApp, or send a short request online.",
+  description: `Book a consultation at ${site.name}. Call ${site.phone.display}, send a WhatsApp message, or leave a short request online.`,
   alternates: { canonical: "/contact" },
 };
 
-const ways = [
-  { icon: Phone, label: "Call", value: site.phone.display, href: site.phone.href, note: `Alternate: ${site.phoneAlt.display}` },
+type Way = { icon: typeof Phone; label: string; value: string; href: string; note: string; external?: boolean };
+
+const ways: Way[] = [
+  { icon: Phone, label: "Call", value: site.phone.display, href: site.phone.href, note: site.phoneAlt ? `Alternate: ${site.phoneAlt.display}` : "Speak with our care team" },
   { icon: WhatsApp, label: "WhatsApp", value: "Message us", href: whatsappLink(), note: "A quick question is welcome", external: true },
-  { icon: Mail, label: "Email", value: site.email, href: `mailto:${site.email}`, note: "Please avoid sending medical records by\u00a0email" },
-  { icon: Pin, label: "Visit", value: "Vijayanagar, Mysuru", href: mapsLinks.directions, note: "Get directions", external: true },
+  { icon: Mail, label: "Email", value: site.email, href: `mailto:${site.email}`, note: "Please avoid sending medical records by email" },
+  // Directions need the clinic's location (site.mapQuery); until it is set, the card points to the
+  // address further down this page instead.
+  mapsLinks
+    ? { icon: Pin, label: "Visit", value: site.city ?? "Find the clinic", href: mapsLinks.directions, note: "Get directions", external: true }
+    : { icon: Pin, label: "Visit", value: site.city ?? "Our address", href: "#request", note: "Further down this page" },
 ];
 
 export default function ContactPage() {

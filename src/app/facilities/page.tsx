@@ -6,13 +6,20 @@ import { Pending } from "@/components/ui/Pending";
 import { Gallery } from "@/components/home/Gallery";
 import { facilities, gallery } from "@/content/clinic";
 import { roman } from "@/lib/format";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Facilities",
-  description:
-    "The Momtree IVF clinic in Vijayanagar, Mysuru: embryology laboratory with ICSI micromanipulation, andrology laboratory, operation theatres, ultrasound and in-house pharmacy.",
+  description: `Facilities at ${site.name}: an embryology laboratory with ICSI micromanipulation, andrology laboratory, operation theatres, ultrasound and in-house pharmacy, under one roof.`,
   alternates: { canonical: "/facilities" },
 };
+
+// Until the clinic's own photographs are added (content/clinic.ts → clinicPhotos and each facility),
+// the rooms are illustrated with 3D visualisations, and the lede says so.
+const lede =
+  gallery.length > 0
+    ? "Consultation, ultrasound, laboratories, operation theatres and pharmacy under one roof, shown in photographs of our own clinic. Where a photograph is not yet available, we say so rather than show someone else's."
+    : "Consultation, ultrasound, laboratories, operation theatres and pharmacy under one roof. The rooms are illustrated with 3D visualisations of the work each one supports, never with photographs of somewhere else, and the clinic's own photographs replace them at launch.";
 
 export default function FacilitiesPage() {
   let plateNo = 0;
@@ -25,7 +32,7 @@ export default function FacilitiesPage() {
         ]}
         label="Facilities"
         title="Precision, *in every room.*"
-        lede="Consultation, ultrasound, laboratories, operation theatres and pharmacy under one roof. These are photographs of our own clinic. Where a photograph is not yet available, we say so rather than show someone else's."
+        lede={lede}
       />
 
       <div className="wrap space-y-[clamp(80px,12vh,140px)] pb-24">
@@ -61,8 +68,8 @@ export default function FacilitiesPage() {
                   })}
                 </div>
               ) : (
-                <div className="grid aspect-[16/10] place-items-center rounded-[18px] border border-dashed border-leaf/60 bg-paper-2 p-8 text-center">
-                  <p className="max-w-[34ch] text-[14.5px] text-ink-soft">A photograph of this facility will be added once supplied by the clinic.</p>
+                <div className="grid aspect-[16/10] place-items-center rounded-[18px] border border-dashed border-accent/60 bg-paper-2 p-8 text-center">
+                  <p className="max-w-[34ch] text-[14.5px] text-ink-soft">A photograph of this room appears here once the clinic supplies one.</p>
                 </div>
               )}
             </div>
@@ -70,17 +77,20 @@ export default function FacilitiesPage() {
         ))}
       </div>
 
-      <section className="section-tight bg-paper-2" aria-labelledby="tour-title">
-        <div className="wrap">
-          <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-            <h2 id="tour-title" className="t-h2">
-              A walk <em>through the clinic</em>
-            </h2>
-            <Pending>A video tour can be added here when footage is available</Pending>
+      {/* The clinic's own photographs (content/clinic.ts → clinicPhotos). Hidden while there are none. */}
+      {gallery.length > 0 && (
+        <section className="section-tight bg-paper-2" aria-labelledby="tour-title">
+          <div className="wrap">
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+              <h2 id="tour-title" className="t-h2">
+                A walk <em>through the clinic</em>
+              </h2>
+              <Pending>A video tour can be added here when footage is available</Pending>
+            </div>
+            <Gallery photos={gallery} title="Clinic photographs" />
           </div>
-          <Gallery photos={gallery} title="Clinic photographs" />
-        </div>
-      </section>
+        </section>
+      )}
 
       <CtaBand title="Come and *see for yourself.*" text="You are welcome to ask for a short tour of the clinic at your first consultation." />
     </>

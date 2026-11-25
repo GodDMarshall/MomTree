@@ -3,15 +3,28 @@ import Image from "next/image";
 import { PageHero } from "@/components/site/PageHero";
 import { CtaBand } from "@/components/site/CtaBand";
 import { Pending } from "@/components/ui/Pending";
-import { events, googleSummary, reviews } from "@/content/clinic";
-import { mapsLinks } from "@/lib/site";
+import { events, ratingSummary, reviews } from "@/content/clinic";
+import { site } from "@/lib/site";
 import { REVIEW_MODE } from "@/lib/review";
+
+// Sample testimonials (demo build) are always labelled as such: see content/clinic.ts.
+const hasSamples = reviews.some((r) => r.sample);
+/** A published rating that has not been verified yet: shown only as a review note, never as a claim. */
+const ratingToVerify = ratingSummary && !ratingSummary.verified ? ratingSummary : null;
 
 export const metadata: Metadata = {
   title: "Patient stories",
-  description: "What patients say about their care at Momtree IVF & Genetics, Mysuru: verbatim reviews from Google.",
+  description: hasSamples
+    ? `Patient experiences of care at ${site.name}. The testimonials currently shown are illustrative samples, not the words of real patients.`
+    : `What patients say about their care at ${site.name}, quoted with permission. Every experience is individual.`,
   alternates: { canonical: "/patient-stories" },
 };
+
+const lede = hasSamples
+  ? "The testimonials on this page are illustrative samples, not the words of real patients. At launch they are replaced with reviews the clinic has permission to quote. Every experience is individual: reviews describe people's care, not treatment outcomes, and one person's journey does not predict another's."
+  : reviews.length > 0
+    ? "These are reviews people have shared about their care, quoted exactly as written and with permission. Every experience is individual. They describe people's care, not treatment outcomes, and one person's journey does not predict another's."
+    : "Every experience is individual. Reviews describe people's care, not treatment outcomes, and one person's journey does not predict another's.";
 
 export default function PatientStoriesPage() {
   return (
@@ -23,38 +36,52 @@ export default function PatientStoriesPage() {
         ]}
         label="Patient stories"
         title="In their *own words.*"
-        lede="These are reviews people have shared publicly on Google, quoted exactly as written. Every experience is individual. They describe people's care, not treatment outcomes, and one person's journey does not predict another's."
+        lede={lede}
       >
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <a href={mapsLinks.place} target="_blank" rel="noopener noreferrer" className="btn btn-solid">
-            Read all reviews on Google
-          </a>
-          {!googleSummary.verified && <Pending>Google rating {googleSummary.rating} from {googleSummary.count} reviews (as published by the clinic): verify before display</Pending>}
-        </div>
+        {(site.reviewsUrl || (REVIEW_MODE && ratingToVerify)) && (
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            {site.reviewsUrl && (
+              <a href={site.reviewsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-solid">
+                Read all reviews
+              </a>
+            )}
+            {ratingToVerify && (
+              <Pending>
+                Rating {ratingToVerify.rating} from {ratingToVerify.count} reviews: verify the current figures before display
+              </Pending>
+            )}
+          </div>
+        )}
       </PageHero>
 
-      <section className="section-tight" aria-label="Reviews">
-        <div className="wrap">
-          <ul className="grid gap-6 md:grid-cols-2">
-            {reviews.map((r, i) => (
-              <li key={r.name} className={`rounded-[28px] border border-[var(--color-hair)] p-8 md:p-10 ${i === 0 ? "md:col-span-2 bg-paper-2" : ""}`} data-reveal="">
-                <figure>
-                  <blockquote className={`font-serif font-light italic leading-[1.2] ${i === 0 ? "text-[clamp(1.8rem,3.2vw,2.8rem)]" : "text-[1.7rem]"}`}>&ldquo;{r.text}&rdquo;</blockquote>
-                  <figcaption className="mt-6 text-[14px]">
-                    <strong className="font-semibold">{r.name}</strong>
-                    <span className="text-ink-soft"> · review on {r.source}, quoted verbatim</span>
-                  </figcaption>
-                </figure>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-6">
-            <Pending>Confirm permission to quote these reviews by name</Pending>
+      {reviews.length > 0 && (
+        <section className="section-tight" aria-label="Testimonials">
+          <div className="wrap">
+            <ul className="grid gap-6 md:grid-cols-2">
+              {reviews.map((r, i) => (
+                <li key={`${i}-${r.name}`} className={`rounded-[28px] border border-[var(--color-hair)] p-8 md:p-10 ${i === 0 ? "md:col-span-2 bg-paper-2" : ""}`} data-reveal="">
+                  <figure>
+                    <blockquote className={`font-serif font-light italic leading-[1.2] ${i === 0 ? "text-[clamp(1.8rem,3.2vw,2.8rem)]" : "text-[1.7rem]"}`}>&ldquo;{r.text}&rdquo;</blockquote>
+                    <figcaption className="mt-6 text-[14px]">
+                      <strong className="font-semibold">{r.name}</strong>
+                      <span className="text-ink-soft">
+                        {" "}
+                        · {r.source}
+                        {!r.sample && ", quoted verbatim"}
+                      </span>
+                    </figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6">
+              <Pending>{hasSamples ? "Sample testimonials: replace with reviews the clinic may quote" : "Confirm permission to quote these reviews by name"}</Pending>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {REVIEW_MODE && (
+      {REVIEW_MODE && events.length > 0 && (
         <section className="section-tight border-t border-[var(--color-hair)]" aria-labelledby="community-title">
           <div className="wrap">
             <h2 id="community-title" className="t-h2">
@@ -86,10 +113,21 @@ export default function PatientStoriesPage() {
             </h2>
           </div>
           <div className="lg:col-span-5 lg:col-start-8">
-            <p className="t-lede">If Momtree has been part of your journey, a review on Google helps others find care. Please share only what you are comfortable sharing publicly.</p>
-            <a href={mapsLinks.place} target="_blank" rel="noopener noreferrer" className="btn mt-8">
-              Find us on Google
-            </a>
+            {site.reviewsUrl ? (
+              <>
+                <p className="t-lede">If we have been part of your journey, a review helps others find care. Please share only what you are comfortable sharing publicly.</p>
+                <a href={site.reviewsUrl} target="_blank" rel="noopener noreferrer" className="btn mt-8">
+                  Leave a review
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="t-lede">If we have been part of your journey, we would be glad to hear how it went. Please share only what you are comfortable sharing.</p>
+                <a href={`mailto:${site.email}`} className="btn mt-8">
+                  Write to us
+                </a>
+              </>
+            )}
           </div>
         </div>
       </section>

@@ -1,15 +1,13 @@
 {
-  "note": "4K jobs on ElevenLabs Creative (flow below), priced 2026-11-02. Four have run (see status); the rest stopped at the free plan's daily image limit. Run them with creative_run_flow_nodes and ALWAYS pass generations_count: 1 (left unset, upscales render 4 copies each and charge for all four). Run one job at a time, download each result within 2 hours (signed URLs expire), then follow 'afterDownload'.",
+  "note": "4K jobs for the AI-generated story photographs on ElevenLabs Creative (flow below), priced 2026-11-02. The three plate upscales have run (see status); the rest stopped at the free plan's daily image limit. Run them with creative_run_flow_nodes and ALWAYS pass generations_count: 1 (left unset, upscales render 4 copies each and charge for all four). Run one job at a time, download each result within 2 hours (signed URLs expire), then follow 'afterDownload'.",
   "status": {
     "_asOf": "2026-11-02",
     "done": [
       "ch01-mother-wide.png",
       "ch06-hands-wide.png",
-      "ch07-newborn-wide.png",
-      "clinic 01.jpg"
+      "ch07-newborn-wide.png"
     ],
     "pending": [
-      "clinic 02.jpg to 08.jpg",
       "ch01-mother-tall.png",
       "ch07-newborn-tall.png",
       "ch06-hands-farhand-fix",
@@ -19,12 +17,12 @@
   },
   "flow": "V5nbiB7KKUEl7jUhPHNe",
   "estimatedCostUSD": {
-    "_basis": "estimate_only quotes, 2026-11-02, one generation each",
+    "_basis": "estimate_only quotes, 2026-11-02, one generation each; the batch is the three plate upscales, the two tall renders and the 20-week illustration",
     "upscale": 0.0485,
     "flux3Render4k": 0.465,
     "nanoBananaProEdit4k": 0.227,
-    "approvedBatch": 1.93,
-    "withHandsRepair": 2.16
+    "approvedBatch": 1.54,
+    "withHandsRepair": 1.77
   },
   "plateUpscales": {
     "_settings": "Topaz Image Upscale, High Fidelity V3, 2x (2048 -> 4096), no crop, face creativity 0",
@@ -46,27 +44,12 @@
     "_settings": "Nano Banana Pro (gemini-3-pro-image) edit of the hands render at 4K, 16:9; fed from the original render kKTekwVT33VfSsJbo9dn; up to 2 tries",
     "ch06-hands-farhand-fix": "9XSN9gQO5c3FidFP1UHc"
   },
-  "clinicUpscales": {
-    "_settings": "Topaz Image Upscale, High Fidelity V3, 2.4x (1600 -> 3840), no crop, face enhancement OFF (genuine photos must not be altered)",
-    "01.jpg": "5mexgLNZQeBm6I4VLdro",
-    "02.jpg": "q5qsQUwA4qYARiGl2dAb",
-    "03.jpg": "XizqBsywFyTpf0CIs4xB",
-    "04.jpg": "gmHNLrarx8UgwcV81b1w",
-    "05.jpg": "3JoggdTGYYITbtFfFdJi",
-    "06.jpg": "vQfrQMJCnuoWG7gk8wyY",
-    "07.jpg": "Mi0CpZFg8aqI1Mu36Ufn",
-    "08.jpg": "EpbTXmiYRdK37Nh9TXxD"
-  },
   "afterDownload": [
-    "Clinic photos 02-08: node scripts/retouch/place-clinic-4k.mjs <NN> <download> --check, look at every crop it writes to .review/clinic-NN/ (left: the original enlarged, right: the upscale), then the same command without --check to place it (public/clinic/, clinic.ts, treatments.ts). Exit 2 means the upscale strays from the original: do not place it, and never use --force without a person looking at the crops.",
     "Hands far-hand repair: python -P scripts/retouch/composite-ch06-farhand.py assets-src/generated/4k/ch06-hands-wide.png <download> .review/hands-composite.png .review/hands-preview.png. It blends in only the far hand and keeps every pixel of the near hand (with the ring). Copy the composite over the 4K master only after it passes review; after two failed tries leave the plate as it is.",
     "Portrait plates: review them from .review/4k-downloads/; only accepted ones go to assets-src/generated/4k/ch01-mother-tall.png and ch07-newborn-tall.png (anything there is built into the site). Then set their focus in src/lib/life/story.ts (plates, tall(...)).",
-    "20-week illustration: keep it on this machine (.review/pending-signoff/) until the clinic signs it off; the repository is public. The story does not show it.",
-    "Topaz upscales come back with a dark edge band (9 px so far): fix-upscale-border.mjs measures and refills it (place-clinic-4k.mjs runs it). For a plate upscale: node scripts/retouch/fix-upscale-border.mjs <original> <upscale> <out>.",
+    "20-week illustration: keep it out of the repository (in .review/pending-signoff/, which git ignores) until the clinic's medical team signs it off. The story does not show it.",
+    "Topaz upscales come back with a dark edge band (9 px so far): fix-upscale-border.mjs measures and refills it. For a plate upscale: node scripts/retouch/fix-upscale-border.mjs <original> <upscale> <out>.",
     "Mother 4K (done): python -P scripts/retouch/heal-ch01-hand.py <in> <out> 2 removes the mark on her hand.",
     "Then npm run assets, npx tsc --noEmit -p ., npm run build, and the site check against a production server: npx next start -p 3100, then node scripts/site-check.mjs http://localhost:3100."
-  ],
-  "notUpscaled": {
-    "2025/06/tyhtyh-02.png": "Dr. Navyashri's portrait is not AI-upscaled: upscalers can subtly change a real person's face. Ask the clinic for a high-resolution original."
-  }
+  ]
 }

@@ -5,18 +5,19 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { facilities, photos } from "@/content/clinic";
+import { facilities, plates } from "@/content/clinic";
 import { roman } from "@/lib/format";
 import { Pending } from "@/components/ui/Pending";
 import { ArrowRight } from "@/components/ui/Icons";
 import { rich } from "@/components/life/rich";
 
-const reel = [photos.icsiStation, photos.micromanipulator, photos.embryologist, photos.procedureRoom, photos.microscope];
+const reel = [plates.fertilisation, plates.icsi, plates.cleavage, plates.blastocyst, plates.hatching];
 
 /**
- * Inside the laboratory: a deep-violet section where a reel of genuine clinic photographs travels
- * sideways as you scroll (pinned on large screens; a swipeable strip on phones and for
- * reduced motion).
+ * Inside the laboratory: a deep-violet section where a reel of 3D visualisations, from fertilisation
+ * to hatching and rendered by the same engine as the story above, travels sideways as you scroll
+ * (pinned on large screens; a swipeable strip on phones and for reduced motion). They are always
+ * introduced as visualisations, never as photographs of a laboratory.
  */
 export function Laboratory() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -29,7 +30,8 @@ export function Laboratory() {
     const mm = gsap.matchMedia();
     gsap.registerPlugin(ScrollTrigger);
     mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
-      const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+      // scrollWidth leaves out the end padding of a flex row that does not scroll, so add it back.
+      const distance = () => Math.max(0, track.scrollWidth + parseFloat(getComputedStyle(track).paddingRight) - window.innerWidth);
       const tween = gsap.to(track, {
         x: () => -distance(),
         ease: "none",
@@ -52,20 +54,20 @@ export function Laboratory() {
       <div className="flex flex-col justify-center py-[clamp(72px,12vh,140px)] lg:min-h-[100svh]">
         <div
           ref={trackRef}
-          className="no-scrollbar flex snap-x snap-mandatory scroll-pl-[var(--gutter)] scroll-pr-[var(--gutter)] items-start gap-6 overflow-x-auto px-[var(--gutter)] lg:snap-none lg:items-stretch lg:overflow-visible"
+          className="no-scrollbar flex snap-x snap-mandatory scroll-pl-[var(--gutter)] scroll-pr-[var(--gutter)] items-start gap-6 overflow-x-auto px-[var(--gutter)] lg:motion-safe:snap-none lg:motion-safe:items-stretch lg:motion-safe:overflow-visible"
         >
-          <div className="flex w-[min(86vw,520px)] shrink-0 snap-start flex-col justify-center lg:w-[520px] lg:pr-10">
+          <div className="flex w-[min(68vw,520px)] shrink-0 snap-start flex-col justify-center lg:w-[520px] lg:pr-10">
             <p className="t-label">Inside the laboratory</p>
             <h2 id="lab-title" className="t-display mt-6">
               {rich("Precision, *held gently.*")}
             </h2>
             <p className="t-lede mt-8 max-w-[44ch]">
-              Behind every treatment is a laboratory where minutes, microns and temperatures are measured with care. These are photographs of our own.
+              Behind every treatment is a laboratory where minutes, microns and temperatures are measured with care. These are 3D visualisations of what happens at the laboratory bench, not photographs of a laboratory.
             </p>
           </div>
 
           {reel.map((p, i) => (
-            <figure key={p.src} className="plate w-[min(80vw,560px)] shrink-0 snap-start lg:w-[min(46vw,640px)]">
+            <figure key={p.src} className="plate w-[min(80vw,560px)] shrink-0 snap-start lg:w-[min(46vw,640px,62svh)]">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] lg:aspect-[5/6]">
                 <Image src={p.src} alt={p.alt} fill sizes="(max-width: 1024px) 80vw, 46vw" className="object-cover" />
               </div>

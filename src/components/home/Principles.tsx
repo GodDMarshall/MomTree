@@ -1,7 +1,9 @@
 import { roman } from "@/lib/format";
 import { Words } from "@/components/ui/Words";
+import { Pending } from "@/components/ui/Pending";
 
-// Adapted from the clinic's own "Why choose Momtree" points on the current site.
+// Four reasons to choose the clinic. Sample wording for the demo build: adapt it to the clinic's own
+// points, keeping every claim one the clinic can stand behind.
 const principles = [
   {
     title: "Comprehensive care, under one roof.",
@@ -13,7 +15,7 @@ const principles = [
   },
   {
     title: "Expertise in reproductive medicine.",
-    text: "Led by a fertility specialist trained in India and at the National University Hospital, Singapore, using current assisted reproductive techniques.",
+    text: "Led by a fertility specialist with advanced training in reproductive medicine, using current assisted reproductive techniques.",
   },
   {
     title: "Compassion, at every step.",
@@ -28,12 +30,15 @@ export function Principles() {
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-32">
             <p className="t-label" data-reveal="">
-              Why Momtree
+              Why choose us
             </p>
             <Words id="principles-title" as="h2" className="t-h2 mt-6" text="Four commitments, *kept quietly.*" />
             <p className="mt-8 max-w-[34ch] text-[14.5px] leading-relaxed text-ink-soft" data-reveal="">
               You won&apos;t find headline success figures on this website. Outcomes depend on individual factors, so we discuss yours with you, personally and honestly.
             </p>
+            <div className="mt-6" data-reveal="">
+              <Pending>Sample commitments: adapt to the clinic&apos;s own</Pending>
+            </div>
           </div>
         </div>
         <ol className="lg:col-span-7 lg:col-start-6">

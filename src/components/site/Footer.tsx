@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { addressOneLine, mapsLinks, site, whatsappLink } from "@/lib/site";
+import { mapsLinks, site, whatsappLink } from "@/lib/site";
 import { treatments } from "@/content/treatments";
 import { REVIEW_MODE } from "@/lib/review";
 import { Rings } from "@/components/ui/Rings";
@@ -14,11 +14,11 @@ export function Footer() {
 
       <div className="wrap relative pt-[clamp(72px,11vh,120px)]">
         <h2 id="footer-title" className="sr-only">
-          Momtree IVF &amp; Genetics: address, contact and site links
+          {site.name}: address, contact and site links
         </h2>
         <div className="grid gap-12 pb-14 sm:grid-cols-2 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <Logo tone="white" className="h-[104px]" alt="Momtree IVF and Genetics" />
+            <Logo tone="white" className="h-[104px]" alt={site.name} />
             <address className="mt-8 not-italic text-[15px] leading-relaxed text-on-night-soft">
               {site.address.building}
               <br />
@@ -26,9 +26,11 @@ export function Footer() {
               <br />
               {site.address.locality}, {site.address.city}, {site.address.region} {site.address.postalCode}
             </address>
-            <a href={mapsLinks.directions} target="_blank" rel="noopener noreferrer" className="link-line mt-4 inline-block text-[13px] font-semibold uppercase tracking-[0.14em] text-leaf">
-              Get directions
-            </a>
+            {mapsLinks && (
+              <a href={mapsLinks.directions} target="_blank" rel="noopener noreferrer" className="link-line mt-4 inline-block text-[13px] font-semibold uppercase tracking-[0.14em] text-accent">
+                Get directions
+              </a>
+            )}
           </div>
 
           <div className="lg:col-span-3">
@@ -37,20 +39,24 @@ export function Footer() {
               <li>
                 <a href={site.phone.href} className="link-line">{site.phone.display}</a>
               </li>
-              <li>
-                <a href={site.phoneAlt.href} className="link-line">{site.phoneAlt.display}</a>
-              </li>
+              {site.phoneAlt && (
+                <li>
+                  <a href={site.phoneAlt.href} className="link-line">{site.phoneAlt.display}</a>
+                </li>
+              )}
               <li>
                 <a href={`mailto:${site.email}`} className="link-line">{site.email}</a>
               </li>
               <li>
                 <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="link-line">WhatsApp</a>
               </li>
-              <li>
-                <a href={site.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 link-line">
-                  <Instagram className="h-4 w-4" /> @momtreeivf
-                </a>
-              </li>
+              {site.instagram && (
+                <li>
+                  <a href={site.instagram.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 link-line">
+                    <Instagram className="h-4 w-4" /> @{site.instagram.handle.replace(/^@/, "")}
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -82,7 +88,7 @@ export function Footer() {
                 </li>
               ))}
               <li>
-                <Link href="/treatments" className="link-line text-leaf">All treatments</Link>
+                <Link href="/treatments" className="link-line text-accent">All treatments</Link>
               </li>
             </ul>
           </div>
@@ -99,14 +105,23 @@ export function Footer() {
             <Link href="/privacy" className="link-line">Privacy</Link>
             <Link href="/medical-disclaimer" className="link-line">Disclaimer</Link>
             {REVIEW_MODE && (
-              <Link href="/review" className="link-line text-leaf">Approval checklist</Link>
+              <Link href="/review" className="link-line text-accent">Launch checklist</Link>
             )}
             <span>© {year} {site.name}</span>
           </div>
-          {REVIEW_MODE && (
-            <p className="lg:col-span-12 text-[11.5px] italic text-on-night-soft/80">
-              Review build: ART clinic registration number, opening hours and other clinic details are awaiting confirmation and will appear here before launch. Address: {addressOneLine}.
-            </p>
+          {(site.demo || REVIEW_MODE) && (
+            <div className="lg:col-span-12 space-y-1.5 text-[11.5px] text-on-night-soft/80">
+              {site.demo && (
+                <p>
+                  Demo website. &ldquo;{site.shortName}&rdquo; is a placeholder, not a real clinic: the doctor, testimonials and contact details shown are samples.
+                </p>
+              )}
+              {REVIEW_MODE && (
+                <p className="italic">
+                  Review build: the ART clinic registration number{site.hours ? "" : ", opening hours"} and other clinic details are awaiting confirmation before launch.
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>

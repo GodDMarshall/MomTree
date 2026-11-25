@@ -4,10 +4,11 @@ import { PageHero } from "@/components/site/PageHero";
 import { CtaBand } from "@/components/site/CtaBand";
 import { ArticleFinder } from "@/components/knowledge/ArticleFinder";
 import { Pending } from "@/components/ui/Pending";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Knowledge Centre",
-  description: "Clear, careful articles about IVF, IUI and ICSI, male and female fertility, preparing for treatment and common fertility myths, from Momtree IVF, Mysuru.",
+  description: `Clear, careful articles about IVF, IUI and ICSI, male and female fertility, preparing for treatment and common fertility myths, from ${site.name}.`,
   alternates: { canonical: "/knowledge-centre" },
 };
 

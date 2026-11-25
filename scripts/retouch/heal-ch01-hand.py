@@ -3,7 +3,7 @@
 The mark runs from about (1767, 995) to (1763, 1015) in the 2048x1152 master. Coordinates are
 scaled for larger versions (pass the scale, e.g. 2 for a 4096x2304 upscale).
 
-usage: python -P heal_mother.py <in.png> <out.png> <scale> [preview.png]
+usage: python -P scripts/retouch/heal-ch01-hand.py <in.png> <out.png> <scale> [preview.png]
 """
 import sys
 

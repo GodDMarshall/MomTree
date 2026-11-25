@@ -5,7 +5,7 @@ it may change things we want to keep (the near hand above all). This script alig
 faithful upscale, matches its colour locally, and blends in just the far-hand region through a
 feathered mask, leaving every other pixel of the upscale untouched.
 
-usage: python -P composite-ch06-farhand.py <upscale.png> <edit.png> <out.png> [preview.png]
+usage: python -P scripts/retouch/composite-ch06-farhand.py <upscale.png> <edit.png> <out.png> [preview.png]
 
 The mask polygon is in 2048x1152 master coordinates and scaled to the upscale's size. It covers
 the far hand along the left edge of the belly. The near hand (in front, with the ring) reaches into

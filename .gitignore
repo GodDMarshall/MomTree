@@ -1,12 +1,16 @@
 node_modules/
 .next/
+# Extra build folders (NEXT_DIST_DIR, e.g. .next-demo) for a second build next to the main one.
+.next-*/
 out/
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
 .env
-# Raw research material (scrapes, reference pack, legacy videos) stays out of the repo.
+# Raw research and reference material stays out of the repo.
 _reference/
+# Local review material (side-by-side crops, downloads, images awaiting sign-off).
+.review/
 test-results/
 # Local editor / agent tooling
 .claude/

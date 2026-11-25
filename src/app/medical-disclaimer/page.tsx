@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/site/PageHero";
 import { Pending } from "@/components/ui/Pending";
+import { clinicPhotos, reviews } from "@/content/clinic";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Medical disclaimer",
-  description: "How to read the medical information, illustrations and reviews on the Momtree IVF website.",
+  description: `How to read the medical information, illustrations and testimonials on the ${site.name} website.`,
   alternates: { canonical: "/medical-disclaimer" },
 };
 
@@ -13,8 +14,14 @@ const points = [
   ["Education, not advice", "Information on this website is general education. It is not a diagnosis or individual medical advice, and it does not replace a consultation with a qualified doctor."],
   ["No guaranteed outcomes", "Fertility treatment outcomes vary from person to person. No treatment, including IVF, can guarantee pregnancy or a live birth. Your doctor will discuss realistic expectations based on your own health and results."],
   ["Illustrations", "The animations and illustrations on this website, including the Life Unfolds story, are educational visualisations. They do not show actual patients, embryos or outcomes, and some structures are enlarged or simplified for clarity."],
-  ["Photographs", "People shown in illustrative photographs are not Momtree patients unless stated. Clinic photographs show Momtree's own premises."],
-  ["Reviews", "Patient reviews describe individual experiences of care. They are not evidence of treatment results, and one person's journey does not predict another's."],
+  [
+    "Photographs",
+    `The illustrative photographs on this website are AI-generated and never show patients. Laboratory and scan images are 3D visualisations, not photographs.${clinicPhotos.length > 0 ? " Photographs of the clinic show our own premises." : ""}`,
+  ],
+  [
+    "Reviews",
+    `Patient reviews describe individual experiences of care. They are not evidence of treatment results, and one person's journey does not predict another's.${reviews.some((r) => r.sample) ? " The testimonials currently shown are illustrative samples, not the words of real patients." : ""}`,
+  ],
   ["Emergencies", "This website is not for emergencies. If you have severe pain, heavy bleeding, breathlessness or another urgent concern, seek emergency care immediately."],
   ["Regulation", "Assisted reproduction in India is regulated by the ART (Regulation) Act, 2021 and the Surrogacy (Regulation) Act, 2021. Treatments are offered in line with these laws."],
 ];

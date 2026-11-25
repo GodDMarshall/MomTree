@@ -1,7 +1,9 @@
 // Treatment content. Written as patient education in plain language, avoiding outcome promises.
-// Every entry is status "pending" until the clinic's medical team approves it (see APPROVAL-CHECKLIST).
+// Every entry is status "pending" until the clinic's medical team approves it (see docs/LAUNCH-CHECKLIST.md).
+// Pictures are the site's own 3D visualisations (see clinic.ts), always captioned as such.
 
 import type { ReviewStatus } from "@/lib/review";
+import { plates } from "@/content/clinic";
 
 export type TreatmentGroup = "understand" | "assist" | "laboratory" | "surgery" | "male" | "third-party";
 
@@ -40,8 +42,6 @@ export type Treatment = {
   review: ReviewStatus;
 };
 
-const L = "/legacy/2024/08";
-
 export const treatments: Treatment[] = [
   {
     slug: "fertility-evaluation",
@@ -50,7 +50,7 @@ export const treatments: Treatment[] = [
     group: "understand",
     short: "A complete picture of both partners' fertility, before any treatment is chosen.",
     summary:
-      "Every journey at Momtree begins with understanding. A fertility evaluation looks at both partners together, so that anything we suggest is based on your own results rather than assumptions.",
+      "Every journey with us begins with understanding. A fertility evaluation looks at both partners together, so that anything we suggest is based on your own results rather than assumptions.",
     atAGlance: [
       { label: "Who", value: "Both partners" },
       { label: "Setting", value: "Outpatient" },
@@ -93,7 +93,7 @@ export const treatments: Treatment[] = [
       { q: "Will the evaluation tell us our chances of pregnancy?", a: "It helps your doctor understand the factors involved and discuss realistic options. No test can predict an individual outcome with certainty." },
     ],
     related: ["ultrasound", "andrology", "ovulation-induction"],
-    photo: { src: `${L}/06.jpg`, alt: "The entrance corridor at Momtree IVF, Vijayanagar, with a living green wall", caption: "Your first visit: the clinic, Vijayanagar", width: 1600, height: 900 },
+    photo: plates.anatomyWide,
     review: "pending",
   },
   {
@@ -249,7 +249,7 @@ export const treatments: Treatment[] = [
       { q: "How many embryos will be transferred?", a: "Usually one. Transferring a single embryo greatly reduces the risk of twins or triplets for mother and babies. Your doctor will discuss this with you, within the limits set by Indian law." },
     ],
     related: ["icsi", "blastocyst-culture", "laser-assisted-hatching"],
-    photo: { src: "/clinic/02-lab.jpg", alt: "An embryologist working at a micromanipulation microscope in the Momtree embryology laboratory", caption: "Embryology laboratory, Momtree", width: 1600, height: 755 },
+    photo: plates.transferWide,
     review: "pending",
   },
   {
@@ -299,7 +299,7 @@ export const treatments: Treatment[] = [
       { q: "Is ICSI a separate treatment from IVF?", a: "No. It is a fertilisation technique used within an IVF cycle." },
     ],
     related: ["ivf", "andrology", "blastocyst-culture"],
-    photo: { src: `${L}/03.jpg`, alt: "The micromanipulators of the ICSI workstation in the Momtree laboratory", caption: "The micromanipulation workstation used for ICSI", width: 1600, height: 900 },
+    photo: plates.icsiWide,
     review: "pending",
   },
   {
@@ -345,7 +345,7 @@ export const treatments: Treatment[] = [
       { q: "Can blastocysts be frozen?", a: "Yes. Vitrification, a rapid freezing method, is widely used for blastocysts." },
     ],
     related: ["ivf", "icsi", "laser-assisted-hatching"],
-    photo: { src: "/clinic/01.jpg", alt: "An embryologist examining embryos under a stereo microscope at Momtree", caption: "Embryo assessment at the stereo microscope", width: 3840, height: 2160 },
+    photo: plates.blastocystWide,
     review: "pending",
   },
   {
@@ -388,7 +388,7 @@ export const treatments: Treatment[] = [
       { q: "Does it hurt?", a: "No. It happens in the laboratory, before transfer." },
     ],
     related: ["blastocyst-culture", "ivf", "icsi"],
-    verify: ["Confirm the clinic has laser hatching equipment in use (listed on the current website)."],
+    verify: ["Confirm that the clinic offers laser-assisted hatching, with the equipment in use, before this page goes live."],
     review: "pending",
   },
   {
@@ -499,7 +499,7 @@ export const treatments: Treatment[] = [
     ],
     whatItIs: [
       "Fertility scans are usually transvaginal: a slim probe in a protective cover gives clear, close-up images of the uterus and ovaries. Ultrasound uses sound waves, not radiation.",
-      "At Momtree, ultrasound is part of nearly every stage of care, from the first assessment to an early pregnancy scan.",
+      "We use ultrasound at nearly every stage of care, from the first assessment to an early pregnancy scan.",
     ],
     whoMayBeEvaluated: [
       "Baseline assessment of the uterus and ovaries",
@@ -527,7 +527,7 @@ export const treatments: Treatment[] = [
       { q: "How long does a scan take?", a: "Usually between 5 and 15 minutes." },
     ],
     related: ["fertility-evaluation", "ovulation-induction", "ivf"],
-    photo: { src: `${L}/05.jpg`, alt: "A clinician in the Momtree procedure room beside an ultrasound machine", caption: "The procedure room, with ultrasound", width: 1600, height: 900 },
+    photo: plates.monitoringWide,
     review: "pending",
   },
   {
@@ -573,8 +573,8 @@ export const treatments: Treatment[] = [
       { q: "Can sperm be frozen before treatment?", a: "Yes. Sperm freezing can be arranged, for example before medical treatment that may affect fertility." },
     ],
     related: ["icsi", "iui", "art-bank"],
-    photo: { src: `${L}/04.jpg`, alt: "Close view of a laboratory stereo microscope at Momtree", caption: "Laboratory microscopy", width: 1600, height: 900 },
-    verify: ["The current website describes an 'AI enabled andrology lab'. Confirm which system is used before any AI wording is published."],
+    photo: plates.spermWide,
+    verify: ["Before the andrology laboratory is described as automated or AI-assisted, confirm which system is used and what it does."],
     review: "pending",
   },
   {
@@ -621,8 +621,8 @@ export const treatments: Treatment[] = [
     ],
     related: ["donor-services", "andrology", "ivf"],
     verify: [
-      "Confirm whether Momtree is itself registered as an ART bank or works with a registered partner bank.",
-      "The current website says the ART bank supplies 'surrogate mothers'. That wording conflicts with the Surrogacy (Regulation) Act, 2021, so it has been removed.",
+      "Confirm whether the clinic is itself registered as an ART bank or works with a registered partner bank.",
+      "Do not describe the ART bank as supplying 'surrogate mothers': that wording conflicts with the Surrogacy (Regulation) Act, 2021.",
     ],
     review: "pending",
   },
@@ -713,7 +713,7 @@ export const treatments: Treatment[] = [
     faqs: [
       { q: "Is commercial surrogacy allowed in India?", a: "No. Only altruistic surrogacy is permitted, under the Surrogacy (Regulation) Act, 2021." },
       { q: "Who is eligible?", a: "The law sets specific conditions for intending parents and for surrogates, including age, marital status and medical indication. We will explain the current requirements at your consultation." },
-      { q: "What is Momtree's role?", a: "Medical care and guidance through each step, within the Surrogacy (Regulation) Act, 2021." },
+      { q: "What is the clinic's role?", a: "Medical care and guidance through each step, within the Surrogacy (Regulation) Act, 2021." },
     ],
     related: ["ivf", "donor-services", "art-bank"],
     verify: ["Confirm the clinic's registration status under the Surrogacy (Regulation) Act, 2021 before this page goes live."],

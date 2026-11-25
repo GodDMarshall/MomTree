@@ -106,7 +106,7 @@ export class LifeEngine {
       hands: new PlateScene({ id: "hands", ...plates.hands, zoom: [85.5, 88.5, 1.02, 1.12], moteColor: "#f5d9ad" }),
       newborn: new PlateScene({ id: "newborn", ...plates.newborn, zoom: [88.5, 100, 1.0, 1.1], moteColor: "#f6dcae" }),
       // The sculptural mother, on her own timeline: 0–10 the opening; 10–64 the pregnancy, week by
-      // week; 64–100 the birth, the newborn in her arms and the leaves of the Momtree logo.
+      // week; 64–100 the birth, the newborn in her arms and points of light gathering around them.
       sculpture: new SculptureScene(
         {
           id: "sculpture",
@@ -129,7 +129,7 @@ export class LifeEngine {
           pose: [[0, 0], [11, 0], [16, 1], [63, 1], [69, 2]],
           baby: [[0, 0], [65.3, 0], [69, 1]],
           bloom: [[0, 0], [61, 0], [65.5, 0.8], [71, 0]],
-          leaves: [[0, 0], [74, 0], [95, 1]],
+          lights: [[0, 0], [72, 0], [95, 1]],
           // Wide enough through chapter 10 and the newborn that her head and face stay in frame, clear of the nav.
           camera: [
             { u: 0, pos: [-1.1, 1.5, 3.0], target: [0, 1.15, 0] },
@@ -203,6 +203,27 @@ export class LifeEngine {
   renderAt(u: number) {
     this.jumpTo(u);
     this.frame(0);
+  }
+
+  /**
+   * Tools only (scripts/record-demo.mjs): stop the engine's own frame loop, so that every frame is
+   * rendered on request with `capture`, exactly once, whatever the machine's speed.
+   */
+  hold() {
+    this.running = false;
+    cancelAnimationFrame(this.raf);
+  }
+
+  /** Tools only: render the moment `u`, advancing animation time by `dt` seconds (one video frame). */
+  capture(u: number, dt: number) {
+    this.jumpTo(u);
+    this.frame(dt);
+  }
+
+  /** Tools only: frame every scene's subject in the centre, without the room kept for captions. */
+  setCentred(centred: boolean) {
+    this.ctx.centred = centred;
+    this.laidOut.clear();
   }
 
   dispose() {

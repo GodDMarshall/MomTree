@@ -4,21 +4,21 @@
 @custom-variant short (@media (max-height: 500px));
 
 /* ==========================================================================
-   Momtree design tokens, taken from the official logo: brand purple (#5C2499)
-   and leaf green (#80C041) on white. Purple carries type accents, links and
-   buttons; leaf green is the accent on dark sections and a decorative colour on
-   light ones (green text on white uses --color-leaf-ink, which passes WCAG AA).
-   Night is a deep tone of the brand purple for the story and the footer.
+   Design tokens: the brand palette, purple (#4A2D91) and gold (#D9B36C) on
+   white. Purple carries type accents, links and buttons; gold is the accent
+   on dark sections and a decorative colour on light ones (gold text on white
+   uses --color-accent-ink, which passes WCAG AA). Night is a deep purple for
+   the story and the footer. Change these to re-colour the whole site.
    ========================================================================== */
 @theme {
   --color-paper: #ffffff;
   --color-paper-2: #f6f2fb;
   --color-lilac: #efe8f8;
   --color-lilac-2: #cdbbe6;
-  --color-leaf: #80c041;
-  --color-leaf-ink: #3d7a1f;
-  --color-violet: #5c2499;
-  --color-violet-deep: #3f1670;
+  --color-accent: #d9b36c;
+  --color-accent-ink: #86621b;
+  --color-violet: #4a2d91;
+  --color-violet-deep: #33195f;
   --color-ink: #1d1a26;
   --color-ink-soft: #5c5668;
   --color-hair: rgb(29 26 38 / 0.14);
@@ -77,7 +77,7 @@ body {
 }
 
 ::selection {
-  background: rgb(92 36 153 / 0.2);
+  background: rgb(74 45 145 / 0.2);
   color: var(--color-ink);
 }
 
@@ -88,7 +88,7 @@ body {
 }
 .on-night :focus-visible,
 [data-tone="dark"] :focus-visible {
-  outline-color: var(--color-leaf);
+  outline-color: var(--color-accent);
 }
 
 h1,
@@ -193,7 +193,7 @@ svg {
   color: var(--color-violet);
 }
 .on-night .t-label {
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 .on-night .t-lede {
   color: var(--color-on-night-soft);
@@ -310,15 +310,15 @@ svg {
   color: var(--color-violet);
   border-color: var(--color-paper);
 }
-.btn-leaf {
+.btn-accent {
   --btn-fg: var(--color-night);
-  --btn-bg: var(--color-leaf);
-  --btn-bd: var(--color-leaf);
+  --btn-bg: var(--color-accent);
+  --btn-bd: var(--color-accent);
 }
-.btn-leaf::before {
+.btn-accent::before {
   background: var(--color-paper);
 }
-.btn-leaf:hover {
+.btn-accent:hover {
   color: var(--color-violet);
   border-color: var(--color-paper);
 }
@@ -347,7 +347,7 @@ svg {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  text-decoration-color: rgb(92 36 153 / 0.5);
+  text-decoration-color: rgb(74 45 145 / 0.5);
   transition: text-decoration-color 0.3s;
 }
 .link-under:hover {
@@ -357,7 +357,7 @@ svg {
   text-decoration-color: rgb(255 255 255 / 0.5);
 }
 .on-night .link-under:hover {
-  text-decoration-color: var(--color-leaf);
+  text-decoration-color: var(--color-accent);
 }
 
 }
@@ -473,7 +473,7 @@ svg {
   color: var(--color-on-night-soft);
 }
 .on-night .plate figcaption .pl {
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 .ap-arch {
   border-radius: 999px 999px 18px 18px;
@@ -495,7 +495,7 @@ svg {
   gap: 8px;
   padding: 5px 11px 5px 9px;
   border-radius: 999px;
-  border: 1px dashed rgb(92 36 153 / 0.42);
+  border: 1px dashed rgb(74 45 145 / 0.42);
   background: var(--color-lilac);
   color: var(--color-violet-deep);
   font-size: 10.5px;
@@ -510,8 +510,8 @@ svg {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-leaf);
-  box-shadow: 0 0 0 3px rgb(128 192 65 / 0.25);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px rgb(217 179 108 / 0.25);
   flex: none;
 }
 .on-night .pending,
@@ -542,7 +542,7 @@ dialog .pending {
   appearance: none;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgb(92 36 153 / 0.65);
+  border-bottom: 1px solid rgb(74 45 145 / 0.65);
   border-radius: 0;
   color: inherit;
   font: inherit;
@@ -554,7 +554,7 @@ dialog .pending {
 .field-line:focus {
   outline: none;
   border-bottom-color: var(--color-ink);
-  background: rgb(92 36 153 / 0.05);
+  background: rgb(74 45 145 / 0.05);
 }
 .field-line[aria-invalid="true"] {
   border-bottom-color: #a1362b;

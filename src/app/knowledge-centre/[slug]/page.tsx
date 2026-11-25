@@ -99,7 +99,7 @@ export default async function ArticlePage({ params }: Params) {
                   <ul key={i} className="space-y-3">
                     {b.items.map((it) => (
                       <li key={it} className="flex gap-4">
-                        <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf" aria-hidden="true" />
+                        <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
                         <span>{it}</span>
                       </li>
                     ))}
@@ -115,7 +115,6 @@ export default async function ArticlePage({ params }: Params) {
             })}
           </div>
           <MedicalNote className="mt-14" />
-          {a.migratedFrom && <p className="mt-6 text-[12.5px] text-ink-soft">First published on the previous Momtree website on {fmt(a.published)}; revised and updated.</p>}
         </div>
       </article>
 

@@ -3,11 +3,11 @@ import { PageHero } from "@/components/site/PageHero";
 import { CtaBand, MedicalNote } from "@/components/site/CtaBand";
 import { TreatmentIndex } from "@/components/home/TreatmentIndex";
 import { Pending } from "@/components/ui/Pending";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Treatments",
-  description:
-    "Fertility evaluation, ovulation induction, IUI, IVF, ICSI, blastocyst culture, laser-assisted hatching, laparoscopy, hysteroscopy, ultrasound, andrology, ART banking, donor and surrogacy services at Momtree IVF, Mysuru.",
+  description: `Fertility evaluation, ovulation induction, IUI, IVF, ICSI, blastocyst culture, laser-assisted hatching, laparoscopy, hysteroscopy, ultrasound, andrology, ART banking, donor and surrogacy services at ${site.name}.`,
   alternates: { canonical: "/treatments" },
 };
 

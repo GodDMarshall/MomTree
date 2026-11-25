@@ -7,7 +7,12 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
 ];
 
+const immutable = [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }];
+
 const nextConfig: NextConfig = {
+  // Build output folder. Set NEXT_DIST_DIR (for example .next-demo) to run a second build next to the
+  // main one without touching it.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
@@ -18,24 +23,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
-      { source: "/story/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
-      { source: "/legacy/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=2592000" }] },
-    ];
-  },
-  async redirects() {
-    // Keep old WordPress URLs working (and their search rankings).
-    return [
-      { source: "/about-us", destination: "/about", permanent: true },
-      { source: "/treatment-and-care", destination: "/treatments", permanent: true },
-      { source: "/contact-us", destination: "/contact", permanent: true },
-      { source: "/blogs", destination: "/knowledge-centre", permanent: true },
-      { source: "/best-ivf-center-in-mysore", destination: "/", permanent: true },
-      { source: "/thank-you", destination: "/contact", permanent: true },
-      { source: "/ivf-for-couples-over-35-challenges-and-solutions", destination: "/knowledge-centre/ivf-after-35", permanent: true },
-      { source: "/common-ivf-myths-and-facts-everything-you-need-to-know", destination: "/knowledge-centre/ivf-myths-and-facts", permanent: true },
-      { source: "/how-to-choose-the-best-ivf-specialist-and-fertility-clinic-in-mysuru", destination: "/knowledge-centre/choosing-a-fertility-clinic", permanent: true },
-      { source: "/best-time-to-start-ivf-a-step-by-step-fertility-journey", destination: "/knowledge-centre/when-to-consider-ivf", permanent: true },
-      { source: "/ivf-treatment-a-comprehensive-guide-to-success-rates-and-cost-in-mysore", destination: "/knowledge-centre/ivf-success-rates-and-costs", permanent: true },
+      { source: "/story/:path*", headers: immutable },
+      { source: "/plates/:path*", headers: immutable },
     ];
   },
 };

@@ -1,29 +1,51 @@
 // End-to-end checks against a running build (default http://localhost:3100).
-// Uses the locally installed Microsoft Edge or Chrome through playwright-core (no browser download).
+// Browser: CHROME_PATH, or a locally installed Microsoft Edge or Chrome through playwright-core
+// (no browser download; see scripts/lib/browser.mjs).
 //   node scripts/site-check.mjs [baseUrl] [screenshotDir]
 import fs from "node:fs";
 import path from "node:path";
-import { chromium } from "playwright-core";
+import { launchBrowser } from "./lib/browser.mjs";
 
-const BASE = process.argv[2] ?? "http://localhost:3100";
+const BASE = (process.argv[2] ?? "http://localhost:3100").replace(/\/$/, "");
 const SHOTS = process.argv[3];
+const problems = [];
+
+// Pages a clinic renames or removes (the doctor's profile takes its address from src/content/doctor.ts;
+// treatments and articles come from src/content) are found on their index pages: the preferred ones
+// while they are still linked, otherwise the first links found there.
+async function linkedFrom(index, prefer, fallback) {
+  const html = await fetch(BASE + index)
+    .then((r) => (r.ok ? r.text() : ""))
+    .catch(() => "");
+  const found = [...new Set([...html.matchAll(new RegExp(`href="(${index}/[^"#?/]+)"`, "g"))].map((m) => m[1]))];
+  if (!found.length) problems.push({ vp: "all", route: index, errors: [`no page is linked from ${index}`] });
+  const chosen = prefer.map((slug) => `${index}/${slug}`).filter((route) => found.includes(route));
+  return chosen.length ? chosen : found.slice(0, fallback);
+}
+const PROFILES = await linkedFrom("/doctors", [], Infinity);
+const TREATMENTS = await linkedFrom("/treatments", ["ivf", "icsi", "surrogacy"], 3);
+const ARTICLES = await linkedFrom("/knowledge-centre", ["understanding-semen-analysis"], 1);
+// The launch checklist at /review exists only in review mode: once NEXT_PUBLIC_REVIEW_MODE=false it is a 404 by design.
+const REVIEW_PAGE = await fetch(BASE + "/review")
+  .then((r) => r.status !== 404)
+  .catch(() => true);
+if (!REVIEW_PAGE) console.log("Review mode is off (/review is a 404 by design), so /review is not checked.");
+
 const ROUTES = [
   "/",
   "/about",
   "/treatments",
-  "/treatments/ivf",
-  "/treatments/icsi",
-  "/treatments/surrogacy",
+  ...TREATMENTS,
   "/doctors",
-  "/doctors/dr-navyashri-m-s",
+  ...PROFILES,
   "/facilities",
   "/patient-stories",
   "/knowledge-centre",
-  "/knowledge-centre/understanding-semen-analysis",
+  ...ARTICLES,
   "/contact",
   "/privacy",
   "/medical-disclaimer",
-  "/review",
+  ...(REVIEW_PAGE ? ["/review"] : []),
   "/this-page-does-not-exist",
 ];
 const VIEWPORTS = {
@@ -32,19 +54,7 @@ const VIEWPORTS = {
   desktop: { width: 1440, height: 900, deviceScaleFactor: 1 },
 };
 
-async function launch() {
-  for (const channel of ["msedge", "chrome"]) {
-    try {
-      return await chromium.launch({ channel, headless: true, args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
-    } catch {
-      /* try the next one */
-    }
-  }
-  throw new Error("No local Edge or Chrome found for playwright-core.");
-}
-
-const browser = await launch();
-const problems = [];
+const browser = await launchBrowser();
 const links = new Set();
 if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
 

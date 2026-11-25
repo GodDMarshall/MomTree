@@ -10,6 +10,8 @@ export type Ctx = {
   width: number;
   height: number;
   dpr: number;
+  /** Frame the subject in the centre, with no room kept for captions (stand-alone plates). */
+  centred?: boolean;
 };
 
 export type Label = { id: string; pos: THREE.Vector3; a: number };
@@ -115,7 +117,8 @@ export class Rig {
 export function frameForCaptions(camera: THREE.PerspectiveCamera, ctx: Ctx, shift = 0.12) {
   const w = ctx.width;
   const h = ctx.height;
-  if (ctx.portrait) camera.setViewOffset(w, h, 0, h * 0.16, w, h);
+  if (ctx.centred) camera.clearViewOffset();
+  else if (ctx.portrait) camera.setViewOffset(w, h, 0, h * 0.16, w, h);
   else camera.setViewOffset(w, h, -w * shift, 0, w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();

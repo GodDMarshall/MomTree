@@ -1,27 +1,34 @@
+import { director } from "@/content/doctor";
 import { site } from "./site";
+
+/** An absolute URL for a path on this site; absolute URLs are returned unchanged. */
+function absoluteUrl(src: string) {
+  return /^https?:\/\//.test(src) ? src : `${site.url}${src.startsWith("/") ? "" : "/"}${src}`;
+}
 
 export function clinicJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "MedicalClinic",
     "@id": `${site.url}/#clinic`,
+    // The share-card script (scripts/capture-posters.mjs) reads name and alternateName from here.
     name: site.name,
-    alternateName: "Momtree IVF",
+    alternateName: site.shortName,
     url: site.url,
     image: `${site.url}/og.jpg`,
-    logo: `${site.url}/brand/logo.png`,
+    logo: `${site.url}/brand/mark.png`,
     telephone: site.phone.href.replace("tel:", ""),
     email: site.email,
     medicalSpecialty: ["Gynecologic", "Obstetric", "Urologic"],
     address: {
       "@type": "PostalAddress",
       streetAddress: `${site.address.building}, ${site.address.street}`,
-      addressLocality: `${site.address.locality}, ${site.address.city}`,
+      addressLocality: site.address.city,
       addressRegion: site.address.region,
       postalCode: site.address.postalCode,
       addressCountry: site.address.country,
     },
-    sameAs: [site.instagram],
+    ...(site.instagram ? { sameAs: [site.instagram.url] } : {}),
   };
 }
 
@@ -29,10 +36,10 @@ export function physicianJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Physician",
-    name: "Dr. Navyashri M S",
-    jobTitle: "Medical Director and Chief Fertility Specialist",
-    url: `${site.url}/doctors/dr-navyashri-m-s`,
-    image: `${site.url}/legacy/2025/06/tyhtyh-02.png`,
+    name: director.name,
+    jobTitle: director.role,
+    url: `${site.url}/doctors/${director.slug}`,
+    ...(director.portrait ? { image: absoluteUrl(director.portrait.src) } : {}),
     worksFor: { "@id": `${site.url}/#clinic` },
     medicalSpecialty: ["Gynecologic", "Obstetric"],
   };

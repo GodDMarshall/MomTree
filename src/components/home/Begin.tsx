@@ -3,7 +3,8 @@ import { MapCard } from "@/components/site/MapCard";
 import { Rings } from "@/components/ui/Rings";
 import { Words } from "@/components/ui/Words";
 import { Pending } from "@/components/ui/Pending";
-import { site, whatsappLink } from "@/lib/site";
+import { REVIEW_MODE } from "@/lib/review";
+import { addressOneLine, mapsLinks, site, whatsappLink } from "@/lib/site";
 import { Mail, Phone, WhatsApp } from "@/components/ui/Icons";
 
 export function Begin({ id = "begin", heading = "Your questions *matter.* Let's talk." }: { id?: string; heading?: string }) {
@@ -25,13 +26,12 @@ export function Begin({ id = "begin", heading = "Your questions *matter.* Let's 
         </div>
 
         <aside className="lg:col-span-4 lg:col-start-9" aria-label="Visit and contact details">
-          <MapCard className="aspect-[4/5] w-full" />
+          {/* Without a location the card is only a note for the clinic, so the public site leaves it out. */}
+          {(mapsLinks || REVIEW_MODE) && <MapCard className="aspect-[4/5] w-full" />}
           <dl className="mt-8 space-y-5 text-[15px]">
             <div>
               <dt className="t-label">Visit</dt>
-              <dd className="mt-2 leading-relaxed">
-                {site.address.building}, {site.address.street}, {site.address.locality}, {site.address.city} {site.address.postalCode}
-              </dd>
+              <dd className="mt-2 leading-relaxed">{addressOneLine}</dd>
             </div>
             <div>
               <dt className="t-label">Call</dt>
@@ -39,9 +39,11 @@ export function Begin({ id = "begin", heading = "Your questions *matter.* Let's 
                 <a href={site.phone.href} className="inline-flex items-center gap-2 link-line self-start">
                   <Phone /> {site.phone.display}
                 </a>
-                <a href={site.phoneAlt.href} className="inline-flex items-center gap-2 link-line self-start">
-                  <Phone /> {site.phoneAlt.display}
-                </a>
+                {site.phoneAlt && (
+                  <a href={site.phoneAlt.href} className="inline-flex items-center gap-2 link-line self-start">
+                    <Phone /> {site.phoneAlt.display}
+                  </a>
+                )}
               </dd>
             </div>
             <div>
@@ -55,12 +57,25 @@ export function Begin({ id = "begin", heading = "Your questions *matter.* Let's 
                 </a>
               </dd>
             </div>
-            <div>
-              <dt className="t-label">Hours</dt>
-              <dd className="mt-2">
-                <Pending>Opening hours to be confirmed by the clinic</Pending>
-              </dd>
-            </div>
+            {/* Hours show once the clinic confirms them (site.hours); until then, a review note only. */}
+            {(site.hours || REVIEW_MODE) && (
+              <div>
+                <dt className="t-label">Hours</dt>
+                <dd className="mt-2">
+                  {site.hours ? (
+                    <ul className="space-y-1">
+                      {site.hours.map((h) => (
+                        <li key={h.days}>
+                          {h.days}: {h.time}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <Pending>Opening hours to be confirmed by the clinic</Pending>
+                  )}
+                </dd>
+              </div>
+            )}
           </dl>
         </aside>
       </div>

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
-import { site } from "@/lib/site";
+import { careLine, site } from "@/lib/site";
 import { REVIEW_MODE } from "@/lib/review";
 import { clinicJsonLd, JsonLd } from "@/lib/seo";
 import { Nav } from "@/components/site/Nav";
@@ -27,21 +27,21 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Momtree IVF & Genetics · Fertility care in Mysuru",
-    template: "%s · Momtree IVF, Mysuru",
+    default: `${site.name} · ${careLine}`,
+    template: `%s · ${site.shortName}`,
   },
-  description:
-    "Momtree IVF & Genetics, Vijayanagar, Mysuru. Fertility evaluation, IUI, IVF, ICSI and blastocyst culture, with personalised care led by Dr. Navyashri M S.",
+  description: `${site.name}: fertility evaluation, IUI, IVF, ICSI and blastocyst culture, with personalised care.`,
   applicationName: site.name,
   openGraph: {
     type: "website",
     locale: "en_IN",
     siteName: site.name,
-    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Momtree IVF & Genetics: every beautiful story begins with hope" }],
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: `${site.name}: every beautiful story begins with hope` }],
   },
   twitter: { card: "summary_large_image" },
-  // A review build must never be indexed: content is awaiting clinical approval.
-  robots: REVIEW_MODE ? { index: false, follow: false } : { index: true, follow: true },
+  // A review build must never be indexed (content is awaiting clinical approval), and neither must a
+  // demo build, whose clinic, doctor and contact details are placeholders.
+  robots: REVIEW_MODE || site.demo ? { index: false, follow: false } : { index: true, follow: true },
   formatDetection: { telephone: false },
 };
 

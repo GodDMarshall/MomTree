@@ -4,6 +4,7 @@
 // fertilisation, embryo culture, transfer, implantation and the pregnancy test, the early scan, the
 // pregnancy and birth.
 import plateManifest from "./plates.json";
+import { site } from "@/lib/site";
 
 /** An approved ~20-week illustration (a still image) is used only in the reduced-motion version. */
 export const HAS_ILLUSTRATION = "ch06-fetus" in plateManifest;
@@ -166,7 +167,7 @@ export const panels: Panel[] = [
     chapter: 1,
     from: -1,
     to: 6.2,
-    label: "Momtree IVF & Genetics · Mysuru",
+    label: `${site.shortName} · ${site.descriptor}`,
     heading: "Every beautiful story *begins* with hope.",
     level: 1,
     body: ["Sometimes, the journey to parenthood takes a little help. We're here to walk that journey with you."],
@@ -180,7 +181,7 @@ export const panels: Panel[] = [
     label: "Understanding fertility",
     heading: "Understanding your fertility is the *first step.*",
     level: 2,
-    body: ["Every person's fertility is different. That's why each journey at Momtree begins with an assessment of you and, if you have one, your partner, before any treatment is suggested."],
+    body: ["Every person's fertility is different. That's why each journey with us begins with an assessment of you and, if you have one, your partner, before any treatment is suggested."],
   },
   {
     id: "c2b",
@@ -340,7 +341,7 @@ export const panels: Panel[] = [
     to: 101,
     heading: "Every journey is different. *Every hope matters.*",
     level: 2,
-    body: ["At Momtree IVF, we're here with the expertise, care and compassion to support your journey."],
+    body: [`At ${site.shortName}, we're here with the expertise, care and compassion to support your journey.`],
     cta: "final",
   },
 ];

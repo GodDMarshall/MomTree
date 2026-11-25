@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { PageHero } from "@/components/site/PageHero";
 import { CtaBand } from "@/components/site/CtaBand";
+import { Portrait } from "@/components/ui/Portrait";
 import { Rings } from "@/components/ui/Rings";
 import { Pending } from "@/components/ui/Pending";
 import { ArrowRight } from "@/components/ui/Icons";
 import { director } from "@/content/doctor";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Our doctors",
-  description: "Meet Dr. Navyashri M S, Medical Director and Chief Fertility Specialist at Momtree IVF & Genetics, Mysuru.",
+  description: `Meet the Medical Director and fertility care team at ${site.name}: training, experience and an approach to care that begins with listening.`,
   alternates: { canonical: "/doctors" },
 };
 
@@ -34,9 +35,9 @@ export default function DoctorsPage() {
             className="group grid items-center gap-10 rounded-[32px] border border-[var(--color-hair)] bg-paper-2 p-8 transition-colors hover:border-ink/30 md:p-12 lg:grid-cols-12"
           >
             <div className="relative mx-auto w-full max-w-[360px] lg:col-span-4">
-              <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[128%] w-[128%] max-w-none -translate-x-1/2 -translate-y-1/2 text-leaf/50" count={6} />
+              <Rings className="pointer-events-none absolute left-1/2 top-1/2 h-[128%] w-[128%] max-w-none -translate-x-1/2 -translate-y-1/2 text-accent/50" count={6} />
               <div className="relative aspect-square overflow-hidden rounded-full bg-lilac">
-                <Image src={director.portrait.src} alt={director.portrait.alt} fill sizes="360px" className="object-cover transition-transform duration-[1.4s] group-hover:scale-[1.03]" />
+                <Portrait portrait={director.portrait} sizes="360px" className="transition-transform duration-[1.4s] group-hover:scale-[1.03]" />
               </div>
             </div>
             <div className="lg:col-span-7 lg:col-start-6">
@@ -50,7 +51,7 @@ export default function DoctorsPage() {
             </div>
           </Link>
           <div className="mt-6">
-            <Pending>Credentials to be re-confirmed by the clinic</Pending>
+            <Pending>Sample profile: replace with the clinic&apos;s own doctor</Pending>
           </div>
         </div>
       </section>

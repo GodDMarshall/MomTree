@@ -1,53 +1,46 @@
-// Facilities, gallery, reviews and FAQs. Only genuine clinic photographs are used to represent the
-// clinic; stock images from the old site are never captioned as Momtree's own facilities.
+// Facilities, imagery, testimonials and FAQs.
+//
+// Imagery: the demo build has no photographs of a real clinic. The laboratory and scan plates are
+// rendered by the site's own 3D engine (scripts/capture-posters.mjs → public/plates) and are always
+// captioned as visualisations; the three photographs in public/story are AI-generated and never show
+// a patient (see docs/ASSETS.md). When the site is adapted for a clinic, its own photographs go in
+// `clinicPhotos` and the facility entries below; nothing here is ever presented as a real clinic.
 
 export type Photo = { src: string; alt: string; caption: string; width: number; height: number; note?: string };
 
-const L8 = "/legacy/2024/08";
+const P = "/plates";
+const tall = { width: 2400, height: 3000 };
+const wide = { width: 3200, height: 2000 };
 
-export const photos = {
-  embryologist: { src: "/clinic/01.jpg", alt: "An embryologist examining embryos under a stereo microscope", caption: "Embryo assessment at the stereo microscope", width: 3840, height: 2160 },
-  icsiStation: { src: "/clinic/02-lab.jpg", alt: "An embryologist working at the ICSI micromanipulation workstation", caption: "The embryology laboratory: ICSI workstation", width: 1600, height: 755 },
-  micromanipulator: { src: `${L8}/03.jpg`, alt: "Close view of the micromanipulators used for ICSI", caption: "Micromanipulators, used to hold an egg and inject a single sperm", width: 1600, height: 900 },
-  microscope: { src: `${L8}/04.jpg`, alt: "A laboratory stereo microscope", caption: "Laboratory microscopy", width: 1600, height: 900 },
-  procedureRoom: { src: `${L8}/05.jpg`, alt: "A clinician in the procedure room beside an ultrasound machine", caption: "The procedure room, with ultrasound", width: 1600, height: 900 },
-  corridor: { src: `${L8}/06.jpg`, alt: "The clinic entrance corridor with a living green wall", caption: "The entrance, Sankalp Solitaire, Vijayanagar", width: 1600, height: 900 },
-  reception: {
-    src: `${L8}/07.jpg`,
-    alt: "The Momtree reception with a lit tree emblem",
-    caption: "Reception",
-    width: 1600,
-    height: 900,
-    note: "May be a design render rather than a photograph: confirm before launch.",
-  },
-  consultation: {
-    src: `${L8}/08.jpg`,
-    alt: "A consultation room with a leaf-patterned wall",
-    caption: "Consultation room",
-    width: 1600,
-    height: 900,
-    note: "May be a design render rather than a photograph: confirm before launch.",
-  },
+/** Visualisations rendered by the Life Unfolds engine: portrait (4:5) and landscape (16:10). */
+export const plates = {
+  fertilisation: { src: `${P}/fertilisation.webp`, ...tall, alt: "3D visualisation of an egg within its corona cells, approached by sperm", caption: "Conventional IVF: an egg within its corona cells, approached by sperm" },
+  icsi: { src: `${P}/icsi.webp`, ...tall, alt: "3D visualisation of ICSI: a holding pipette steadies an egg while a fine needle approaches", caption: "ICSI: a holding pipette steadies the egg for a single sperm" },
+  cleavage: { src: `${P}/cleavage.webp`, ...tall, alt: "3D visualisation of a four-cell embryo inside its zona pellucida", caption: "A four-cell embryo, about day 2" },
+  blastocyst: { src: `${P}/blastocyst.webp`, ...tall, alt: "3D visualisation of a blastocyst with its inner cell mass, outer layer and cavity", caption: "A blastocyst, about days 5 to 6" },
+  hatching: { src: `${P}/hatching.webp`, ...tall, alt: "3D visualisation of a blastocyst hatching from its zona pellucida", caption: "A blastocyst hatching from its shell, the zona" },
+  icsiWide: { src: `${P}/icsi-wide.webp`, ...wide, alt: "3D visualisation of ICSI micromanipulation: holding pipette, egg and injection needle", caption: "ICSI micromanipulation (3D visualisation)" },
+  blastocystWide: { src: `${P}/blastocyst-wide.webp`, ...wide, alt: "3D visualisation of a blastocyst-stage embryo", caption: "Blastocyst culture (3D visualisation)" },
+  spermWide: { src: `${P}/sperm-wide.webp`, ...wide, alt: "3D visualisation of prepared sperm swimming towards an egg", caption: "Prepared sperm approaching an egg (3D visualisation)" },
+  collectionWide: { src: `${P}/collection-wide.webp`, ...wide, alt: "Schematic 3D visualisation of ultrasound-guided egg collection", caption: "Ultrasound-guided egg collection (schematic)" },
+  monitoringWide: { src: `${P}/monitoring-wide.webp`, ...wide, alt: "3D visualisation of a monitoring scan in which growing follicles show dark", caption: "Monitoring scan: growing follicles show dark on ultrasound (3D visualisation)" },
+  earlyScanWide: { src: `${P}/early-scan-wide.webp`, ...wide, alt: "3D visualisation of an early pregnancy at about seven weeks: gestational sac, yolk sac and embryo", caption: "Early pregnancy at about 7 weeks (3D visualisation)" },
+  anatomyWide: { src: `${P}/anatomy-wide.webp`, ...wide, alt: "Schematic 3D visualisation of the female reproductive system", caption: "The female reproductive system (schematic)" },
+  transferWide: { src: `${P}/transfer-wide.webp`, ...wide, alt: "Schematic 3D visualisation of an embryo transfer catheter passing through the cervix", caption: "Embryo transfer through the cervix (schematic)" },
 } satisfies Record<string, Photo>;
 
-export const events: Photo[] = [
-  {
-    src: "/legacy/2025/08/Image_20250828_164412_538.png",
-    alt: "A baby shower celebration hosted by Momtree IVF",
-    caption: "A baby shower celebration with Momtree families",
-    width: 1179,
-    height: 2556,
-    note: "Shows identifiable people: written consent required before publication.",
-  },
-  {
-    src: "/legacy/2025/08/Image_20250828_164412_690-1.png",
-    alt: "Patients and staff at a Momtree celebration",
-    caption: "Celebrating togetherness with patients and staff",
-    width: 1179,
-    height: 2556,
-    note: "Shows identifiable people: written consent required before publication.",
-  },
-];
+/** AI-generated photographs (from the story). Illustrative only: never a patient, never the clinic. */
+export const stills = {
+  hands: { src: "/story/ch06-hands-2k.webp", width: 2048, height: 1152, alt: "Hands resting over a pregnant belly in soft window light (AI-generated image)", caption: "Illustrative photograph (AI-generated): not a patient" },
+  mother: { src: "/story/ch01-mother-2k.webp", width: 2048, height: 1152, alt: "A pregnant woman in a light dress by a sunlit window (AI-generated image)", caption: "Illustrative photograph (AI-generated): not a patient" },
+  newborn: { src: "/story/ch07-newborn-2k.webp", width: 2048, height: 1152, alt: "A newborn held close in soft light (AI-generated image)", caption: "Illustrative photograph (AI-generated): not a patient" },
+} satisfies Record<string, Photo>;
+
+/** Photographs of the clinic's own premises. Empty in the demo build; galleries are hidden while empty. */
+export const clinicPhotos: Photo[] = [];
+
+/** Community and event photographs (published only with written consent from everyone pictured). */
+export const events: Photo[] = [];
 
 export type Facility = {
   id: string;
@@ -62,66 +55,56 @@ export const facilities: Facility[] = [
     id: "embryology",
     name: "Embryology laboratory",
     text: "Where eggs and sperm meet and embryos are cultured. Embryologists work at stereo microscopes and a micromanipulation workstation for ICSI, assessing embryos at set times while incubators hold temperature, gases and humidity steady.",
-    photos: [photos.icsiStation, photos.embryologist, photos.micromanipulator],
+    photos: [plates.icsiWide, plates.blastocystWide],
   },
   {
     id: "andrology",
     name: "Andrology laboratory",
     text: "Semen analysis following World Health Organization methods, sperm preparation for IUI, IVF and ICSI, and sperm freezing.",
-    photos: [photos.microscope],
-    claim: "The clinic describes its andrology laboratory as AI-enabled. The specific system will be named here once confirmed.",
+    photos: [plates.spermWide],
   },
   {
     id: "theatres",
-    name: "Operation theatres & Class 10,000 clean room",
-    text: "Equipped operation theatres for egg collection and gynaecological procedures, with a Class 10,000 clean room environment as stated by the clinic.",
-    photos: [],
-    claim: "Clean-room classification to be confirmed with documentation; theatre photographs to be supplied.",
+    name: "Operation theatres & clean room",
+    text: "Equipped operation theatres for egg collection and gynaecological procedures, in a controlled clean-room environment.",
+    photos: [plates.collectionWide],
+    claim: "Clean-room claim: confirm with documentation.",
   },
   {
     id: "ultrasound",
     name: "Ultrasound",
     text: "Transvaginal and abdominal ultrasound for assessment, follicle monitoring, guided egg collection, embryo transfer and early pregnancy scans.",
-    photos: [photos.procedureRoom],
+    photos: [plates.monitoringWide, plates.earlyScanWide],
   },
   {
     id: "clinic",
     name: "Fertility clinic & consultation",
-    text: "A calm, private space for consultations and counselling, in Sankalp Solitaire on General Thimmaiah Road, Vijayanagar.",
-    photos: [photos.corridor, photos.reception, photos.consultation],
+    text: "A calm, private space for consultations and counselling, where there is always time for your questions.",
+    photos: [],
   },
   {
     id: "pharmacy",
     name: "In-house pharmacy",
     text: "Fertility medicines dispensed on site, so treatment can begin without delay.",
     photos: [],
-    claim: "Photograph of the actual pharmacy to be supplied (the old website used a stock image).",
   },
 ];
 
-export const gallery: Photo[] = [
-  photos.icsiStation,
-  photos.corridor,
-  photos.embryologist,
-  photos.procedureRoom,
-  photos.micromanipulator,
-  photos.reception,
-  photos.microscope,
-  photos.consultation,
-];
+/** Gallery of the clinic's own photographs (home page and facilities). Hidden while empty. */
+export const gallery: Photo[] = clinicPhotos;
 
-// Verbatim from the clinic's public Google reviews (shown on momtreeivf.com via Trustindex).
-// Names are shortened. Reviews describe individual experiences and are not evidence of outcomes.
-export type Review = { name: string; text: string; source: "Google" };
+// SAMPLE testimonials for the demo build: illustrative wording, not real patients. Replace them with
+// genuine reviews the clinic has permission to quote, and set `sample` to false.
+export type Review = { name: string; text: string; source: string; sample?: boolean };
 export const reviews: Review[] = [
-  { name: "Rangaswamy N.", text: "Doctor spoke friendly with patient and explained the problem very kindly.", source: "Google" },
-  { name: "Sandesh P.", text: "The best doctor i have ever met. Dr Navyashri is always kind and good at nature", source: "Google" },
-  { name: "Usha S.", text: "Best doctor. Excellent ambiance and well maintained staff", source: "Google" },
-  { name: "Pavithra K.", text: "Nice hospital and good faculties i am very satisfaction about the treatment", source: "Google" },
-  { name: "Sandhya", text: "Hospital is good very very good consultation", source: "Google" },
+  { name: "A. & R.", text: "Every step was explained before it happened. We never felt rushed, and we always knew what came next.", source: "Sample testimonial", sample: true },
+  { name: "S. K.", text: "The team answered every question patiently, even the ones we were shy to ask.", source: "Sample testimonial", sample: true },
+  { name: "M. P.", text: "Calm, kind and honest. They were clear with us about our chances from the very first consultation.", source: "Sample testimonial", sample: true },
+  { name: "N. & V.", text: "Results were shared promptly and explained in plain language, every single time.", source: "Sample testimonial", sample: true },
+  { name: "L. D.", text: "A warm, private clinic. The nurses and coordinators made a difficult time feel manageable.", source: "Sample testimonial", sample: true },
 ];
-/** Published by the clinic itself (old site badge and widget). Shown only as "pending" until verified. */
-export const googleSummary = { rating: "4.8", count: "170", verified: false };
+/** A published rating summary ({ rating, count, verified }). Not shown while null. */
+export const ratingSummary = null as null | { rating: string; count: string; verified: boolean };
 
 export type QA = { q: string; a: string };
 export const homeFaqs: QA[] = [

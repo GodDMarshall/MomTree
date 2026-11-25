@@ -32,7 +32,7 @@ export function CtaBand({ title = "Let's talk about *your next step.*", text = "
 
 export function MedicalNote({ className = "" }: { className?: string }) {
   return (
-    <p className={`max-w-[70ch] border-l-2 border-leaf pl-5 text-[13.5px] leading-relaxed text-ink-soft ${className}`}>
+    <p className={`max-w-[70ch] border-l-2 border-accent pl-5 text-[13.5px] leading-relaxed text-ink-soft ${className}`}>
       This page offers general education, not individual medical advice. Whether a treatment is suitable, and what to expect, depends on your own health and test results. Outcomes vary from person to person, and no treatment can guarantee pregnancy.{" "}
       <Link href="/medical-disclaimer" className="link-under">
         Medical disclaimer

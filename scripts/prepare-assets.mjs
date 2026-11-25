@@ -1,6 +1,6 @@
 // Builds web-ready assets from source material:
 //   story plates as WebP at 1K / 2K / 4K (long edge 1280 / 2048 / 3840) plus a manifest the site
-//   reads, the official logo files (full colour and white), favicons and the social share card.
+//   reads, the brand mark and the favicons.
 // Masters: a 4K master in assets-src/generated/4k/ wins over the 2K original of the same name.
 // A size is only produced if the master is at least that large, so nothing is presented as 4K
 // unless it really is.
@@ -69,83 +69,30 @@ for (const f of fs.readdirSync(src("public/story"))) {
   if (!keep) fs.rmSync(src(`public/story/${f}`));
 }
 
-// ---------------------------------------------------------------- brand (official logo)
-// The clinic's official logo is used as supplied; public/legacy keeps the untouched originals. Only
-// the transparent margins are trimmed. Light backgrounds get the full-colour lockup, dark ones a
-// white version with the same shape, as the official site does on its hero.
-const logoTrimmed = await sharp(src("public/legacy/2024/08/logo-1-01.png")).trim({ threshold: 1 }).png().toBuffer();
-const markTrimmed = await sharp(src("public/legacy/2024/08/BACKDROP-04-1.png")).trim({ threshold: 1 }).png().toBuffer();
-
-async function whiteVersion(buf) {
-  const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  for (let i = 0; i < data.length; i += 4) {
-    data[i] = 255;
-    data[i + 1] = 255;
-    data[i + 2] = 255;
-  }
-  return sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png({ compressionLevel: 9 }).toBuffer();
+// ---------------------------------------------------------------- brand mark and favicons
+// The neutral ring mark from src/components/site/BrandMark.tsx, drawn from the same geometry (no
+// text, so no fonts are needed): public/brand/mark.png for structured data, and the favicons.
+// The social share card (public/og.jpg) is set in the site's own fonts by scripts/capture-posters.mjs.
+function markSvg(size, { pad = 0, background = null } = {}) {
+  const r = 27;
+  const d = 32 + r * Math.SQRT1_2;
+  const e = 32 - r * Math.SQRT1_2;
+  const box = 64 + pad * 2;
+  return Buffer.from(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${-pad} ${-pad} ${box} ${box}">
+      ${background ? `<rect x="${-pad}" y="${-pad}" width="${box}" height="${box}" fill="${background}"/>` : ""}
+      <defs><mask id="gap" maskUnits="userSpaceOnUse"><rect x="${-pad}" y="${-pad}" width="${box}" height="${box}" fill="#fff"/><circle cx="${d}" cy="${e}" r="10.5" fill="#000"/></mask></defs>
+      <circle cx="32" cy="32" r="${r}" fill="none" stroke="#4a2d91" stroke-width="2.3" mask="url(#gap)"/>
+      <circle cx="32" cy="32" r="17.5" fill="none" stroke="#4a2d91" stroke-width="1.25" stroke-opacity="0.55"/>
+      <circle cx="32" cy="32" r="3.2" fill="#4a2d91" fill-opacity="0.75"/>
+      <circle cx="${d}" cy="${e}" r="6.4" fill="#d9b36c"/>
+    </svg>`);
 }
-const brandSizes = {};
-for (const [name, buf] of [
-  ["logo", logoTrimmed],
-  ["mark", markTrimmed],
-]) {
-  const meta = await sharp(buf).metadata();
-  brandSizes[name] = [meta.width, meta.height];
-  await sharp(buf).png({ compressionLevel: 9 }).toFile(out(`public/brand/${name}.png`));
-  fs.writeFileSync(out(`public/brand/${name}-white.png`), await whiteVersion(buf));
-  console.log(`brand ${name}: ${meta.width}x${meta.height} (full colour + white)`);
-}
-fs.writeFileSync(out("src/lib/brand.json"), JSON.stringify(brandSizes, null, 2));
-for (const old of ["mark-mask.png", "mark-charcoal.png", "mark-gold.png", "mark-gold-on-plum.png"]) {
+await sharp(markSvg(512, { pad: 2 })).png({ compressionLevel: 9 }).toFile(out("public/brand/mark.png"));
+await sharp(markSvg(512, { pad: 6, background: "#ffffff" })).png().toFile(out("src/app/icon.png"));
+await sharp(markSvg(180, { pad: 8, background: "#ffffff" })).png().toFile(out("src/app/apple-icon.png"));
+// Files from the previous, image-based logo.
+for (const old of ["logo.png", "logo-white.png", "mark-white.png", "mark-mask.png", "mark-charcoal.png", "mark-gold.png", "mark-gold-on-plum.png"]) {
   fs.rmSync(out(`public/brand/${old}`), { force: true });
 }
-
-const white = { r: 255, g: 255, b: 255, alpha: 1 };
-async function iconOnBackground(size, markHeight, bg, file) {
-  const mark = await sharp(markTrimmed).resize({ height: markHeight }).png().toBuffer();
-  const m = await sharp(mark).metadata();
-  await sharp({ create: { width: size, height: size, channels: 4, background: bg } })
-    .composite([{ input: mark, left: Math.round((size - m.width) / 2), top: Math.round((size - m.height) / 2) }])
-    .png()
-    .toFile(out(file));
-}
-await iconOnBackground(512, 420, white, "src/app/icon.png");
-await iconOnBackground(180, 146, white, "src/app/apple-icon.png");
-console.log("icons");
-
-// ---------------------------------------------------------------- social share card (1200x630)
-// 1200x630 is the size social platforms display; it is rendered from the best available master.
-{
-  const W = 1200;
-  const H = 630;
-  const motherMaster = ["assets-src/generated/4k/ch01-mother-wide.png", "assets-src/generated/ch01-mother-wide.png"].find((f) => fs.existsSync(src(f)));
-  const base = await sharp(src(motherMaster)).resize({ width: W, height: H, fit: "cover", position: "right" }).toBuffer();
-  const logo = await sharp(logoTrimmed).resize({ height: 132 }).png().toBuffer();
-  const overlay = Buffer.from(`
-    <svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="g" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.97"/>
-          <stop offset="0.42" stop-color="#FFFFFF" stop-opacity="0.8"/>
-          <stop offset="0.7" stop-color="#FFFFFF" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      <rect width="${W}" height="${H}" fill="url(#g)"/>
-      <g fill="none" stroke="#80C041" stroke-width="1.2" opacity="0.6">
-        <circle cx="140" cy="520" r="40"/><circle cx="140" cy="520" r="64"/><circle cx="140" cy="520" r="92"/>
-      </g>
-      <text x="80" y="318" font-family="Georgia, 'Times New Roman', serif" font-size="64" fill="#1D1A26" font-weight="300">Every beautiful story</text>
-      <text x="80" y="394" font-family="Georgia, 'Times New Roman', serif" font-size="64" fill="#5C2499" font-style="italic" font-weight="300">begins with hope.</text>
-      <text x="82" y="440" font-family="Arial, sans-serif" font-size="13" letter-spacing="4" fill="#5C5668">FERTILITY CARE · MYSURU</text>
-      <text x="${W - 24}" y="${H - 20}" text-anchor="end" font-family="Arial, sans-serif" font-size="12" fill="#FFFFFF" fill-opacity="0.85">AI-generated image, not a patient</text>
-    </svg>`);
-  await sharp(base)
-    .composite([
-      { input: overlay, left: 0, top: 0 },
-      { input: logo, left: 80, top: 66 },
-    ])
-    .jpeg({ quality: 88, mozjpeg: true })
-    .toFile(out("public/og.jpg"));
-  console.log("og card");
-}
+console.log("brand mark and icons");

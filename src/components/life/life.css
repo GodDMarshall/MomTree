@@ -158,7 +158,7 @@
   color: var(--color-violet);
 }
 .life-panel[data-ptone="dark"] .life-eyebrow {
-  color: var(--color-leaf);
+  color: var(--color-accent);
   text-shadow:
     0 0 2px rgb(14 7 25 / 0.9),
     0 1px 10px rgb(14 7 25 / 0.8);
@@ -220,8 +220,8 @@
   margin-left: -3.5px;
   margin-right: 34px;
   border-radius: 50%;
-  border: 1px solid var(--color-leaf);
-  background: rgb(128 192 65 / 0.35);
+  border: 1px solid var(--color-accent);
+  background: rgb(217 179 108 / 0.35);
   flex: none;
 }
 .life-label i::after {
@@ -231,7 +231,7 @@
   top: 2.5px;
   width: 24px;
   height: 1px;
-  background: rgb(128 192 65 / 0.75);
+  background: rgb(217 179 108 / 0.75);
 }
 .life-label-text {
   font-weight: inherit;
@@ -286,15 +286,14 @@
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 1.25rem;
-  color: var(--color-leaf);
+  color: var(--color-accent);
 }
 .life-captext {
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgb(18 9 31 / 0.36);
+  background: rgb(18 9 31 / 0.6);
   font-size: 12.5px;
   line-height: 1.5;
-  text-wrap: balance;
 }
 .life-day {
   font-family: var(--font-serif);
@@ -315,7 +314,7 @@
 .life-scale-bar {
   display: block;
   height: 6px;
-  border: 1px solid var(--color-leaf);
+  border: 1px solid var(--color-accent);
   border-top: 0;
   max-width: 240px;
 }
@@ -333,17 +332,16 @@
     0 0 2px rgb(14 7 25 / 0.9),
     0 1px 10px rgb(14 7 25 / 0.7);
 }
-/* A soft backing like the labels', so the notice stays readable over bright tissue; balanced lines, no lone word. */
+/* A backing like the labels', so the notice stays readable over bright tissue. */
 .life-illus {
   width: fit-content;
   margin-top: 14px;
   padding: 3px 7px;
   border-radius: 4px;
-  background: rgb(18 9 31 / 0.42);
+  background: rgb(18 9 31 / 0.6);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  text-wrap: balance;
   color: rgb(255 255 255 / 0.85);
   text-shadow:
     0 0 2px rgb(14 7 25 / 0.9),
@@ -383,7 +381,7 @@
 }
 .life-ring {
   fill: none;
-  stroke: var(--color-leaf);
+  stroke: var(--color-accent);
   stroke-width: 1.2;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
@@ -476,10 +474,10 @@
 }
 .life-sound-panel input[type="range"] {
   width: 84px;
-  accent-color: var(--color-leaf);
+  accent-color: var(--color-accent);
 }
 .life-sound-panel input[type="checkbox"] {
-  accent-color: var(--color-leaf);
+  accent-color: var(--color-accent);
 }
 
 @media (max-width: 767px) {
@@ -499,7 +497,7 @@
     background: linear-gradient(to top, rgb(255 255 255 / 0.94) 38%, transparent);
   }
   .life-stage[data-tone="dark"] .life-scrim {
-    height: 72%;
+    height: 85%;
     background: linear-gradient(to top, rgb(16 8 28 / 0.92) 0%, rgb(16 8 28 / 0.86) 42%, rgb(16 8 28 / 0.6) 68%, transparent 100%);
   }
   /* The caption body stays top right; the illustration notice is pinned above the HUD, on the dark scrim and clear

@@ -268,9 +268,10 @@ export function LifeUnfolds() {
         setMode("static");
         return;
       }
-      const posterMode = new URLSearchParams(location.search).has("posters");
-      // Poster capture always renders at full quality (4K with a 2× device pixel ratio).
-      const tier = posterMode ? "high" : mod.detectTier();
+      const params = new URLSearchParams(location.search);
+      const posterMode = params.has("posters");
+      // Poster capture and video recording (?capture) always render at full quality, whatever the GPU.
+      const tier = posterMode || params.has("capture") ? "high" : mod.detectTier();
       engine = new mod.LifeEngine(canvasRef.current!, { tier, portrait: isPortrait(), preserveDrawingBuffer: posterMode });
       engine.onFrame = (f) => apply(f.u, f);
       engine.onLost = () => setMode("static");
@@ -411,7 +412,7 @@ export function LifeUnfolds() {
             ))}
             {p.cta === "hero" && (
               <div className="mt-9 flex flex-wrap gap-3">
-                <button type="button" className="btn btn-leaf" onClick={() => scrollToUnit(chapters[1].anchor)}>
+                <button type="button" className="btn btn-accent" onClick={() => scrollToUnit(chapters[1].anchor)}>
                   Begin the story <ArrowDown className="h-4 w-4" />
                 </button>
                 <Link href="/contact#appointment" className="btn btn-light">
@@ -421,7 +422,7 @@ export function LifeUnfolds() {
             )}
             {p.cta === "final" && (
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link href="/contact#appointment" className="btn btn-leaf">
+                <Link href="/contact#appointment" className="btn btn-accent">
                   Book a consultation <ArrowRight />
                 </Link>
                 <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="btn btn-light">
@@ -445,7 +446,7 @@ export function LifeUnfolds() {
             </div>
           </div>
           <span ref={illusEl} className="life-illus">
-            {"Illustration, not to scale · not a patient's treatment or result"}
+            {"Illustration · not a patient's treatment or result"}
           </span>
         </div>
 
@@ -736,7 +737,7 @@ function StaticStory() {
                 {c.n > 1 && (
                   <figcaption>
                     <span className="pl">Fig. {c.n}</span>
-                    <span>{c.title}. {photo ? "AI-generated image, not a patient." : "Illustration, not to scale; not a patient's treatment or result."}</span>
+                    <span>{c.title}. {photo ? "AI-generated image, not a patient." : "Illustration; not a patient's treatment or result."}</span>
                   </figcaption>
                 )}
               </figure>

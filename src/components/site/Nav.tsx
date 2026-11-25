@@ -116,7 +116,7 @@ export function Nav() {
             : "max-w-[1480px] px-[var(--gutter)] py-5 short:py-2"
         } ${onDark ? "text-paper" : "text-ink"}`}
       >
-        <Link href="/" className="relative z-10 shrink-0" aria-label="Momtree IVF & Genetics, home">
+        <Link href="/" className="relative z-10 shrink-0" aria-label={`${site.name}, home`}>
           <LogoSwap dark={onDark} className={`transition-[height] duration-700 ${floating ? "h-[58px] short:h-[44px]" : "h-[64px] md:h-[84px] short:h-[44px]"}`} />
         </Link>
 
@@ -210,12 +210,12 @@ export function Nav() {
                         ))}
                         <div className="row-span-2 col-start-4 row-start-1 flex flex-col justify-between rounded-[22px] bg-night p-6 text-paper">
                           <div>
-                            <p className="t-label !text-leaf">Not sure where to begin?</p>
+                            <p className="t-label !text-accent">Not sure where to begin?</p>
                             <p className="mt-3 font-serif text-[1.65rem] leading-[1.1] font-light">
                               Every journey starts with <em>understanding.</em>
                             </p>
                           </div>
-                          <Link href="/treatments/fertility-evaluation" className="mt-6 inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.12em] uppercase text-leaf">
+                          <Link href="/treatments/fertility-evaluation" className="mt-6 inline-flex items-center gap-2 text-[13px] font-semibold tracking-[0.12em] uppercase text-accent">
                             Fertility evaluation <ArrowRight className="h-4 w-4" />
                           </Link>
                         </div>
@@ -271,7 +271,7 @@ export function Nav() {
         }`}
       >
         <div className="flex items-center justify-between px-[var(--gutter)] py-5">
-          <Link href="/" aria-label="Momtree IVF & Genetics, home">
+          <Link href="/" aria-label={`${site.name}, home`}>
             <Logo tone="white" className="h-[54px]" />
           </Link>
           <button
@@ -294,17 +294,17 @@ export function Nav() {
                   <details className="group">
                     <summary className="flex cursor-pointer list-none items-center justify-between py-4 font-serif text-[2rem] font-light leading-none">
                       <span>
-                        <span className="mr-3 align-middle font-sans text-[11px] tracking-[0.2em] text-leaf">{String(i + 1).padStart(2, "0")}</span>
+                        <span className="mr-3 align-middle font-sans text-[11px] tracking-[0.2em] text-accent">{String(i + 1).padStart(2, "0")}</span>
                         {item.label}
                       </span>
-                      <span className="text-leaf transition-transform group-open:rotate-45" aria-hidden="true">
+                      <span className="text-accent transition-transform group-open:rotate-45" aria-hidden="true">
                         +
                       </span>
                     </summary>
                     <div className="grid gap-5 pb-6 pl-8 pt-1">
                       {groups.map((g) => (
                         <div key={g.id}>
-                          <p className="t-label !text-leaf mb-2">{g.label}</p>
+                          <p className="t-label !text-accent mb-2">{g.label}</p>
                           <ul className="space-y-1.5">
                             {g.items.map((t) => (
                               <li key={t.slug}>
@@ -316,14 +316,14 @@ export function Nav() {
                           </ul>
                         </div>
                       ))}
-                      <Link href="/treatments" className="text-[13px] font-semibold uppercase tracking-[0.14em] text-leaf">
+                      <Link href="/treatments" className="text-[13px] font-semibold uppercase tracking-[0.14em] text-accent">
                         All treatments →
                       </Link>
                     </div>
                   </details>
                 ) : (
-                  <Link href={item.href} className="flex items-center py-4 font-serif text-[2rem] font-light leading-none aria-[current=page]:text-leaf" aria-current={isActive(item.href) ? "page" : undefined}>
-                    <span className="mr-3 font-sans text-[11px] tracking-[0.2em] text-leaf">{String(i + 1).padStart(2, "0")}</span>
+                  <Link href={item.href} className="flex items-center py-4 font-serif text-[2rem] font-light leading-none aria-[current=page]:text-accent" aria-current={isActive(item.href) ? "page" : undefined}>
+                    <span className="mr-3 font-sans text-[11px] tracking-[0.2em] text-accent">{String(i + 1).padStart(2, "0")}</span>
                     {item.label}
                   </Link>
                 )}
@@ -331,7 +331,7 @@ export function Nav() {
             ))}
           </ul>
           <div className="mt-8 grid gap-3">
-            <Link href="/contact#appointment" className="btn btn-leaf justify-center">
+            <Link href="/contact#appointment" className="btn btn-accent justify-center">
               Book a consultation
             </Link>
             <div className="grid grid-cols-2 gap-3">

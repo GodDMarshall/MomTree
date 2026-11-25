@@ -13,12 +13,11 @@ import { SectionRail } from "@/components/home/SectionRail";
 import { Words } from "@/components/ui/Words";
 import { gallery, homeFaqs } from "@/content/clinic";
 import { JsonLd, physicianJsonLd } from "@/lib/seo";
-import { site } from "@/lib/site";
+import { careLine, site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: { absolute: "Momtree IVF & Genetics · Fertility care in Mysuru" },
-  description:
-    "Every beautiful story begins with hope. Fertility evaluation, IUI, IVF, ICSI and blastocyst culture at Momtree IVF & Genetics, Vijayanagar, Mysuru, led by Dr. Navyashri M S.",
+  title: { absolute: `${site.name} · ${careLine}` },
+  description: `Every beautiful story begins with hope. Fertility evaluation, IUI, IVF, ICSI and blastocyst culture at ${site.name}, with personalised care at every step.`,
   alternates: { canonical: "/" },
 };
 
@@ -39,22 +38,25 @@ export default function Home() {
       <Laboratory />
       <Voices />
 
-      <section data-rail="Gallery" id="gallery" className="section-tight" aria-labelledby="gallery-title">
-        <div className="wrap">
-          <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="t-label" data-reveal="">
-                The clinic
+      {/* The clinic's own photographs (content/clinic.ts → clinicPhotos). Hidden while there are none. */}
+      {gallery.length > 0 && (
+        <section data-rail="Gallery" id="gallery" className="section-tight" aria-labelledby="gallery-title">
+          <div className="wrap">
+            <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
+              <div>
+                <p className="t-label" data-reveal="">
+                  The clinic
+                </p>
+                <Words id="gallery-title" as="h2" className="t-h2 mt-5" text="Plates from *our clinic.*" />
+              </div>
+              <p className="max-w-[40ch] text-[14.5px] text-ink-soft" data-reveal="">
+                Photographs of our own laboratory, rooms and spaces.
               </p>
-              <Words id="gallery-title" as="h2" className="t-h2 mt-5" text="Plates from *our clinic.*" />
             </div>
-            <p className="max-w-[40ch] text-[14.5px] text-ink-soft" data-reveal="">
-              Photographs of Momtree&apos;s own laboratory, rooms and spaces in {site.address.locality}, {site.address.city}.
-            </p>
+            <Gallery photos={gallery} startAt={8} />
           </div>
-          <Gallery photos={gallery} startAt={8} />
-        </div>
-      </section>
+        </section>
+      )}
 
       <section data-rail="Questions" id="questions" className="section" aria-labelledby="faq-title">
         <div className="wrap grid gap-12 lg:grid-cols-12">

@@ -9,7 +9,7 @@ import { Pending } from "@/components/ui/Pending";
 
 const SPANS = ["md:col-span-7 md:row-span-2", "md:col-span-5", "md:col-span-5", "md:col-span-4", "md:col-span-4", "md:col-span-4", "md:col-span-6", "md:col-span-6"];
 
-/** Genuine clinic photographs as numbered plates, with an accessible lightbox. */
+/** Clinic photographs as numbered plates, with an accessible lightbox. */
 export function Gallery({ photos, startAt = 1, title = "Plates from the clinic" }: { photos: Photo[]; startAt?: number; title?: string }) {
   const [open, setOpen] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -58,7 +58,7 @@ export function Gallery({ photos, startAt = 1, title = "Plates from the clinic" 
             <button type="button" onClick={() => show(i)} className="group relative block h-full w-full overflow-hidden rounded-[18px] bg-lilac text-left" aria-label={`Open plate ${roman(i + startAt)}: ${p.caption}`}>
               <Image src={p.src} alt={p.alt} fill sizes="(max-width: 768px) 50vw, 40vw" className="object-cover transition-transform duration-[1.6s] ease-[var(--ease-soft)] group-hover:scale-[1.04]" />
               <span className="absolute inset-x-0 bottom-0 flex items-baseline gap-2 bg-gradient-to-t from-ink/60 to-transparent p-4 pt-10 text-paper opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100">
-                <span className="font-serif italic text-leaf">Pl. {roman(i + startAt)}</span>
+                <span className="font-serif italic text-accent">Pl. {roman(i + startAt)}</span>
                 <span className="text-[13px]">{p.caption}</span>
               </span>
             </button>
@@ -82,7 +82,7 @@ export function Gallery({ photos, startAt = 1, title = "Plates from the clinic" 
             </div>
             <figcaption className="mt-4 flex flex-wrap items-center justify-between gap-4 text-[14px]">
               <span className="flex flex-wrap items-baseline gap-3">
-                <span className="font-serif text-[1.2rem] italic text-leaf">Pl. {roman(open! + startAt)}</span>
+                <span className="font-serif text-[1.2rem] italic text-accent">Pl. {roman(open! + startAt)}</span>
                 {cur.caption}
                 {cur.note && <Pending>{cur.note}</Pending>}
               </span>
